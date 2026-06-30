@@ -23,7 +23,7 @@ class APIClient:
 
     def login(self, email: str, password: str):
         response = httpx.post(
-            f"{BASE_URL}/users/login",
+            f"{BASE_URL}/users/login/",
             json={"email": email, "password": password},
             timeout=30.0
         )
