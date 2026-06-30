@@ -21,12 +21,19 @@ class APIClient:
         }, timeout=30.0)
         return response.json()
 
-    def login(self, email: str, password: str):
+   # Dans api_client.py (frontend)
+    def login(email, password):
         response = httpx.post(
-            f"{BASE_URL}/api/users/login/",
+            f"{BASE_URL}/api/users/login", # Gardez ou retirez le / final selon votre test
             json={"email": email, "password": password},
             timeout=30.0
         )
+        
+        # AJOUTEZ CE BLOC DE DEBUG TEMPORAIRE :
+        if response.status_code != 200:
+            print(f"🔴 ERREUR BACKEND ({response.status_code}): {response.text}")
+            return {"error": True, "message": f"Erreur serveur {response.status_code}"}
+            
         return response.json()
 
     def verify_mfa(self, email: str, code: str):
