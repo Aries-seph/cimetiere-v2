@@ -3,7 +3,7 @@ import os
 
 # En production : variable d'environnement BACKEND_URL
 # En local : http://127.0.0.1:8000/api
-BASE_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000/api')
+BASE_URL = os.getenv('BACKEND_URL', 'https://cimetiere-backend-production.up.railway.app')
 
 
 class APIClient:
