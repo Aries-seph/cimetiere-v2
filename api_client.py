@@ -13,7 +13,7 @@ class APIClient:
         self.user = None
 
     def register(self, username: str, email: str, password: str, telephone: str = ""):
-        response = httpx.post(f"{BASE_URL}/api/users/register", json={
+        response = httpx.post(f"{BASE_URL}/api/users/register/", json={
             "username": username,
             "email": email,
             "password": password,
@@ -23,7 +23,7 @@ class APIClient:
 
     def login(self,email, password):
         response = httpx.post(
-            f"{BASE_URL}/api/users/login",
+            f"{BASE_URL}/api/users/login/",
             json={"email": email, "password": password},
             timeout=30.0
         )
@@ -37,7 +37,7 @@ class APIClient:
 
     def verify_mfa(self, email: str, code: str):
         response = httpx.post(
-            f"{BASE_URL}/api/users/verify-mfa",
+            f"{BASE_URL}/api/users/verify-mfa/",
             json={"email": email, "code": code},
             timeout=30.0
         )
@@ -53,7 +53,7 @@ class APIClient:
 
     def get_me(self):
         response = httpx.get(
-            f"{BASE_URL}/api/users/me",
+            f"{BASE_URL}/api/users/me/",
             headers=self.get_headers(),
             timeout=30.0
         )
