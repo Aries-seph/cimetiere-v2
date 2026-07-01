@@ -18,14 +18,14 @@ class APIClient:
             "email": email,
             "password": password,
             "telephone": telephone
-        }, timeout=30.0)
+        }, timeout=60.0)
         return response.json()
 
     def login(self,email, password):
         response = httpx.post(
             f"{BASE_URL}/api/users/login/",
             json={"email": email, "password": password},
-            timeout=30.0
+            timeout=60.0
         )
         
         # AJOUTEZ CE BLOC DE DEBUG TEMPORAIRE :
@@ -39,7 +39,7 @@ class APIClient:
         response = httpx.post(
             f"{BASE_URL}/api/users/verify-mfa/",
             json={"email": email, "code": code},
-            timeout=30.0
+            timeout=60.0
         )
         data = response.json()
         if data.get("success"):
@@ -55,7 +55,7 @@ class APIClient:
         response = httpx.get(
             f"{BASE_URL}/api/users/me/",
             headers=self.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
 
