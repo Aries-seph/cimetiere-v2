@@ -7,7 +7,7 @@ def get_dashboard_stats():
         response = httpx.get(
             f"{BASE_URL}/dashboard/stats",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -19,7 +19,7 @@ def get_occupation_par_bloc():
         response = httpx.get(
             f"{BASE_URL}/dashboard/occupation-par-bloc",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -30,7 +30,7 @@ def get_evolution_7_jours():
         response = httpx.get(
             f"{BASE_URL}/dashboard/evolution-7-jours",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -42,7 +42,7 @@ def get_caveaux():
         response = httpx.get(
             f"{BASE_URL}/caveaux/",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -54,7 +54,7 @@ def get_blocs():
         response = httpx.get(
             f"{BASE_URL}/caveaux/blocs",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -67,7 +67,7 @@ def create_caveau(data: dict):
             f"{BASE_URL}/caveaux/",
             json=data,
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -80,7 +80,7 @@ def update_caveau(caveau_id: int, data: dict):
             f"{BASE_URL}/caveaux/{caveau_id}",
             json=data,
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -92,7 +92,7 @@ def delete_caveau(caveau_id: int):
         response = httpx.delete(
             f"{BASE_URL}/caveaux/{caveau_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -104,7 +104,7 @@ def get_all_reservations():
         response = httpx.get(
             f"{BASE_URL}/reservations/admin",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -116,7 +116,7 @@ def validate_reservation(reservation_id: int):
         response = httpx.post(
             f"{BASE_URL}/reservations/validate/{reservation_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -128,7 +128,7 @@ def reject_reservation(reservation_id: int):
         response = httpx.post(
             f"{BASE_URL}/reservations/reject/{reservation_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -139,7 +139,7 @@ def get_reservation_by_id(reservation_id: int):
         response = httpx.get(
             f"{BASE_URL}/reservations/{reservation_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -151,7 +151,7 @@ def get_reservation_audit(reservation_id: int):
         response = httpx.get(
             f"{BASE_URL}/reservations/audit/{reservation_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -163,7 +163,7 @@ def get_all_paiements():
         response = httpx.get(
             f"{BASE_URL}/finances/admin",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -175,7 +175,7 @@ def validate_paiement(paiement_id: int):
         response = httpx.post(
             f"{BASE_URL}/finances/validate/{paiement_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -187,7 +187,7 @@ def reject_paiement(paiement_id: int):
         response = httpx.post(
             f"{BASE_URL}/finances/reject/{paiement_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -199,7 +199,7 @@ def get_historique_paiements(reservation_id: int):
         response = httpx.get(
             f"{BASE_URL}/finances/historique/{reservation_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -211,7 +211,7 @@ def get_all_concessions():
         response = httpx.get(
             f"{BASE_URL}/concessions/",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -224,7 +224,7 @@ def create_concession(data: dict):
             f"{BASE_URL}/concessions/",
             json=data,
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -237,7 +237,7 @@ def renouveler_concession(concession_id: int, nouvelle_date_fin: str):
             f"{BASE_URL}/concessions/renouveler/{concession_id}",
             params={"nouvelle_date_fin": nouvelle_date_fin},
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -249,7 +249,7 @@ def resilier_concession(concession_id: int):
         response = httpx.post(
             f"{BASE_URL}/concessions/resilier/{concession_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -260,7 +260,7 @@ def get_all_exhumations():
         response = httpx.get(
             f"{BASE_URL}/exhumations/",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -276,7 +276,7 @@ def approuver_exhumation(exhumation_id: int, observations: str = "", date_exhuma
             f"{BASE_URL}/exhumations/approuver/{exhumation_id}",
             json=payload,
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -288,7 +288,7 @@ def refuser_exhumation(exhumation_id: int):
         response = httpx.post(
             f"{BASE_URL}/exhumations/refuser/{exhumation_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -300,7 +300,7 @@ def marquer_exhumation_effectuee(exhumation_id: int):
         response = httpx.post(
             f"{BASE_URL}/exhumations/effectuee/{exhumation_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -311,7 +311,7 @@ def get_exhumation_by_id(exhumation_id: int):
         response = httpx.get(
             f"{BASE_URL}/exhumations/{exhumation_id}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -322,7 +322,7 @@ def get_occupation_par_bloc():
         response = httpx.get(
             f"{BASE_URL}/dashboard/occupation-par-bloc",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -334,7 +334,7 @@ def get_revenus_par_canal():
         response = httpx.get(
             f"{BASE_URL}/dashboard/revenus-par-canal",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -347,7 +347,7 @@ def download_export(export_type: str):
         response = httpx.get(
             f"{BASE_URL}/dashboard/export-{export_type}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.content
     except Exception:
@@ -358,7 +358,7 @@ def get_all_users():
         response = httpx.get(
             f"{BASE_URL}/users/",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -371,7 +371,7 @@ def update_user_role(user_id: int, role: str):
             f"{BASE_URL}/users/{user_id}/role",
             params={"role": role},
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -383,7 +383,7 @@ def toggle_user_active(user_id: int):
         response = httpx.patch(
             f"{BASE_URL}/users/{user_id}/toggle-active",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -394,7 +394,7 @@ def get_caveaux_disponibles():
         response = httpx.get(
             f"{BASE_URL}/caveaux/",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         data = response.json()
         if isinstance(data, list):
@@ -409,7 +409,7 @@ def get_mes_reservations():
         response = httpx.get(
             f"{BASE_URL}/reservations/mes-reservations",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -422,7 +422,7 @@ def create_reservation_client(data: dict):
             f"{BASE_URL}/reservations/",
             json=data,
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -433,7 +433,7 @@ def get_mes_paiements():
         response = httpx.get(
             f"{BASE_URL}/finances/mes-paiements",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -445,7 +445,7 @@ def create_paiement_client(data: dict):
             f"{BASE_URL}/finances/",
             json=data,
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -456,7 +456,7 @@ def get_my_profile():
         response = httpx.get(
             f"{BASE_URL}/users/me",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -469,7 +469,7 @@ def update_my_profile(data: dict):
             f"{BASE_URL}/users/me",
             json=data,
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -480,7 +480,7 @@ def get_mes_exhumations():
         response = httpx.get(
             f"{BASE_URL}/exhumations/",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
@@ -493,7 +493,7 @@ def create_exhumation_client(data: dict):
             f"{BASE_URL}/exhumations/",
             json=data,
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception as e:
@@ -504,7 +504,7 @@ def get_pending_pick():
         response = httpx.get(
             f"{BASE_URL}/users/pending-pick",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0
         )
         return response.json()
     except Exception:
