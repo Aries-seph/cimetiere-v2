@@ -24,7 +24,7 @@ class APIClient:
    # Dans api_client.py (frontend)
     def login(self,email, password):
         response = httpx.post(
-            f"{BASE_URL}/api/users/login", # Gardez ou retirez le / final selon votre test
+            f"{BASE_URL}/api/users/login",
             json={"email": email, "password": password},
             timeout=30.0
         )
