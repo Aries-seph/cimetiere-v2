@@ -52,16 +52,20 @@ class APIClient:
         return {"Authorization": f"Bearer {self.access_token}"}
 
     def get_me(self):
-        response = httpx.get(
-            f"{BASE_URL}/users/me/",
-            headers=self.get_headers(),
-            timeout=60.0
-        )
-        return response.json()
+        try:
+            print(f"===== TOKEN = {self.access_token} =====")
+            response = httpx.get(
+                f"{BASE_URL}/users/me",
+                headers=self.get_headers(),
+                timeout=30.0
+            )
+            print(f"===== get_me status = {response.status_code} =====")
+            return response.json()
+        except Exception as e:
+            print(f"===== get_me erreur = {e} =====")
+            return {}
 
     import os
-
     BASE_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000/api')
-    print(f"🔗 BASE_URL = {BASE_URL}")
-
+    print(f"===== BASE_URL = {BASE_URL} =====")
 api_client = APIClient()
