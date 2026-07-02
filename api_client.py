@@ -59,5 +59,9 @@ class APIClient:
         )
         return response.json()
 
+    import os
+
+    BASE_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000/api')
+    print(f"🔗 BASE_URL = {BASE_URL}")
 
 api_client = APIClient()
