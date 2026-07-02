@@ -36,17 +36,20 @@ def get_evolution_7_jours():
     except Exception:
         return None
     
-
 def get_caveaux():
     try:
         response = httpx.get(
             f"{BASE_URL}/caveaux/",
             headers=api_client.get_headers(),
-            timeout=60.0
+            timeout=30.0
         )
+        print(f"🔍 get_caveaux status: {response.status_code}")
+        print(f"🔍 get_caveaux response: {response.text[:200]}")
         return response.json()
-    except Exception:
+    except Exception as e:
+        print(f"❌ get_caveaux erreur: {e}")
         return None
+    
 
 
 def get_blocs():
