@@ -4,6 +4,7 @@ from components.sidebar import build_sidebar
 from components.data_fetcher import get_caveaux, get_blocs, create_caveau, update_caveau, delete_caveau
 from api_client import api_client
 MOBILE_BREAKPOINT = 768
+import os
 
 STATUT_COLORS = {
     "DISPONIBLE": COLOR_GREEN,
