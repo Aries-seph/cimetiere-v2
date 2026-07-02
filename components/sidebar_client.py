@@ -1,6 +1,6 @@
 import flet as ft
 from theme import COLOR_SIDEBAR, COLOR_PRIMARY, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_RED
-
+import os
 
 def build_sidebar_client(page: ft.Page, active_route: str, on_navigate, on_logout, on_close=None):
 
