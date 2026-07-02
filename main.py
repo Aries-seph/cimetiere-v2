@@ -26,45 +26,47 @@ TOKEN_KEY = "cimetiere.access_token"
 REFRESH_KEY = "cimetiere.refresh_token"
 ROLE_KEY = "cimetiere.user_role"
 EMAIL_KEY = "cimetiere.user_email"
-from flet import SharedPreferences
+
 
 async def main(page: ft.Page):
     page.title = "Gestion de Cimetière"
     page.bgcolor = COLOR_BG
     page.padding = 0
 
-    prefs = SharedPreferences()
-    await prefs.load_async()
-
     current_view = {"name": "login", "used_preselect": False}
 
+    # --- Lecture des paramètres URL ---
     parsed_route = urlparse(page.route or "/")
     qs = parse_qs(parsed_route.query)
     preselect_caveau_id = qs.get("caveau_id", [None])[0]
 
+    # Variables pick (GPS depuis carte admin)
     pick_lat = None
     pick_lng = None
     pick_caveau_id = None
 
+    # --- Session ---
     async def persist_session():
-        await prefs.set_async(TOKEN_KEY, api_client.access_token or "")
-        await prefs.set_async(REFRESH_KEY, api_client.refresh_token or "")
+        await page.shared_preferences.set(TOKEN_KEY, api_client.access_token or "")
+        await page.shared_preferences.set(REFRESH_KEY, api_client.refresh_token or "")
         if api_client.user:
-            await prefs.set_async(ROLE_KEY, api_client.user.get("role", ""))
-            await prefs.set_async(EMAIL_KEY, api_client.user.get("email", ""))
+            await page.shared_preferences.set(ROLE_KEY, api_client.user.get("role", ""))
+            await page.shared_preferences.set(EMAIL_KEY, api_client.user.get("email", ""))
 
     async def clear_session():
         for k in [TOKEN_KEY, REFRESH_KEY, ROLE_KEY, EMAIL_KEY]:
-            await prefs.remove_async(k)
+            if await page.shared_preferences.contains_key(k):
+                await page.shared_preferences.remove(k)
 
     async def restore_session():
-        token = prefs.get(TOKEN_KEY)
+        """Restaure la session depuis le navigateur. Retourne True si session valide."""
+        token = await page.shared_preferences.get(TOKEN_KEY)
         if not token:
             return False
         api_client.access_token = token
-        api_client.refresh_token = prefs.get(REFRESH_KEY)
-        role = prefs.get(ROLE_KEY)
-        email = prefs.get(EMAIL_KEY)
+        api_client.refresh_token = await page.shared_preferences.get(REFRESH_KEY)
+        role = await page.shared_preferences.get(ROLE_KEY)
+        email = await page.shared_preferences.get(EMAIL_KEY)
         me = api_client.get_me()
         if me and "detail" not in me:
             api_client.user = {"role": role, "email": email}
