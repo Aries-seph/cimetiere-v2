@@ -11,7 +11,7 @@ def build_sidebar_client(page: ft.Page, active_route: str, on_navigate, on_logou
         {"label": "Mes paiements", "icon": ft.Icons.PAYMENTS_OUTLINED, "route": "client_paiements"},
         {"label": "Exhumations", "icon": ft.Icons.FOLDER_SPECIAL_OUTLINED, "route": "client_exhumations"},
         {"label": "Mon profil", "icon": ft.Icons.PERSON_OUTLINE, "route": "client_profil"},
-        {"label": "Carte interactive", "icon": ft.Icons.MAP_OUTLINED, "route": "client_carte", "external_url": "http://127.0.0.1:8000/carte/"},
+        {"label": "Carte interactive", "icon": ft.Icons.MAP_OUTLINED, "route": "client_carte","external_url": os.getenv('BACKEND_URL', 'http://127.0.0.1:8000').replace('/api', '') + '/carte/'},
     ]
 
     async def handle_click(item):
