@@ -1,9 +1,8 @@
 import httpx
 import os
 
-# En production : variable d'environnement BACKEND_URL
-# En local : http://127.0.0.1:8000/api
-BASE_URL = os.getenv('BACKEND_URL', 'https://cimetiere-backend-production.up.railway.app/api')
+BASE_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000/api')
+print(f"===== BASE_URL = {BASE_URL} =====")
 
 
 class APIClient:
@@ -21,18 +20,15 @@ class APIClient:
         }, timeout=60.0)
         return response.json()
 
-    def login(self,email, password):
+    def login(self, email, password):
         response = httpx.post(
             f"{BASE_URL}/users/login/",
             json={"email": email, "password": password},
             timeout=60.0
         )
-        
-        # AJOUTEZ CE BLOC DE DEBUG TEMPORAIRE :
         if response.status_code != 200:
-            print(f"🔴 ERREUR BACKEND ({response.status_code}): {response.text}")
+            print(f"ERREUR BACKEND ({response.status_code}): {response.text}")
             return {"error": True, "message": f"Erreur serveur {response.status_code}"}
-            
         return response.json()
 
     def verify_mfa(self, email: str, code: str):
@@ -65,7 +61,5 @@ class APIClient:
             print(f"===== get_me erreur = {e} =====")
             return {}
 
-    import os
-    BASE_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000/api')
-    print(f"===== BASE_URL = {BASE_URL} =====")
+
 api_client = APIClient()
