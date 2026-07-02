@@ -26,29 +26,26 @@ TOKEN_KEY = "cimetiere.access_token"
 REFRESH_KEY = "cimetiere.refresh_token"
 ROLE_KEY = "cimetiere.user_role"
 EMAIL_KEY = "cimetiere.user_email"
-from flet.storage.shared_preferences import SharedPreferences
+from flet import SharedPreferences
 
 async def main(page: ft.Page):
     page.title = "Gestion de Cimetière"
     page.bgcolor = COLOR_BG
     page.padding = 0
 
-    # Nouveau système SharedPreferences
     prefs = SharedPreferences()
     await prefs.load_async()
+
     current_view = {"name": "login", "used_preselect": False}
 
-    # --- Lecture des paramètres URL ---
     parsed_route = urlparse(page.route or "/")
     qs = parse_qs(parsed_route.query)
     preselect_caveau_id = qs.get("caveau_id", [None])[0]
 
-    # Variables pick (GPS depuis carte admin)
     pick_lat = None
     pick_lng = None
     pick_caveau_id = None
 
-    # --- Session ---
     async def persist_session():
         await prefs.set_async(TOKEN_KEY, api_client.access_token or "")
         await prefs.set_async(REFRESH_KEY, api_client.refresh_token or "")
