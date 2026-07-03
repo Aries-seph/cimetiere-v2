@@ -40,7 +40,9 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         )
 
     def open_section_bloc_dialog():
-        sections = get_sections() or []
+        sections_raw = get_sections() or []
+        # S'assurer que c'est bien une liste de dicts
+        sections = [s for s in sections_raw if isinstance(s, dict)] if isinstance(sections_raw, list) else []
 
         nom_section_field = ft.TextField(
             label="Nom de la section",

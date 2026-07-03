@@ -550,3 +550,18 @@ def create_bloc(data: dict):
         return response.json()
     except Exception as e:
         return {"success": False, "message": str(e)}
+    
+
+def get_sections():
+    try:
+        response = httpx.get(
+            f"{BASE_URL}/caveaux/sections",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        print(f"get_sections status: {response.status_code}")
+        print(f"get_sections response: {response.text[:200]}")
+        return response.json()
+    except Exception as e:
+        print(f"get_sections erreur: {e}")
+        return []
