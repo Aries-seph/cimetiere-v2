@@ -374,12 +374,14 @@ def update_user_role(user_id: int, role: str):
             f"{BASE_URL}/users/{user_id}/role",
             params={"role": role},
             headers=api_client.get_headers(),
-            timeout=60.0
+            timeout=30.0
         )
+        print(f"update_user_role status: {response.status_code}")
+        print(f"update_user_role response: {response.text}")
         return response.json()
     except Exception as e:
+        print(f"update_user_role erreur: {e}")
         return {"success": False, "message": str(e)}
-
 
 def toggle_user_active(user_id: int):
     try:
