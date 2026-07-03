@@ -514,3 +514,39 @@ def get_pending_pick():
         return response.json()
     except Exception:
         return None
+    
+
+def get_sections():
+    try:
+        response = httpx.get(
+            f"{BASE_URL}/caveaux/sections",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return None
+
+def create_section(data: dict):
+    try:
+        response = httpx.post(
+            f"{BASE_URL}/caveaux/sections",
+            params=data,
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+def create_bloc(data: dict):
+    try:
+        response = httpx.post(
+            f"{BASE_URL}/caveaux/blocs",
+            params=data,
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception as e:
+        return {"success": False, "message": str(e)}
