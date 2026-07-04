@@ -57,7 +57,7 @@ def get_blocs():
         response = httpx.get(
             f"{BASE_URL}/caveaux/blocs",
             headers=api_client.get_headers(),
-            timeout=60.0
+            timeout=30.0
         )
         return response.json()
     except Exception:
@@ -238,7 +238,7 @@ def renouveler_concession(concession_id: int, nouvelle_date_fin: str):
     try:
         response = httpx.post(
             f"{BASE_URL}/concessions/renouveler/{concession_id}",
-            params={"nouvelle_date_fin": nouvelle_date_fin},
+            json={"nouvelle_date_fin": nouvelle_date_fin},
             headers=api_client.get_headers(),
             timeout=60.0
         )
