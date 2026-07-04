@@ -34,7 +34,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         col={"sm": 12, "md": 8},
-        on_change=lambda e: filter_and_display_users()
+        on_selection_change=lambda e: filter_and_display_users()
     )
 
     role_filter = ft.Dropdown(
@@ -47,7 +47,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
             ft.DropdownOption(key=k, text=v) for k, v in ROLE_LABELS.items()
         ],
         value="TOUS",
-        on_change=lambda e: filter_and_display_users()
+        on_selection_change=lambda e: filter_and_display_users()
     )
 
     def role_badge(role):

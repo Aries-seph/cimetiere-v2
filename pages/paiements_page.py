@@ -38,7 +38,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         col={"sm": 12, "md": 8},
-        on_change=lambda e: filter_and_display_paiements()
+        on_selection_change=lambda e: filter_and_display_paiements()
     )
 
     status_filter = ft.Dropdown(
@@ -51,7 +51,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
             ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
         ],
         value="TOUS",
-        on_change=lambda e: filter_and_display_paiements()
+        on_selection_change=lambda e: filter_and_display_paiements()
     )
 
     def status_badge(statut):
