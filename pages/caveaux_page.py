@@ -89,6 +89,13 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 error_text.visible = False
                 nom_section_field.value = ""
                 desc_section_field.value = ""
+                # Rafraîchir le dropdown des sections
+                nouvelles_sections = get_sections() or []
+                section_dropdown.options = [
+                    ft.dropdown.Option(key=str(s["id"]), text=s["nom"])
+                    for s in nouvelles_sections
+                    if isinstance(s, dict)
+                ]
                 page.update()
             else:
                 error_text.value = result.get("message", "Erreur")
