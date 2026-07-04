@@ -212,7 +212,7 @@ def get_historique_paiements(reservation_id: int):
 def get_all_concessions():
     try:
         response = httpx.get(
-            f"{BASE_URL}/concessions/",
+            f"{BASE_URL}/concessions",
             headers=api_client.get_headers(),
             timeout=60.0
         )
@@ -224,7 +224,7 @@ def get_all_concessions():
 def create_concession(data: dict):
     try:
         response = httpx.post(
-            f"{BASE_URL}/concessions/",
+            f"{BASE_URL}/concessions",
             json=data,
             headers=api_client.get_headers(),
             timeout=60.0
