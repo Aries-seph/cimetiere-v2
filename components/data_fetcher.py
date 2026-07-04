@@ -372,7 +372,7 @@ def update_user_role(user_id: int, role: str):
     try:
         response = httpx.patch(
             f"{BASE_URL}/users/{user_id}/role",
-            params={"role": role},
+            json={"role": role},
             headers=api_client.get_headers(),
             timeout=30.0
         )
@@ -516,22 +516,11 @@ def get_pending_pick():
         return None
     
 
-def get_sections():
-    try:
-        response = httpx.get(
-            f"{BASE_URL}/caveaux/sections",
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return None
-
 def create_section(data: dict):
     try:
         response = httpx.post(
             f"{BASE_URL}/caveaux/sections",
-            params=data,
+            json=data,
             headers=api_client.get_headers(),
             timeout=30.0
         )
@@ -543,7 +532,7 @@ def create_bloc(data: dict):
     try:
         response = httpx.post(
             f"{BASE_URL}/caveaux/blocs",
-            params=data,
+            json=data,
             headers=api_client.get_headers(),
             timeout=30.0
         )
