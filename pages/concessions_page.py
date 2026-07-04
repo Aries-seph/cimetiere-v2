@@ -110,7 +110,8 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
         dialog.open = True
         page.update()
 
-    def open_create_dialog():
+    # Ajout du paramètre d'événement pour Flet 0.85
+    def open_create_dialog(e):
         client_id_field = ft.TextField(label="ID Client", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER, keyboard_type=ft.KeyboardType.NUMBER)
         caveau_id_field = ft.TextField(label="ID Caveau", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER, keyboard_type=ft.KeyboardType.NUMBER)
         type_dropdown = ft.Dropdown(
@@ -128,7 +129,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
         date_fin_field = ft.TextField(label="Date de fin (AAAA-MM-JJ, vide si perpétuelle)", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER)
         error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
 
-        def handle_save(e):
+        def handle_save(ev):
             try:
                 payload = {
                     "client_id": int(client_id_field.value),
@@ -153,7 +154,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 error_text.visible = True
                 page.update()
 
-        def handle_cancel(e):
+        def handle_cancel(ev):
             dialog.open = False
             page.update()
 
@@ -269,7 +270,13 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
     header_controls.append(ft.Text("Concessions", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
     header_controls.append(ft.Container(expand=True))
     header_controls.append(
-        ft.ElevatedButton("Nouvelle concession", icon=ft.Icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_create_dialog())
+        ft.ElevatedButton(
+            "Nouvelle concession", 
+            icon=ft.Icons.ADD, 
+            bgcolor=COLOR_PRIMARY, 
+            color=COLOR_TEXT, 
+            on_click=open_create_dialog  # Liaison directe sans lambda pour fiabiliser le clic
+        )
     )
 
     header = ft.Row(header_controls)
