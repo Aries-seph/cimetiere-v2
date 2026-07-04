@@ -29,29 +29,26 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
 
     is_mobile = page.width < MOBILE_BREAKPOINT
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
-    
-    # Cache local pour le filtrage
     all_paiements_cached = []
 
-    # Éléments de recherche et filtrage
     search_field = ft.TextField(
         hint_text="Rechercher par référence...",
         prefix_icon=ft.Icons.SEARCH,
         bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
-        expand=True,
+        col={"sm": 12, "md": 8},
         on_change=lambda e: filter_and_display_paiements()
     )
 
     status_filter = ft.Dropdown(
         label="Filtrer par statut",
-        width=200 if not is_mobile else None,
         bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
-        options=[ft.dropdown.Option(key="TOUS", text="Tous les statuts")] + [
-            ft.dropdown.Option(key=k, text=v) for k, v in STATUT_LABELS.items()
+        col={"sm": 12, "md": 4},
+        options=[ft.DropdownOption(key="TOUS", text="Tous les statuts")] + [
+            ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
         ],
         value="TOUS",
         on_change=lambda e: filter_and_display_paiements()
@@ -184,11 +181,9 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
 
     header = ft.Row(header_controls)
 
-    # Barre de recherche responsive
-    search_bar = ft.Row(
-        [search_field, status_filter],
-        spacing=10,
-        direction=ft.FlexDirection.COLUMN if is_mobile else ft.FlexDirection.ROW
+    search_bar = ft.ResponsiveRow(
+        controls=[search_field, status_filter],
+        spacing=10
     )
 
     content = ft.Container(

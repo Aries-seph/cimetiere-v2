@@ -27,29 +27,26 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
 
     is_mobile = page.width < MOBILE_BREAKPOINT
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
-    
-    # Cache local pour le filtrage
     all_concessions_cached = []
 
-    # Éléments de recherche et filtrage
     search_field = ft.TextField(
         hint_text="Rechercher par ID Caveau...",
         prefix_icon=ft.Icons.SEARCH,
         bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
-        expand=True,
+        col={"sm": 12, "md": 8},
         on_change=lambda e: filter_and_display_concessions()
     )
 
     status_filter = ft.Dropdown(
         label="Filtrer par statut",
-        width=200 if not is_mobile else None,
         bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
-        options=[ft.dropdown.Option(key="TOUS", text="Tous les statuts")] + [
-            ft.dropdown.Option(key=k, text=v) for k, v in STATUT_LABELS.items()
+        col={"sm": 12, "md": 4},
+        options=[ft.DropdownOption(key="TOUS", text="Tous les statuts")] + [
+            ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
         ],
         value="TOUS",
         on_change=lambda e: filter_and_display_concessions()
@@ -103,13 +100,13 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
         dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Renouveler la concession", color=COLOR_TEXT),
-            content=ft.Column([date_field, error_text], spacing=12, tight=True),
+            content=ft.Column([date_field, error_text], spacing=12),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.ElevatedButton("Confirmer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_confirm),
             ],
         )
-        page.overlay.append(dialog)
+        page.dialog = dialog
         dialog.open = True
         page.update()
 
@@ -123,8 +120,8 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
             options=[
-                ft.dropdown.Option(key="TEMPORAIRE", text="Temporaire"),
-                ft.dropdown.Option(key="PERPETUELLE", text="Perpétuelle"),
+                ft.DropdownOption(key="TEMPORAIRE", text="Temporaire"),
+                ft.DropdownOption(key="PERPETUELLE", text="Perpétuelle"),
             ],
         )
         date_debut_field = ft.TextField(label="Date de début (AAAA-MM-JJ)", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER)
@@ -165,14 +162,14 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
             title=ft.Text("Nouvelle concession", color=COLOR_TEXT),
             content=ft.Column(
                 [client_id_field, caveau_id_field, type_dropdown, date_debut_field, date_fin_field, error_text],
-                spacing=12, tight=True, width=320, scroll=ft.ScrollMode.AUTO,
+                spacing=12, width=320, scroll=ft.ScrollMode.AUTO,
             ),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.ElevatedButton("Créer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save),
             ],
         )
-        page.overlay.append(dialog)
+        page.dialog = dialog
         dialog.open = True
         page.update()
 
@@ -277,11 +274,9 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
 
     header = ft.Row(header_controls)
 
-    # Barre de recherche responsive
-    search_bar = ft.Row(
-        [search_field, status_filter],
-        spacing=10,
-        direction=ft.FlexDirection.COLUMN if is_mobile else ft.FlexDirection.ROW
+    search_bar = ft.ResponsiveRow(
+        controls=[search_field, status_filter],
+        spacing=10
     )
 
     content = ft.Container(

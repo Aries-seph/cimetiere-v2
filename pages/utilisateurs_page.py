@@ -24,29 +24,27 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
 
     is_mobile = page.width < MOBILE_BREAKPOINT
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
-    
-    # Stockage de la liste brute pour le filtrage local
     all_users_cached = []
 
-    # Éléments de recherche et de filtrage
+    # Outils de filtrage (Syntaxe ft.ResponsiveRow compatible 0.85)
     search_field = ft.TextField(
         hint_text="Rechercher un utilisateur (nom, email)...",
         prefix_icon=ft.Icons.SEARCH,
         bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
-        expand=True,
+        col={"sm": 12, "md": 8},
         on_change=lambda e: filter_and_display_users()
     )
 
     role_filter = ft.Dropdown(
         label="Filtrer par rôle",
-        width=200 if not is_mobile else None,
         bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
-        options=[ft.dropdown.Option(key="TOUS", text="Tous les rôles")] + [
-            ft.dropdown.Option(key=k, text=v) for k, v in ROLE_LABELS.items()
+        col={"sm": 12, "md": 4},
+        options=[ft.DropdownOption(key="TOUS", text="Tous les rôles")] + [
+            ft.DropdownOption(key=k, text=v) for k, v in ROLE_LABELS.items()
         ],
         value="TOUS",
         on_change=lambda e: filter_and_display_users()
@@ -71,10 +69,10 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
             border_color=COLOR_BORDER,
             value=u["role"],
             options=[
-                ft.dropdown.Option(key="ADMIN", text="Administrateur"),
-                ft.dropdown.Option(key="AGENT", text="Agent"),
-                ft.dropdown.Option(key="SECRETARIAT", text="Secrétariat"),
-                ft.dropdown.Option(key="CLIENT", text="Client"),
+                ft.DropdownOption(key="ADMIN", text="Administrateur"),
+                ft.DropdownOption(key="AGENT", text="Agent"),
+                ft.DropdownOption(key="SECRETARIAT", text="Secrétariat"),
+                ft.DropdownOption(key="CLIENT", text="Client"),
             ],
         )
         error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
@@ -97,13 +95,13 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
         dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text(f"Modifier le rôle de {u['username']}", color=COLOR_TEXT),
-            content=ft.Column([role_dropdown, error_text], spacing=12, tight=True),
+            content=ft.Column([role_dropdown, error_text], spacing=12),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.ElevatedButton("Confirmer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_confirm),
             ],
         )
-        page.overlay.append(dialog)
+        page.dialog = dialog
         dialog.open = True
         page.update()
 
@@ -122,7 +120,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
                 content=ft.Text(result.get("message", "Action impossible"), color=COLOR_TEXT_MUTED),
                 actions=[ft.TextButton("Fermer", on_click=lambda e: close_dialog(error_dialog))],
             )
-            page.overlay.append(error_dialog)
+            page.dialog = error_dialog
             error_dialog.open = True
             page.update()
 
@@ -173,9 +171,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
             email = u.get("email", "").lower()
             role = u.get("role", "")
 
-            # Match texte
             matches_search = query in username or query in email
-            # Match rôle
             matches_role = selected_role == "TOUS" or role == selected_role
 
             if matches_search and matches_role:
@@ -228,11 +224,9 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
 
     header = ft.Row(header_controls)
 
-    # Barre de recherche responsive
-    search_bar = ft.Row(
-        [search_field, role_filter],
-        spacing=10,
-        direction=ft.FlexDirection.COLUMN if is_mobile else ft.FlexDirection.ROW
+    search_bar = ft.ResponsiveRow(
+        controls=[search_field, role_filter],
+        spacing=10
     )
 
     content = ft.Container(
