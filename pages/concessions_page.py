@@ -157,7 +157,6 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
             page.dialog.open = False
             page.update()
 
-        # Construction et assignation de l'AlertDialog
         page.dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Nouvelle concession", color=COLOR_TEXT),
