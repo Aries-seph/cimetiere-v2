@@ -372,7 +372,7 @@ def update_user_role(user_id: int, role: str):
     try:
         response = httpx.patch(
             f"{BASE_URL}/users/{user_id}/role",
-            json={"role": role},
+            params={"role": role},  # ← params et non json
             headers=api_client.get_headers(),
             timeout=30.0
         )
@@ -383,6 +383,7 @@ def update_user_role(user_id: int, role: str):
         print(f"update_user_role erreur: {e}")
         return {"success": False, "message": str(e)}
 
+
 def toggle_user_active(user_id: int):
     try:
         response = httpx.patch(
@@ -390,8 +391,11 @@ def toggle_user_active(user_id: int):
             headers=api_client.get_headers(),
             timeout=60.0
         )
+        print(f"toggle_user_active status: {response.status_code}")
+        print(f"toggle_user_active response: {response.text}")
         return response.json()
     except Exception as e:
+        print(f"toggle_user_active erreur: {e}")
         return {"success": False, "message": str(e)}
     
 def get_caveaux_disponibles():
