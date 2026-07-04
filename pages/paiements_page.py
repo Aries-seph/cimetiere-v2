@@ -51,7 +51,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
             ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
         ],
         value="TOUS",
-        on_change=lambda e: filter_and_display_paiements()  
+        on_select=lambda e: filter_and_display_paiements()  
     )
 
     def status_badge(statut):

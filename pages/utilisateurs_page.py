@@ -47,7 +47,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
             ft.DropdownOption(key=k, text=v) for k, v in ROLE_LABELS.items()
         ],
         value="TOUS",
-        on_change=lambda e: filter_and_display_users()  
+        on_select=lambda e: filter_and_display_users()  
     )
 
     def role_badge(role):
