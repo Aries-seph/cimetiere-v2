@@ -1,7 +1,7 @@
 import flet as ft
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 from components.sidebar import build_sidebar
-from components.data_fetcher import get_all_paiements, validate_paiement, reject_paiement
+from components.data_fetcher import get_all_paiements, validate_paiement, reject_paiement, create_paiement_client
 
 MOBILE_BREAKPOINT = 768
 
@@ -31,6 +31,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
     all_paiements_cached = []
 
+    # Outils de filtrage
     search_field = ft.TextField(
         hint_text="Rechercher par référence...",
         prefix_icon=ft.Icons.SEARCH,
@@ -38,7 +39,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         col={"sm": 12, "md": 8},
-        on_change=lambda e: filter_and_display_paiements()  
+        on_change=lambda e: filter_and_display_paiements()
     )
 
     status_filter = ft.Dropdown(
@@ -51,7 +52,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
             ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
         ],
         value="TOUS",
-        on_select=lambda e: filter_and_display_paiements()  
+        on_select=lambda e: filter_and_display_paiements()
     )
 
     def status_badge(statut):
@@ -74,6 +75,83 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
         if result.get("success"):
             refresh_list()
 
+    def open_create_paiement_dialog():
+        reservation_id_field = ft.TextField(
+            label="ID de la Réservation",
+            width=300,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
+            keyboard_type=ft.KeyboardType.NUMBER
+        )
+        montant_field = ft.TextField(
+            label="Montant (FCFA)",
+            width=300,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
+            keyboard_type=ft.KeyboardType.NUMBER
+        )
+        canal_dropdown = ft.Dropdown(
+            label="Canal de paiement",
+            width=300,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
+            options=[
+                ft.DropdownOption(key=k, text=v) for k, v in CANAL_LABELS.items()
+            ]
+        )
+        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
+
+        def handle_save(e):
+            try:
+                if not reservation_id_field.value or not montant_field.value or not canal_dropdown.value:
+                    error_text.value = "Tous les champs sont obligatoires"
+                    error_text.visible = True
+                    page.update()
+                    return
+
+                payload = {
+                    "reservation_id": int(reservation_id_field.value),
+                    "montant": float(montant_field.value),
+                    "canal": canal_dropdown.value
+                }
+
+                result = create_paiement_client(payload)
+                if result.get("success"):
+                    dialog.open = False
+                    page.update()
+                    refresh_list()
+                else:
+                    error_text.value = result.get("message", "Erreur lors de l'enregistrement")
+                    error_text.visible = True
+                    page.update()
+            except (ValueError, TypeError):
+                error_text.value = "Veuillez vérifier les valeurs numériques saisies"
+                error_text.visible = True
+                page.update()
+
+        def handle_cancel(e):
+            dialog.open = False
+            page.update()
+
+        dialog = ft.AlertDialog(
+            bgcolor=COLOR_CARD,
+            title=ft.Text("Enregistrer un paiement", color=COLOR_TEXT),
+            content=ft.Column(
+                [reservation_id_field, montant_field, canal_dropdown, error_text],
+                spacing=12, width=320, scroll=ft.ScrollMode.AUTO
+            ),
+            actions=[
+                ft.TextButton("Annuler", on_click=handle_cancel),
+                ft.ElevatedButton("Confirmer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save),
+            ],
+        )
+        page.dialog = dialog
+        dialog.open = True
+        page.update()
+
     def build_paiement_row(p):
         actions = []
         if p["statut"] == "EN_ATTENTE":
@@ -82,7 +160,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
                     icon=ft.Icons.CHECK_CIRCLE_OUTLINE,
                     icon_color=COLOR_GREEN,
                     tooltip="Valider",
-                    on_click=lambda e, pid=p["id"]: handle_validate(pid),
+                    on_click=lambda e: handle_validate(p["id"]),
                 )
             )
             actions.append(
@@ -90,7 +168,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
                     icon=ft.Icons.CANCEL_OUTLINED,
                     icon_color=COLOR_RED,
                     tooltip="Refuser",
-                    on_click=lambda e, pid=p["id"]: handle_reject(pid),
+                    on_click=lambda e: handle_reject(p["id"]),
                 )
             )
 
@@ -178,6 +256,16 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
     if is_mobile:
         header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
     header_controls.append(ft.Text("Paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
+    header_controls.append(ft.Container(expand=True))
+    header_controls.append(
+        ft.ElevatedButton(
+            "Nouveau paiement",
+            icon=ft.Icons.ADD,
+            bgcolor=COLOR_PRIMARY,
+            color=COLOR_TEXT,
+            on_click=lambda e: open_create_paiement_dialog()
+        )
+    )
 
     header = ft.Row(header_controls)
 
