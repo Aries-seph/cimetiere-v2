@@ -85,7 +85,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 return
             result = renouveler_concession(concession_id, date_field.value)
             if result.get("success"):
-                dialog.open = False
+                page.dialog.open = False
                 page.update()
                 refresh_list()
             else:
@@ -94,13 +94,13 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 page.update()
 
         def handle_cancel(e):
-            dialog.open = False
+            page.dialog.open = False
             page.update()
 
         dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Renouveler la concession", color=COLOR_TEXT),
-            content=ft.Column([date_field, error_text], spacing=12),
+            content=ft.Column([date_field, error_text], spacing=12, tight=True),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.ElevatedButton("Confirmer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_confirm),
@@ -110,7 +110,6 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
         dialog.open = True
         page.update()
 
-    # Ajout du paramètre d'événement pour Flet 0.85
     def open_create_dialog(e):
         client_id_field = ft.TextField(label="ID Client", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER, keyboard_type=ft.KeyboardType.NUMBER)
         caveau_id_field = ft.TextField(label="ID Caveau", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER, keyboard_type=ft.KeyboardType.NUMBER)
@@ -142,7 +141,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
 
                 result = create_concession(payload)
                 if result.get("success"):
-                    dialog.open = False
+                    page.dialog.open = False
                     page.update()
                     refresh_list()
                 else:
@@ -155,23 +154,23 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 page.update()
 
         def handle_cancel(ev):
-            dialog.open = False
+            page.dialog.open = False
             page.update()
 
-        dialog = ft.AlertDialog(
+        # Construction et assignation de l'AlertDialog
+        page.dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Nouvelle concession", color=COLOR_TEXT),
             content=ft.Column(
                 [client_id_field, caveau_id_field, type_dropdown, date_debut_field, date_fin_field, error_text],
-                spacing=12, width=320, scroll=ft.ScrollMode.AUTO,
+                spacing=12, width=320, scroll=ft.ScrollMode.AUTO, tight=True
             ),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.ElevatedButton("Créer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save),
             ],
         )
-        page.dialog = dialog
-        dialog.open = True
+        page.dialog.open = True
         page.update()
 
     def build_concession_row(c):
@@ -275,7 +274,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
             icon=ft.Icons.ADD, 
             bgcolor=COLOR_PRIMARY, 
             color=COLOR_TEXT, 
-            on_click=open_create_dialog  # Liaison directe sans lambda pour fiabiliser le clic
+            on_click=open_create_dialog
         )
     )
 
