@@ -1,7 +1,7 @@
 import flet as ft
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 from components.sidebar import build_sidebar
-from components.data_fetcher import get_all_paiements, validate_paiement, reject_paiement, create_paiement_client
+from components.data_fetcher import get_all_paiements, validate_paiement, reject_paiement, create_paiement_client as create_paiement
 
 MOBILE_BREAKPOINT = 768
 
@@ -75,7 +75,8 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
         if result.get("success"):
             refresh_list()
 
-    def open_create_paiement_dialog():
+    # Correction de la fonction pour forcer l'ouverture en Flet 0.85
+    def open_create_paiement_dialog(e):
         reservation_id_field = ft.TextField(
             label="ID de la Réservation",
             width=300,
@@ -104,7 +105,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
         )
         error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
 
-        def handle_save(e):
+        def handle_save(ev):
             try:
                 if not reservation_id_field.value or not montant_field.value or not canal_dropdown.value:
                     error_text.value = "Tous les champs sont obligatoires"
@@ -118,7 +119,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
                     "canal": canal_dropdown.value
                 }
 
-                result = create_paiement_client(payload)
+                result = create_paiement(payload)
                 if result.get("success"):
                     dialog.open = False
                     page.update()
@@ -128,11 +129,11 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
                     error_text.visible = True
                     page.update()
             except (ValueError, TypeError):
-                error_text.value = "Veuillez vérifier les valeurs numériques saisies"
+                error_text.value = "Veuillez vérifier les valeurs numériques"
                 error_text.visible = True
                 page.update()
 
-        def handle_cancel(e):
+        def handle_cancel(ev):
             dialog.open = False
             page.update()
 
@@ -148,6 +149,8 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
                 ft.ElevatedButton("Confirmer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save),
             ],
         )
+        
+        # Attribution directe et synchrone
         page.dialog = dialog
         dialog.open = True
         page.update()
@@ -263,7 +266,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
             icon=ft.Icons.ADD,
             bgcolor=COLOR_PRIMARY,
             color=COLOR_TEXT,
-            on_click=lambda e: open_create_paiement_dialog()
+            on_click=open_create_paiement_dialog  # Lié directement sans lambda pour éviter les pertes de contexte
         )
     )
 
