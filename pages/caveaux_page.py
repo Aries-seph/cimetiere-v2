@@ -41,7 +41,6 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
 
     def open_section_bloc_dialog():
         sections_raw = get_sections() or []
-        # S'assurer que c'est bien une liste de dicts
         sections = [s for s in sections_raw if isinstance(s, dict)] if isinstance(sections_raw, list) else []
 
         nom_section_field = ft.TextField(
@@ -89,7 +88,6 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 error_text.visible = False
                 nom_section_field.value = ""
                 desc_section_field.value = ""
-                # Rafraîchir le dropdown des sections
                 nouvelles_sections = get_sections() or []
                 section_dropdown.options = [
                     ft.dropdown.Option(key=str(s["id"]), text=s["nom"])
@@ -103,6 +101,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 page.update()
 
         def handle_save_bloc(e):
+            nonlocal blocs_list
             if not nom_bloc_field.value or not section_dropdown.value:
                 error_text.value = "Tous les champs sont obligatoires"
                 error_text.visible = True
@@ -117,6 +116,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 success_text.visible = True
                 error_text.visible = False
                 nom_bloc_field.value = ""
+                blocs_list = get_blocs() or []
                 page.update()
             else:
                 error_text.value = result.get("message", "Erreur")
