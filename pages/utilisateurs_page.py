@@ -26,7 +26,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
     all_users_cached = []
 
-   # Outils de filtrage
+    # Outils de filtrage
     search_field = ft.TextField(
         hint_text="Rechercher un utilisateur (nom, email)...",
         prefix_icon=ft.Icons.SEARCH,
@@ -34,7 +34,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         col={"sm": 12, "md": 8},
-        on_change=lambda e: filter_and_display_users()  
+        on_change=lambda e: filter_and_display_users()
     )
 
     role_filter = ft.Dropdown(
@@ -47,7 +47,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
             ft.DropdownOption(key=k, text=v) for k, v in ROLE_LABELS.items()
         ],
         value="TOUS",
-        on_select=lambda e: filter_and_display_users()  
+        on_select=lambda e: filter_and_display_users()
     )
 
     def role_badge(role):
@@ -126,6 +126,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
 
     def build_user_row(u):
         is_active = u.get("is_active", True)
+        user_id = u.get("id")
 
         return ft.Container(
             content=ft.Row(
@@ -145,12 +146,17 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
                         padding=ft.Padding(left=20, top=10, right=20, bottom=10),
                         border_radius=20,
                     ),
-                    ft.IconButton(icon=ft.Icons.MANAGE_ACCOUNTS_OUTLINED, icon_color=COLOR_TEXT_MUTED, tooltip="Modifier le rôle", on_click=lambda e, usr=u: open_change_role_dialog(usr)),
+                    ft.IconButton(
+                        icon=ft.Icons.MANAGE_ACCOUNTS_OUTLINED, 
+                        icon_color=COLOR_TEXT_MUTED, 
+                        tooltip="Modifier le rôle", 
+                        on_click=lambda e: open_change_role_dialog(u)
+                    ),
                     ft.IconButton(
                         icon=ft.Icons.BLOCK if is_active else ft.Icons.CHECK_CIRCLE_OUTLINE,
                         icon_color=COLOR_RED if is_active else COLOR_GREEN,
                         tooltip="Désactiver" if is_active else "Activer",
-                        on_click=lambda e, uid=u["id"]: handle_toggle_active(uid),
+                        on_click=lambda e: handle_toggle_active(user_id),
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
