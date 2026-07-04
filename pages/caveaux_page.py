@@ -37,7 +37,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         col={"sm": 12, "md": 8},
-        on_select=lambda e: filter_and_display_caveaux()
+        on_change=lambda e: filter_and_display_caveaux() 
     )
 
     status_filter = ft.Dropdown(
@@ -50,7 +50,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
         ],
         value="TOUS",
-        on_select=lambda e: filter_and_display_caveaux()
+        on_change=lambda e: filter_and_display_caveaux() 
     )
 
     def status_badge(statut):

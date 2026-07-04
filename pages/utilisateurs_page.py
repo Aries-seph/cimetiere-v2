@@ -26,6 +26,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
     all_users_cached = []
 
+   # Outils de filtrage
     search_field = ft.TextField(
         hint_text="Rechercher un utilisateur (nom, email)...",
         prefix_icon=ft.Icons.SEARCH,
@@ -33,7 +34,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         col={"sm": 12, "md": 8},
-        on_select=lambda e: filter_and_display_users()
+        on_change=lambda e: filter_and_display_users()  
     )
 
     role_filter = ft.Dropdown(
@@ -46,7 +47,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
             ft.DropdownOption(key=k, text=v) for k, v in ROLE_LABELS.items()
         ],
         value="TOUS",
-        on_select=lambda e: filter_and_display_users()
+        on_change=lambda e: filter_and_display_users()  
     )
 
     def role_badge(role):
