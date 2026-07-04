@@ -29,6 +29,33 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
 
     is_mobile = page.width < MOBILE_BREAKPOINT
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    
+    # Cache local pour le filtrage
+    all_paiements_cached = []
+
+    # Éléments de recherche et filtrage
+    search_field = ft.TextField(
+        hint_text="Rechercher par référence...",
+        prefix_icon=ft.Icons.SEARCH,
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        expand=True,
+        on_change=lambda e: filter_and_display_paiements()
+    )
+
+    status_filter = ft.Dropdown(
+        label="Filtrer par statut",
+        width=200 if not is_mobile else None,
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        options=[ft.dropdown.Option(key="TOUS", text="Tous les statuts")] + [
+            ft.dropdown.Option(key=k, text=v) for k, v in STATUT_LABELS.items()
+        ],
+        value="TOUS",
+        on_change=lambda e: filter_and_display_paiements()
+    )
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
@@ -95,17 +122,35 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
-    def refresh_list():
-        paiements = get_all_paiements() or []
+    def filter_and_display_paiements():
+        query = search_field.value.lower().strip()
+        selected_status = status_filter.value
+
+        filtered_paiements = []
+        for p in all_paiements_cached:
+            reference = p.get("reference", "").lower()
+            statut = p.get("statut", "")
+
+            matches_search = query in reference
+            matches_status = selected_status == "TOUS" or statut == selected_status
+
+            if matches_search and matches_status:
+                filtered_paiements.append(p)
+
         list_container.controls.clear()
-        if not paiements or not isinstance(paiements, list):
+        if not filtered_paiements:
             list_container.controls.append(
-                ft.Text("Aucun paiement enregistré", color=COLOR_TEXT_MUTED, size=14)
+                ft.Text("Aucun paiement ne correspond aux critères", color=COLOR_TEXT_MUTED, size=14)
             )
         else:
-            for p in paiements:
+            for p in filtered_paiements:
                 list_container.controls.append(build_paiement_row(p))
         page.update()
+
+    def refresh_list():
+        nonlocal all_paiements_cached
+        all_paiements_cached = get_all_paiements() or []
+        filter_and_display_paiements()
 
     refresh_list()
 
@@ -139,11 +184,20 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
 
     header = ft.Row(header_controls)
 
+    # Barre de recherche responsive
+    search_bar = ft.Row(
+        [search_field, status_filter],
+        spacing=10,
+        direction=ft.FlexDirection.COLUMN if is_mobile else ft.FlexDirection.ROW
+    )
+
     content = ft.Container(
         content=ft.Column(
             [
                 header,
-                ft.Container(height=20),
+                ft.Container(height=10),
+                search_bar,
+                ft.Container(height=10),
                 list_container,
             ],
             expand=True,

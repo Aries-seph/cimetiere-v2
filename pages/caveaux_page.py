@@ -3,8 +3,9 @@ from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIM
 from components.sidebar import build_sidebar
 from components.data_fetcher import get_caveaux, get_blocs, create_caveau, update_caveau, delete_caveau, get_sections, create_section, create_bloc
 from api_client import api_client
-MOBILE_BREAKPOINT = 768
 import os
+
+MOBILE_BREAKPOINT = 768
 
 STATUT_COLORS = {
     "DISPONIBLE": COLOR_GREEN,
@@ -24,10 +25,34 @@ STATUT_LABELS = {
 def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=None, pick_caveau_id=None):
 
     is_mobile = page.width < MOBILE_BREAKPOINT
-    caveaux_list = get_caveaux() or []
+    caveaux_list_cached = []
     blocs_list = get_blocs() or []
 
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+
+    # Barre d'outils de recherche et filtrage
+    search_field = ft.TextField(
+        hint_text="Rechercher par référence...",
+        prefix_icon=ft.Icons.SEARCH,
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        expand=True,
+        on_change=lambda e: filter_and_display_caveaux()
+    )
+
+    status_filter = ft.Dropdown(
+        label="Filtrer par statut",
+        width=200 if not is_mobile else None,
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        options=[ft.dropdown.Option(key="TOUS", text="Tous les statuts")] + [
+            ft.dropdown.Option(key=k, text=v) for k, v in STATUT_LABELS.items()
+        ],
+        value="TOUS",
+        on_change=lambda e: filter_and_display_caveaux()
+    )
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
@@ -352,18 +377,35 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
-    def refresh_list():
-        nonlocal caveaux_list
-        caveaux_list = get_caveaux() or []
+    def filter_and_display_caveaux():
+        query = search_field.value.lower().strip()
+        selected_status = status_filter.value
+
+        filtered_caveaux = []
+        for c in caveaux_list_cached:
+            reference = c.get("reference", "").lower()
+            statut = c.get("statut", "")
+
+            matches_search = query in reference
+            matches_status = selected_status == "TOUS" or statut == selected_status
+
+            if matches_search and matches_status:
+                filtered_caveaux.append(c)
+
         list_container.controls.clear()
-        if not caveaux_list:
+        if not filtered_caveaux:
             list_container.controls.append(
-                ft.Text("Aucun caveau enregistré", color=COLOR_TEXT_MUTED, size=14)
+                ft.Text("Aucun caveau ne correspond aux critères", color=COLOR_TEXT_MUTED, size=14)
             )
         else:
-            for c in caveaux_list:
+            for c in filtered_caveaux:
                 list_container.controls.append(build_caveau_row(c))
         page.update()
+
+    def refresh_list():
+        nonlocal caveaux_list_cached
+        caveaux_list_cached = get_caveaux() or []
+        filter_and_display_caveaux()
 
     refresh_list()
 
@@ -371,7 +413,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         if pick_caveau_id:
             try:
                 pcid = int(pick_caveau_id)
-                match = next((c for c in caveaux_list if c["id"] == pcid), None)
+                match = next((c for c in caveaux_list_cached if c["id"] == pcid), None)
                 if match:
                     open_form_dialog(match, prefill_lat=pick_lat, prefill_lng=pick_lng)
                 else:
@@ -430,11 +472,20 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
 
     header = ft.Row(header_controls)
 
+    # Barre de recherche responsive
+    search_bar = ft.Row(
+        [search_field, status_filter],
+        spacing=10,
+        direction=ft.FlexDirection.COLUMN if is_mobile else ft.FlexDirection.ROW
+    )
+
     content = ft.Container(
         content=ft.Column(
             [
                 header,
-                ft.Container(height=20),
+                ft.Container(height=10),
+                search_bar,
+                ft.Container(height=10),
                 list_container,
             ],
             expand=True,

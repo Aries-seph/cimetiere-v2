@@ -24,6 +24,33 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
 
     is_mobile = page.width < MOBILE_BREAKPOINT
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    
+    # Stockage de la liste brute pour le filtrage local
+    all_users_cached = []
+
+    # Éléments de recherche et de filtrage
+    search_field = ft.TextField(
+        hint_text="Rechercher un utilisateur (nom, email)...",
+        prefix_icon=ft.Icons.SEARCH,
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        expand=True,
+        on_change=lambda e: filter_and_display_users()
+    )
+
+    role_filter = ft.Dropdown(
+        label="Filtrer par rôle",
+        width=200 if not is_mobile else None,
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        options=[ft.dropdown.Option(key="TOUS", text="Tous les rôles")] + [
+            ft.dropdown.Option(key=k, text=v) for k, v in ROLE_LABELS.items()
+        ],
+        value="TOUS",
+        on_change=lambda e: filter_and_display_users()
+    )
 
     def role_badge(role):
         color = ROLE_COLORS.get(role, "#6B7280")
@@ -136,17 +163,38 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
-    def refresh_list():
-        users = get_all_users() or []
+    def filter_and_display_users():
+        query = search_field.value.lower().strip()
+        selected_role = role_filter.value
+
+        filtered_users = []
+        for u in all_users_cached:
+            username = u.get("username", "").lower()
+            email = u.get("email", "").lower()
+            role = u.get("role", "")
+
+            # Match texte
+            matches_search = query in username or query in email
+            # Match rôle
+            matches_role = selected_role == "TOUS" or role == selected_role
+
+            if matches_search and matches_role:
+                filtered_users.append(u)
+
         list_container.controls.clear()
-        if not users or not isinstance(users, list):
+        if not filtered_users:
             list_container.controls.append(
-                ft.Text("Aucun utilisateur trouvé", color=COLOR_TEXT_MUTED, size=14)
+                ft.Text("Aucun utilisateur ne correspond aux critères", color=COLOR_TEXT_MUTED, size=14)
             )
         else:
-            for u in users:
+            for u in filtered_users:
                 list_container.controls.append(build_user_row(u))
         page.update()
+
+    def refresh_list():
+        nonlocal all_users_cached
+        all_users_cached = get_all_users() or []
+        filter_and_display_users()
 
     refresh_list()
 
@@ -180,11 +228,20 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
 
     header = ft.Row(header_controls)
 
+    # Barre de recherche responsive
+    search_bar = ft.Row(
+        [search_field, role_filter],
+        spacing=10,
+        direction=ft.FlexDirection.COLUMN if is_mobile else ft.FlexDirection.ROW
+    )
+
     content = ft.Container(
         content=ft.Column(
             [
                 header,
-                ft.Container(height=20),
+                ft.Container(height=10),
+                search_bar,
+                ft.Container(height=10),
                 list_container,
             ],
             expand=True,

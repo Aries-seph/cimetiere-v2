@@ -27,6 +27,33 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
 
     is_mobile = page.width < MOBILE_BREAKPOINT
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    
+    # Cache local pour le filtrage
+    all_concessions_cached = []
+
+    # Éléments de recherche et filtrage
+    search_field = ft.TextField(
+        hint_text="Rechercher par ID Caveau...",
+        prefix_icon=ft.Icons.SEARCH,
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        expand=True,
+        on_change=lambda e: filter_and_display_concessions()
+    )
+
+    status_filter = ft.Dropdown(
+        label="Filtrer par statut",
+        width=200 if not is_mobile else None,
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        options=[ft.dropdown.Option(key="TOUS", text="Tous les statuts")] + [
+            ft.dropdown.Option(key=k, text=v) for k, v in STATUT_LABELS.items()
+        ],
+        value="TOUS",
+        on_change=lambda e: filter_and_display_concessions()
+    )
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
@@ -184,17 +211,35 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
-    def refresh_list():
-        concessions = get_all_concessions() or []
+    def filter_and_display_concessions():
+        query = search_field.value.strip()
+        selected_status = status_filter.value
+
+        filtered_concessions = []
+        for c in all_concessions_cached:
+            caveau_id = str(c.get("caveau_id", ""))
+            statut = c.get("statut", "")
+
+            matches_search = query in caveau_id if query else True
+            matches_status = selected_status == "TOUS" or statut == selected_status
+
+            if matches_search and matches_status:
+                filtered_concessions.append(c)
+
         list_container.controls.clear()
-        if not concessions or not isinstance(concessions, list):
+        if not filtered_concessions:
             list_container.controls.append(
-                ft.Text("Aucune concession enregistrée", color=COLOR_TEXT_MUTED, size=14)
+                ft.Text("Aucune concession ne correspond aux critères", color=COLOR_TEXT_MUTED, size=14)
             )
         else:
-            for c in concessions:
+            for c in filtered_concessions:
                 list_container.controls.append(build_concession_row(c))
         page.update()
+
+    def refresh_list():
+        nonlocal all_concessions_cached
+        all_concessions_cached = get_all_concessions() or []
+        filter_and_display_concessions()
 
     refresh_list()
 
@@ -232,11 +277,20 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
 
     header = ft.Row(header_controls)
 
+    # Barre de recherche responsive
+    search_bar = ft.Row(
+        [search_field, status_filter],
+        spacing=10,
+        direction=ft.FlexDirection.COLUMN if is_mobile else ft.FlexDirection.ROW
+    )
+
     content = ft.Container(
         content=ft.Column(
             [
                 header,
-                ft.Container(height=20),
+                ft.Container(height=10),
+                search_bar,
+                ft.Container(height=10),
                 list_container,
             ],
             expand=True,
