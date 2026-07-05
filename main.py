@@ -18,7 +18,7 @@ from pages.client_profil_page import client_profil_page
 from pages.client_exhumations_page import client_exhumations_page
 from pages.client_carte_page import client_carte_page
 from theme import COLOR_BG
-from api_client import api_client,set_global_session,restore_global_session
+from api_client import api_client, set_global_session, restore_global_session
 from urllib.parse import urlparse, parse_qs
 import os
 
@@ -36,12 +36,10 @@ async def main(page: ft.Page):
 
     current_view = {"name": "login", "used_preselect": False}
 
-    # --- Lecture des paramètres URL ---
     parsed_route = urlparse(page.route or "/")
     qs = parse_qs(parsed_route.query)
     preselect_caveau_id = qs.get("caveau_id", [None])[0]
 
-    # Variables pick (GPS depuis carte admin)
     pick_lat = None
     pick_lng = None
     pick_caveau_id = None
@@ -60,7 +58,6 @@ async def main(page: ft.Page):
                 await page.shared_preferences.remove(k)
 
     async def restore_session():
-        """Restaure la session depuis le navigateur. Retourne True si session valide."""
         token = await page.shared_preferences.get(TOKEN_KEY)
         if not token:
             return False
@@ -71,6 +68,7 @@ async def main(page: ft.Page):
         me = api_client.get_me()
         if me and "detail" not in me:
             api_client.user = {"role": role, "email": email}
+            set_global_session(api_client.access_token, api_client.refresh_token, api_client.user)
             return True
         else:
             await clear_session()
@@ -92,6 +90,7 @@ async def main(page: ft.Page):
 
     async def on_mfa_success():
         role = api_client.user.get("role") if api_client.user else None
+        set_global_session(api_client.access_token, api_client.refresh_token, api_client.user)
         await persist_session()
         if role == "CLIENT":
             if preselect_caveau_id and not current_view["used_preselect"]:
@@ -101,7 +100,6 @@ async def main(page: ft.Page):
         else:
             current_view["name"] = "dashboard"
         render()
-
 
     def on_navigate(route):
         current_view["name"] = route
@@ -113,6 +111,7 @@ async def main(page: ft.Page):
         api_client.refresh_token = None
         api_client.user = None
         current_view["name"] = "login"
+        page.overlay.clear()
         render()
 
     def render():
@@ -120,7 +119,8 @@ async def main(page: ft.Page):
         nonlocal pick_lat, pick_lng, pick_caveau_id
 
         page.controls.clear()
-        page.overlay.clear()
+        # Ne pas vider page.overlay ici — cela détruit les on_click des dialogs
+
         name = current_view["name"]
 
         if name == "login":
@@ -132,7 +132,6 @@ async def main(page: ft.Page):
         elif name == "dashboard":
             page.add(admin_dashboard(page, on_navigate, on_logout))
         elif name == "caveaux":
-            # Consomme les coordonnées pick et remet à None après passage
             plat = pick_lat
             plng = pick_lng
             pcid = pick_caveau_id
@@ -179,17 +178,15 @@ async def main(page: ft.Page):
     page.on_resize = handle_resize
 
     # --- Démarrage initial ---
-    session_ok = restore_global_session()
+    session_ok = await restore_session()
 
     if session_ok:
         role = api_client.user.get("role") if api_client.user else None
 
-        # Vérifier si des coordonnées GPS sont en attente (retour depuis carte admin)
         from components.data_fetcher import get_pending_pick
         pick_data = get_pending_pick()
 
         if pick_data and pick_data.get("has_pick"):
-            # L'admin revient de la carte avec des coordonnées → aller directement aux caveaux
             pick_lat = str(pick_data["latitude"])
             pick_lng = str(pick_data["longitude"])
             pick_caveau_id = str(pick_data["caveau_id"]) if pick_data.get("caveau_id") else None
