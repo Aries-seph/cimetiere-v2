@@ -3,6 +3,7 @@ import os
 
 BASE_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000/api')
 print(f"===== BASE_URL = {BASE_URL} =====")
+_global_token = {"access": None, "refresh": None, "user": None}
 
 
 class APIClient:
@@ -60,6 +61,22 @@ class APIClient:
         except Exception as e:
             print(f"===== get_me erreur = {e} =====")
             return {}
+        
+    def set_global_session(access, refresh, user):
+        _global_token["access"] = access
+        _global_token["refresh"] = refresh
+        _global_token["user"] = user
+        api_client.access_token = access
+        api_client.refresh_token = refresh
+        api_client.user = user
 
-
+    def restore_global_session():
+        if _global_token["access"]:
+            api_client.access_token = _global_token["access"]
+            api_client.refresh_token = _global_token["refresh"]
+            api_client.user = _global_token["user"]
+            return True
+        return False
 api_client = APIClient()
+
+

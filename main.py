@@ -21,6 +21,8 @@ from theme import COLOR_BG
 from api_client import api_client
 from urllib.parse import urlparse, parse_qs
 import os
+from api_client import set_global_session, restore_global_session
+
 
 TOKEN_KEY = "cimetiere.access_token"
 REFRESH_KEY = "cimetiere.refresh_token"
@@ -101,6 +103,7 @@ async def main(page: ft.Page):
             current_view["name"] = "dashboard"
         render()
 
+
     def on_navigate(route):
         current_view["name"] = route
         render()
@@ -114,6 +117,7 @@ async def main(page: ft.Page):
         render()
 
     def render():
+        restore_global_session()
         nonlocal pick_lat, pick_lng, pick_caveau_id
 
         page.controls.clear()
