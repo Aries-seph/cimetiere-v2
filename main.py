@@ -179,7 +179,7 @@ async def main(page: ft.Page):
     page.on_resize = handle_resize
 
     # --- Démarrage initial ---
-    session_ok = await restore_global_session()
+    session_ok = restore_global_session()
 
     if session_ok:
         role = api_client.user.get("role") if api_client.user else None
