@@ -111,7 +111,7 @@ async def main(page: ft.Page):
         api_client.refresh_token = None
         api_client.user = None
         current_view["name"] = "login"
-        page.overlay.clear()
+        page.controls.clear()
         render()
 
     def render():
