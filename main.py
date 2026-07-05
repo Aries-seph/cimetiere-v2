@@ -202,6 +202,7 @@ async def main(page: ft.Page):
     else:
         current_view["name"] = "login"
 
+    render()
 
 
 port = int(os.getenv('PORT', 8550))
