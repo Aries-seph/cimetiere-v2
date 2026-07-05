@@ -111,11 +111,15 @@ async def main(page: ft.Page):
         api_client.refresh_token = None
         api_client.user = None
         current_view["name"] = "login"
+        page.overlay.clear()
         render()
 
     def render():
         restore_global_session()
         nonlocal pick_lat, pick_lng, pick_caveau_id
+
+        page.controls.clear()
+        # Ne pas vider page.overlay ici — cela détruit les on_click des dialogs
 
         name = current_view["name"]
 
