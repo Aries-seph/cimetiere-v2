@@ -18,10 +18,9 @@ from pages.client_profil_page import client_profil_page
 from pages.client_exhumations_page import client_exhumations_page
 from pages.client_carte_page import client_carte_page
 from theme import COLOR_BG
-from api_client import api_client
+from api_client import api_client,set_global_session,restore_global_session
 from urllib.parse import urlparse, parse_qs
 import os
-from api_client import set_global_session, restore_global_session
 
 
 TOKEN_KEY = "cimetiere.access_token"
