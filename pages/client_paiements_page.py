@@ -1,3 +1,4 @@
+# client_paiements_page.py (corrigé)
 import flet as ft
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 from components.sidebar_client import build_sidebar_client
@@ -27,16 +28,16 @@ CANAL_LABELS = {
 
 def client_paiements_page(page: ft.Page, on_navigate, on_logout):
 
-    is_mobile = page.width < MOBILE_BREAKPOINT
+    is_mobile = page.width < MOBILE_BREAKPOINT  # Correction ici
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.padding.all(10),
+            padding=ft.Padding(left=10, top=5, right=10, bottom=5),  # Padding réduit
             border_radius=20,
         )
 
@@ -53,7 +54,7 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
                 content=ft.Text("Vous devez avoir au moins une réservation validée pour effectuer un paiement.", color=COLOR_TEXT_MUTED),
                 actions=[ft.TextButton("Fermer", on_click=lambda e: close_dialog(info_dialog))],
             )
-            page.dialog = info_dialog
+            page.overlay.append(info_dialog)
             info_dialog.open = True
             page.update()
             return
@@ -63,7 +64,7 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
             width=320,
             bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
             options=[
-                ft.dropdown.Option(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
+                ft.DropdownOption(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
                 for r in reservations_validees
             ],
         )
@@ -78,10 +79,10 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
             width=320,
             bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
             options=[
-                ft.dropdown.Option(key="MOBILE_MONEY", text="Mobile Money"),
-                ft.dropdown.Option(key="AIRTEL_MONEY", text="Airtel Money"),
-                ft.dropdown.Option(key="ESPECES", text="Espèces"),
-                ft.dropdown.Option(key="VIREMENT", text="Virement"),
+                ft.DropdownOption(key="MOBILE_MONEY", text="Mobile Money"),
+                ft.DropdownOption(key="AIRTEL_MONEY", text="Airtel Money"),
+                ft.DropdownOption(key="ESPECES", text="Espèces"),
+                ft.DropdownOption(key="VIREMENT", text="Virement"),
             ],
         )
         error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
@@ -106,8 +107,6 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
                     error_text.visible = False
                     page.update()
                     refresh_list()
-                    dialog.open = False
-                    page.update()
                 else:
                     error_text.value = result.get("message", "Erreur lors de l'envoi")
                     error_text.visible = True
@@ -133,7 +132,7 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
                 ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_submit),
             ],
         )
-        page.dialog = dialog
+        page.overlay.append(dialog)
         dialog.open = True
         page.update()
 
@@ -162,15 +161,13 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
             bgcolor=COLOR_CARD,
             padding=16,
             border_radius=10,
-            border=ft.border.all(1, COLOR_BORDER),
+            border=ft.Border.all(1, COLOR_BORDER),
         )
 
     def refresh_list():
         paiements = get_mes_paiements() or []
-        if not isinstance(paiements, list):
-            paiements = []
         list_container.controls.clear()
-        if not paiements:
+        if not paiements or not isinstance(paiements, list):
             list_container.controls.append(
                 ft.Text("Vous n'avez effectué aucun paiement", color=COLOR_TEXT_MUTED, size=14)
             )
@@ -206,11 +203,11 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
 
     header_controls = []
     if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
+        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
     header_controls.append(ft.Text("Mes paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
     header_controls.append(ft.Container(expand=True))
     header_controls.append(
-        ft.ElevatedButton("Nouveau paiement", icon=ft.icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_new_paiement_dialog())
+        ft.ElevatedButton("Nouveau paiement", icon=ft.Icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_new_paiement_dialog())
     )
 
     header = ft.Row(header_controls)

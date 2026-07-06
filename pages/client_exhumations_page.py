@@ -30,9 +30,9 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.padding.all(10),
+            padding=ft.Padding(left=10, top=5, right=10, bottom=5),
             border_radius=20,
         )
 
@@ -80,7 +80,7 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
             page.update()
 
         date_picker_button = ft.IconButton(
-            icon=ft.icons.CALENDAR_MONTH_OUTLINED,
+            icon=ft.Icons.CALENDAR_MONTH_OUTLINED,
             icon_color=COLOR_PRIMARY,
             on_click=lambda e: open_date_picker(),
         )
@@ -112,6 +112,7 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
                     error_text.visible = False
                     page.update()
                     refresh_list()
+                    # Fermer le dialogue après succès
                     dialog.open = False
                     page.update()
                 else:
@@ -139,7 +140,7 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
                 ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_submit),
             ],
         )
-        page.dialog = dialog
+        page.dialog = dialog  # Utiliser page.dialog au lieu de page.overlay.append
         dialog.open = True
         page.update()
 
@@ -162,7 +163,7 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
             bgcolor=COLOR_CARD,
             padding=16,
             border_radius=10,
-            border=ft.border.all(1, COLOR_BORDER),
+            border=ft.Border.all(1, COLOR_BORDER),
         )
 
     def refresh_list():
@@ -206,11 +207,11 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
 
     header_controls = []
     if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
+        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
     header_controls.append(ft.Text("Exhumations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
     header_controls.append(ft.Container(expand=True))
     header_controls.append(
-        ft.ElevatedButton("Nouvelle demande", icon=ft.icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_create_dialog())
+        ft.ElevatedButton("Nouvelle demande", icon=ft.Icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_create_dialog())
     )
 
     header = ft.Row(header_controls)

@@ -41,11 +41,11 @@ def client_dashboard(page: ft.Page, on_navigate, on_logout):
                     ft.Row(
                         [
                             ft.Container(
-                                content=ft.Icon(icon, color=ft.colors.WHITE, size=20),
+                                content=ft.Icon(icon, color=ft.Colors.WHITE, size=20),
                                 bgcolor=color,
                                 width=42, height=42,
                                 border_radius=12,
-                                alignment=ft.alignment.center,
+                                alignment=ft.alignment.center,  # Correction ici
                             ),
                         ],
                     ),
@@ -54,13 +54,13 @@ def client_dashboard(page: ft.Page, on_navigate, on_logout):
                     ft.Text(title, size=12, color=COLOR_TEXT_MUTED),
                 ],
             ),
-            bgcolor=COLOR_CARD, padding=18, border_radius=14, border=ft.border.all(1, COLOR_BORDER), expand=True,
+            bgcolor=COLOR_CARD, padding=18, border_radius=14, border=ft.Border.all(1, COLOR_BORDER), expand=True,
         )
 
     stats_defs = [
-        ("Caveaux disponibles", nb_dispo, ft.icons.GRID_VIEW_OUTLINED, COLOR_GREEN),
-        ("Réservations en attente", nb_en_attente, ft.icons.HOURGLASS_EMPTY, COLOR_ORANGE),
-        ("Réservations validées", nb_validees, ft.icons.CHECK_CIRCLE_OUTLINE, COLOR_PRIMARY),
+        ("Caveaux disponibles", nb_dispo, ft.Icons.GRID_VIEW_OUTLINED, COLOR_GREEN),
+        ("Réservations en attente", nb_en_attente, ft.Icons.HOURGLASS_EMPTY, COLOR_ORANGE),
+        ("Réservations validées", nb_validees, ft.Icons.CHECK_CIRCLE_OUTLINE, COLOR_PRIMARY),
     ]
     stat_boxes = [stat_box(t, v, i, c) for t, v, i, c in stats_defs]
     stats_section = ft.Column(stat_boxes, spacing=12) if is_mobile else ft.Row(stat_boxes, spacing=16)
@@ -81,15 +81,15 @@ def client_dashboard(page: ft.Page, on_navigate, on_logout):
                                 spacing=2, expand=True,
                             ),
                             ft.Container(
-                                content=ft.Text(STATUT_LABELS.get(statut, statut), size=12, color=ft.colors.WHITE, weight=ft.FontWeight.W_500),
+                                content=ft.Text(STATUT_LABELS.get(statut, statut), size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
                                 bgcolor=STATUT_COLORS.get(statut, "#6B7280"),
-                                padding=ft.padding.all(10),
+                                padding=ft.Padding(left=10, top=5, right=10, bottom=5),  # Padding réduit
                                 border_radius=20,
                             ),
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
-                    bgcolor=COLOR_BG, padding=14, border_radius=10, border=ft.border.all(1, COLOR_BORDER),
+                    bgcolor=COLOR_BG, padding=14, border_radius=10, border=ft.Border.all(1, COLOR_BORDER),
                 )
             )
     else:
@@ -109,23 +109,23 @@ def client_dashboard(page: ft.Page, on_navigate, on_logout):
                 ft.Column(derniere_rows, spacing=10),
             ],
         ),
-        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.border.all(1, COLOR_BORDER), expand=True,
+        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.Border.all(1, COLOR_BORDER), expand=True,
     )
 
     cta_card = ft.Container(
         content=ft.Column(
             [
-                ft.Icon(ft.icons.ADD_LOCATION_ALT_OUTLINED, size=36, color=ft.colors.WHITE),
+                ft.Icon(ft.Icons.ADD_LOCATION_ALT_OUTLINED, size=36, color=ft.Colors.WHITE),
                 ft.Container(height=10),
-                ft.Text("Réserver un caveau", size=16, weight=ft.FontWeight.BOLD, color=ft.colors.WHITE),
-                ft.Text("Consultez les emplacements disponibles", size=12, color=ft.colors.with_opacity(0.85, ft.colors.WHITE)),
+                ft.Text("Réserver un caveau", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                ft.Text("Consultez les emplacements disponibles", size=12, color=ft.Colors.with_opacity(0.85, ft.Colors.WHITE)),
                 ft.Container(height=14),
-                ft.ElevatedButton("Commencer", bgcolor=ft.colors.WHITE, color=COLOR_PRIMARY, on_click=lambda e: on_navigate("client_reserver")),
+                ft.ElevatedButton("Commencer", bgcolor=ft.Colors.WHITE, color=COLOR_PRIMARY, on_click=lambda e: on_navigate("client_reserver")),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
         bgcolor=COLOR_PRIMARY, padding=24, border_radius=14, expand=True,
-        alignment=ft.alignment.center,
+        alignment=ft.alignment.center,  # Correction ici
     )
 
     bottom_section = (
@@ -159,7 +159,7 @@ def client_dashboard(page: ft.Page, on_navigate, on_logout):
 
     header_controls = []
     if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
+        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
     header_controls.append(ft.Text("Bienvenue", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
 
     header = ft.Row(header_controls)
