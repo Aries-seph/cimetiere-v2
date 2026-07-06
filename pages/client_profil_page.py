@@ -55,6 +55,9 @@ def client_profil_page(page: ft.Page, on_navigate, on_logout):
         if result.get("success"):
             success_text.value = "Profil mis à jour avec succès"
             success_text.visible = True
+            # Mettre à jour les valeurs affichées
+            username_field.value = payload.get("username", username_field.value)
+            telephone_field.value = payload.get("telephone", telephone_field.value)
             page.update()
         else:
             error_text.value = result.get("message", "Erreur lors de la mise à jour")

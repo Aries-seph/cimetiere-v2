@@ -27,9 +27,9 @@ def client_reservations_page(page: ft.Page, on_navigate, on_logout):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=12, color=ft.colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=20, top=10, right=20, bottom=10),
+            padding=ft.padding.all(10),
             border_radius=20,
         )
 
@@ -53,13 +53,15 @@ def client_reservations_page(page: ft.Page, on_navigate, on_logout):
             bgcolor=COLOR_CARD,
             padding=16,
             border_radius=10,
-            border=ft.Border.all(1, COLOR_BORDER),
+            border=ft.border.all(1, COLOR_BORDER),
         )
 
     def refresh_list():
         reservations = get_mes_reservations() or []
+        if not isinstance(reservations, list):
+            reservations = []
         list_container.controls.clear()
-        if not reservations or not isinstance(reservations, list):
+        if not reservations:
             list_container.controls.append(
                 ft.Text("Vous n'avez aucune réservation", color=COLOR_TEXT_MUTED, size=14)
             )
@@ -95,7 +97,7 @@ def client_reservations_page(page: ft.Page, on_navigate, on_logout):
 
     header_controls = []
     if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
+        header_controls.append(ft.IconButton(icon=ft.icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
     header_controls.append(ft.Text("Mes réservations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
 
     header = ft.Row(header_controls)

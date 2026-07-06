@@ -48,7 +48,7 @@ def admin_dashboard(page: ft.Page, on_navigate, on_logout):
     header_controls = []
     if is_mobile:
         header_controls.append(
-            ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer())
+            ft.IconButton(icon=ft.icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer())
         )
     header_controls.append(
         ft.Text("Tableau de Bord", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT)
@@ -58,8 +58,8 @@ def admin_dashboard(page: ft.Page, on_navigate, on_logout):
         header_controls.append(
             ft.Row(
                 [
-                    ft.Icon(ft.Icons.NOTIFICATIONS_OUTLINED, color=COLOR_TEXT_MUTED),
-                    ft.CircleAvatar(content=ft.Icon(ft.Icons.PERSON), bgcolor=COLOR_PRIMARY),
+                    ft.Icon(ft.icons.NOTIFICATIONS_OUTLINED, color=COLOR_TEXT_MUTED),
+                    ft.CircleAvatar(content=ft.Icon(ft.icons.PERSON), bgcolor=COLOR_PRIMARY),
                     ft.Text("Admin", color=COLOR_TEXT),
                 ],
                 spacing=14,
@@ -67,16 +67,16 @@ def admin_dashboard(page: ft.Page, on_navigate, on_logout):
         )
     else:
         header_controls.append(
-            ft.CircleAvatar(content=ft.Icon(ft.Icons.PERSON), bgcolor=COLOR_PRIMARY, radius=16)
+            ft.CircleAvatar(content=ft.Icon(ft.icons.PERSON), bgcolor=COLOR_PRIMARY, radius=16)
         )
 
     header = ft.Row(header_controls)
 
     card_defs = [
-        ("Caveaux disponibles", str(caveaux_stats.get("disponibles", 0)), ft.Icons.GRID_VIEW_OUTLINED, COLOR_GREEN, f"sur {caveaux_stats.get('total', 0)} au total"),
-        ("Réservations en attente", str(stats.get("reservations_en_attente", 0)), ft.Icons.EVENT_NOTE_OUTLINED, COLOR_PRIMARY, "à traiter"),
-        ("Taux d'occupation", caveaux_stats.get("taux_occupation", "0%"), ft.Icons.PIE_CHART_OUTLINE, COLOR_BLUE, "du cimetière"),
-        ("Revenus totaux", f"{finances_stats.get('total_revenus', 0):,.0f} FCFA", ft.Icons.PAYMENTS_OUTLINED, COLOR_ORANGE, "paiements validés"),
+        ("Caveaux disponibles", str(caveaux_stats.get("disponibles", 0)), ft.icons.GRID_VIEW_OUTLINED, COLOR_GREEN, f"sur {caveaux_stats.get('total', 0)} au total"),
+        ("Réservations en attente", str(stats.get("reservations_en_attente", 0)), ft.icons.EVENT_NOTE_OUTLINED, COLOR_PRIMARY, "à traiter"),
+        ("Taux d'occupation", caveaux_stats.get("taux_occupation", "0%"), ft.icons.PIE_CHART_OUTLINE, COLOR_BLUE, "du cimetière"),
+        ("Revenus totaux", f"{finances_stats.get('total_revenus', 0):,.0f} FCFA", ft.icons.PAYMENTS_OUTLINED, COLOR_ORANGE, "paiements validés"),
     ]
 
     cards = [build_stat_card(t, v, i, c, subtitle=s) for (t, v, i, c, s) in card_defs]
@@ -90,7 +90,7 @@ def admin_dashboard(page: ft.Page, on_navigate, on_logout):
                 build_evolution_chart(evolution_data),
             ],
         ),
-        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.Border.all(1, COLOR_BORDER), expand=True,
+        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.border.all(1, COLOR_BORDER), expand=True,
     )
 
     legend_items = [
@@ -130,7 +130,7 @@ def admin_dashboard(page: ft.Page, on_navigate, on_logout):
                 ),
             ],
         ),
-        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.Border.all(1, COLOR_BORDER), expand=True,
+        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.border.all(1, COLOR_BORDER), expand=True,
     )
 
     resume_card = ft.Container(
@@ -138,14 +138,14 @@ def admin_dashboard(page: ft.Page, on_navigate, on_logout):
             [
                 ft.Text("Activité récente", size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                 ft.Container(height=16),
-                ft.Row([ft.Icon(ft.Icons.FOLDER_SPECIAL_OUTLINED, color=COLOR_TEXT_MUTED, size=18),
+                ft.Row([ft.Icon(ft.icons.FOLDER_SPECIAL_OUTLINED, color=COLOR_TEXT_MUTED, size=18),
                         ft.Text(f"Exhumations en attente : {stats.get('exhumations_en_attente', 0)}", color=COLOR_TEXT_MUTED, size=13)], spacing=8),
-                ft.Row([ft.Icon(ft.Icons.ASSIGNMENT_OUTLINED, color=COLOR_TEXT_MUTED, size=18),
+                ft.Row([ft.Icon(ft.icons.ASSIGNMENT_OUTLINED, color=COLOR_TEXT_MUTED, size=18),
                         ft.Text(f"Concessions actives : {stats.get('concessions_actives', 0)}", color=COLOR_TEXT_MUTED, size=13)], spacing=8),
             ],
             spacing=12,
         ),
-        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.Border.all(1, COLOR_BORDER), expand=True,
+        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.border.all(1, COLOR_BORDER), expand=True,
     )
 
     bottom_section = (

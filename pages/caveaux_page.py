@@ -32,7 +32,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
 
     search_field = ft.TextField(
         hint_text="Rechercher par référence...",
-        prefix_icon=ft.Icons.SEARCH,
+        prefix_icon=ft.icons.SEARCH,
         bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
@@ -46,20 +46,20 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         col={"sm": 12, "md": 4},
-        options=[ft.DropdownOption(key="TOUS", text="Tous les statuts")] + [
-            ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
+        options=[ft.dropdown.Option(key="TOUS", text="Tous les statuts")] + [
+            ft.dropdown.Option(key=k, text=v) for k, v in STATUT_LABELS.items()
         ],
         value="TOUS",
-        on_select=lambda e: filter_and_display_caveaux() 
+        on_change=lambda e: filter_and_display_caveaux() 
     )
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=12, color=ft.colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=20, top=10, right=20, bottom=10),
+            padding=ft.padding.all(10),
             border_radius=20,
         )
 
@@ -88,7 +88,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             width=300,
             bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
             options=[
-                ft.DropdownOption(key=str(s["id"]), text=s["nom"])
+                ft.dropdown.Option(key=str(s["id"]), text=s["nom"])
                 for s in sections
             ],
         )
@@ -114,7 +114,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 desc_section_field.value = ""
                 nouvelles_sections = get_sections() or []
                 section_dropdown.options = [
-                    ft.DropdownOption(key=str(s["id"]), text=s["nom"])
+                    ft.dropdown.Option(key=str(s["id"]), text=s["nom"])
                     for s in nouvelles_sections
                     if isinstance(s, dict)
                 ]
@@ -188,7 +188,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
             options=[
-                ft.DropdownOption(key=str(b["id"]), text=f"{b['section__nom']} - {b['nom']}")
+                ft.dropdown.Option(key=str(b["id"]), text=f"{b.get('section__nom', '')} - {b['nom']}")
                 for b in blocs_list
             ],
             value=str(caveau["bloc_id"]) if is_edit and caveau.get("bloc_id") else None,
@@ -243,19 +243,19 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             keyboard_type=ft.KeyboardType.NUMBER,
         )
 
-        async def handle_pick_location(e):
+        def handle_pick_location(e):
             token = api_client.access_token or ""
             backend_url = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000').replace('/api', '')
             url = f"{backend_url}/carte/admin-pick/?token={token}"
             if is_edit:
                 url += f"&caveau_id={caveau['id']}"
-            await page.launch_url(url)
+            page.launch_url(url)  # Pas besoin de await dans Flet 0.85
 
         pick_button = ft.ElevatedButton(
             content="  Choisir sur la carte",
             bgcolor="#1A1A2E",
             color=COLOR_TEXT,
-            icon=ft.Icons.MAP_OUTLINED,
+            icon=ft.icons.MAP_OUTLINED,
             width=300,
             on_click=handle_pick_location,
         )
@@ -288,8 +288,8 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                     error_text.value = result.get("message", "Erreur")
                     error_text.visible = True
                     page.update()
-            except (ValueError, TypeError):
-                error_text.value = "Veuillez vérifier les valeurs saisies"
+            except (ValueError, TypeError) as e:
+                error_text.value = f"Veuillez vérifier les valeurs saisies: {str(e)}"
                 error_text.visible = True
                 page.update()
 
@@ -333,7 +333,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             content=ft.Text("Cette action est irréversible. Continuer ?", color=COLOR_TEXT_MUTED),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
-                ft.ElevatedButton("Supprimer", bgcolor=COLOR_RED, color=ft.Colors.WHITE, on_click=handle_confirm),
+                ft.ElevatedButton("Supprimer", bgcolor=COLOR_RED, color=ft.colors.WHITE, on_click=handle_confirm),
             ],
         )
         page.dialog = confirm_dialog
@@ -353,15 +353,15 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                         expand=True,
                     ),
                     status_badge(caveau["statut"]),
-                    ft.IconButton(icon=ft.Icons.EDIT_OUTLINED, icon_color=COLOR_TEXT_MUTED, on_click=lambda e, c=caveau: open_form_dialog(c)),
-                    ft.IconButton(icon=ft.Icons.DELETE_OUTLINE, icon_color=COLOR_RED, on_click=lambda e, cid=caveau["id"]: confirm_delete(cid)),
+                    ft.IconButton(icon=ft.icons.EDIT_OUTLINED, icon_color=COLOR_TEXT_MUTED, on_click=lambda e, c=caveau: open_form_dialog(c)),
+                    ft.IconButton(icon=ft.icons.DELETE_OUTLINE, icon_color=COLOR_RED, on_click=lambda e, cid=caveau["id"]: confirm_delete(cid)),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             bgcolor=COLOR_CARD,
             padding=16,
             border_radius=10,
-            border=ft.Border.all(1, COLOR_BORDER),
+            border=ft.border.all(1, COLOR_BORDER),
         )
 
     def filter_and_display_caveaux():
@@ -435,20 +435,14 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
 
     header_controls = []
     if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
+        header_controls.append(ft.IconButton(icon=ft.icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
     header_controls.append(ft.Text("Caveaux", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
     header_controls.append(ft.Container(expand=True))
     header_controls.append(
-        ft.ElevatedButton("Sections & Blocs", icon=ft.Icons.CATEGORY_OUTLINED, bgcolor=COLOR_CARD, color=COLOR_TEXT, on_click=lambda e: open_section_bloc_dialog())
+        ft.ElevatedButton("Sections & Blocs", icon=ft.icons.CATEGORY_OUTLINED, bgcolor=COLOR_CARD, color=COLOR_TEXT, on_click=lambda e: open_section_bloc_dialog())
     )
     header_controls.append(
-    ft.ElevatedButton(
-        "Nouveau caveau",
-        icon=ft.Icons.ADD,
-        bgcolor=COLOR_PRIMARY,
-        color=COLOR_TEXT,
-        on_click=lambda e: open_form_dialog(),
-        )
+        ft.ElevatedButton("Nouveau caveau", icon=ft.icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_form_dialog())
     )
 
     header = ft.Row(header_controls)
