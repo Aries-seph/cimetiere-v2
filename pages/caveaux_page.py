@@ -442,7 +442,13 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         ft.ElevatedButton("Sections & Blocs", icon=ft.Icons.CATEGORY_OUTLINED, bgcolor=COLOR_CARD, color=COLOR_TEXT, on_click=lambda e: open_section_bloc_dialog())
     )
     header_controls.append(
-        ft.ElevatedButton("Nouveau caveau", icon=ft.Icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_form_dialog())
+    ft.ElevatedButton(
+        "Nouveau caveau",
+        icon=ft.Icons.ADD,
+        bgcolor=COLOR_PRIMARY,
+        color=COLOR_TEXT,
+        on_click=lambda e: open_form_dialog(),
+        )
     )
 
     header = ft.Row(header_controls)
