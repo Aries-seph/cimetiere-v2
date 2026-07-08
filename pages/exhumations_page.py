@@ -78,7 +78,7 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
             page.dialog.open = False
             page.update()
 
-        page.dialog = ft.AlertDialog(
+        page.overlay.append = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Approuver l'exhumation", color=COLOR_TEXT),
             content=ft.Column([date_field, observations_field, error_text], spacing=12, tight=True, width=320),
@@ -94,7 +94,7 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
         detail = get_exhumation_by_id(exhumation_id)
 
         if not detail or detail.get("success") is False:
-            page.dialog = ft.AlertDialog(
+            page.overlay.append = ft.AlertDialog(
                 bgcolor=COLOR_CARD,
                 title=ft.Text("Erreur", color=COLOR_TEXT),
                 content=ft.Text(detail.get("message", "Demande introuvable"), color=COLOR_TEXT_MUTED),
@@ -104,7 +104,7 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
             page.update()
             return
 
-        page.dialog = ft.AlertDialog(
+        page.overlay.append = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text(f"Demande #{detail.get('id', exhumation_id)}", color=COLOR_TEXT),
             content=ft.Column(

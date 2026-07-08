@@ -106,7 +106,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 ft.ElevatedButton("Confirmer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_confirm),
             ],
         )
-        page.dialog = dialog
+        page.overlay.append(dialog)
         dialog.open = True
         page.update()
 
@@ -157,7 +157,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
             page.dialog.open = False
             page.update()
 
-        page.dialog = ft.AlertDialog(
+        page.overlay.append = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Nouvelle concession", color=COLOR_TEXT),
             content=ft.Column(

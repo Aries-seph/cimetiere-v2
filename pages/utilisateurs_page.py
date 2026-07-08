@@ -101,7 +101,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
                 ft.ElevatedButton("Confirmer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_confirm),
             ],
         )
-        page.dialog = dialog
+        page.overlay.append(dialog)
         dialog.open = True
         page.update()
 
@@ -120,7 +120,7 @@ def utilisateurs_page(page: ft.Page, on_navigate, on_logout):
                 content=ft.Text(result.get("message", "Action impossible"), color=COLOR_TEXT_MUTED),
                 actions=[ft.TextButton("Fermer", on_click=lambda e: close_dialog(error_dialog))],
             )
-            page.dialog = error_dialog
+            page.overlay.append(error_dialog)
             error_dialog.open = True
             page.update()
 

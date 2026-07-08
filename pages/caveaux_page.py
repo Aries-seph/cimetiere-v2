@@ -1,7 +1,7 @@
 import flet as ft
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 from components.sidebar import build_sidebar
-from components.data_fetcher import get_caveaux, get_blocs, create_caveau, update_caveau, delete_caveau
+from components.data_fetcher import get_caveaux, get_blocs, create_caveau, update_caveau, delete_caveau,get_sections,create_bloc,create_section
 from api_client import api_client
 MOBILE_BREAKPOINT = 768
 
@@ -40,46 +40,24 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
     def open_section_bloc_dialog():
         sections_raw = get_sections() or []
         sections = [s for s in sections_raw if isinstance(s, dict)] if isinstance(sections_raw, list) else []
-
-        nom_section_field = ft.TextField(
-            label="Nom de la section",
-            width=300,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
-        )
-        desc_section_field = ft.TextField(
-            label="Description (optionnel)",
-            width=300,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
-        )
-
-        nom_bloc_field = ft.TextField(
-            label="Nom du bloc",
-            width=300,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
-        )
+ 
+        nom_section_field = ft.TextField(label="Nom de la section", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER)
+        desc_section_field = ft.TextField(label="Description (optionnel)", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER)
+        nom_bloc_field = ft.TextField(label="Nom du bloc", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER)
         section_dropdown = ft.Dropdown(
-            label="Section",
-            width=300,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
-            options=[
-                ft.DropdownOption(key=str(s["id"]), text=s["nom"])
-                for s in sections
-            ],
+            label="Section", width=300, bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            options=[ft.dropdown.Option(key=str(s["id"]), text=s["nom"]) for s in sections],
         )
-
         error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
         success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False)
-
+ 
         def handle_save_section(e):
             if not nom_section_field.value:
                 error_text.value = "Nom obligatoire"
                 error_text.visible = True
                 page.update()
                 return
-            result = create_section({
-                "nom": nom_section_field.value,
-                "description": desc_section_field.value or ""
-            })
+            result = create_section({"nom": nom_section_field.value, "description": desc_section_field.value or ""})
             if result.get("success"):
                 success_text.value = "Section créée"
                 success_text.visible = True
@@ -87,17 +65,13 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 nom_section_field.value = ""
                 desc_section_field.value = ""
                 nouvelles_sections = get_sections() or []
-                section_dropdown.options = [
-                    ft.DropdownOption(key=str(s["id"]), text=s["nom"])
-                    for s in nouvelles_sections
-                    if isinstance(s, dict)
-                ]
+                section_dropdown.options = [ft.dropdown.Option(key=str(s["id"]), text=s["nom"]) for s in nouvelles_sections if isinstance(s, dict)]
                 page.update()
             else:
                 error_text.value = result.get("message", "Erreur")
                 error_text.visible = True
                 page.update()
-
+ 
         def handle_save_bloc(e):
             nonlocal blocs_list
             if not nom_bloc_field.value or not section_dropdown.value:
@@ -105,10 +79,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 error_text.visible = True
                 page.update()
                 return
-            result = create_bloc({
-                "nom": nom_bloc_field.value,
-                "section_id": int(section_dropdown.value)
-            })
+            result = create_bloc({"nom": nom_bloc_field.value, "section_id": int(section_dropdown.value)})
             if result.get("success"):
                 success_text.value = "Bloc créé"
                 success_text.visible = True
@@ -120,10 +91,11 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 error_text.value = result.get("message", "Erreur")
                 error_text.visible = True
                 page.update()
-
+ 
         def handle_cancel(e):
-            sb_dialog.open = False
+            page.dialog.open = False
             page.update()
+ 
 
         sb_dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
@@ -148,9 +120,10 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 ft.TextButton("Fermer", on_click=handle_cancel),
             ],
         )
-        page.dialog = sb_dialog
+        page.overlay.append(sb_dialog)
         sb_dialog.open = True
         page.update()
+
     
     def open_form_dialog(caveau=None, prefill_lat=None, prefill_lng=None):
         is_edit = caveau is not None

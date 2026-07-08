@@ -59,7 +59,7 @@ def client_reserver_page(page: ft.Page, on_navigate, on_logout, preselect_caveau
             page.dialog.open = False
             page.update()
 
-        page.dialog = ft.AlertDialog(
+        page.overlay.append = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text(f"Réserver le caveau {caveau.get('reference', '')}", color=COLOR_TEXT),
             content=ft.Column([nom_defunt_field, date_row, commentaire_field, error_text, success_text], spacing=12, tight=True, width=340, scroll=ft.ScrollMode.AUTO),

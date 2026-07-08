@@ -140,7 +140,7 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
                 ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_submit),
             ],
         )
-        page.dialog = dialog  # Utiliser page.dialog au lieu de page.overlay.append
+        page.overlay.append(dialog)  # Utiliser page.dialog au lieu de page.overlay.append
         dialog.open = True
         page.update()
 
