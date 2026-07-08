@@ -1,11 +1,8 @@
-# caveaux_page.py (corrigé - une seule version)
 import flet as ft
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 from components.sidebar import build_sidebar
-from components.data_fetcher import get_caveaux, get_blocs, create_caveau, update_caveau, delete_caveau, get_sections, create_section, create_bloc
+from components.data_fetcher import get_caveaux, get_blocs, create_caveau, update_caveau, delete_caveau
 from api_client import api_client
-import os
-
 MOBILE_BREAKPOINT = 768
 
 STATUT_COLORS = {
@@ -22,37 +19,13 @@ STATUT_LABELS = {
     "INEXPLOITABLE": "Inexploitable",
 }
 
-
 def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=None, pick_caveau_id=None):
 
     is_mobile = page.width < MOBILE_BREAKPOINT
-    caveaux_list_cached = []
+    caveaux_list = get_caveaux() or []
     blocs_list = get_blocs() or []
 
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
-
-    search_field = ft.TextField(
-        hint_text="Rechercher par référence...",
-        prefix_icon=ft.Icons.SEARCH,
-        bgcolor=COLOR_CARD,
-        color=COLOR_TEXT,
-        border_color=COLOR_BORDER,
-        col={"sm": 12, "md": 8},
-        on_change=lambda e: filter_and_display_caveaux() 
-    )
-
-    status_filter = ft.Dropdown(
-        label="Filtrer par statut",
-        bgcolor=COLOR_CARD,
-        color=COLOR_TEXT,
-        border_color=COLOR_BORDER,
-        col={"sm": 12, "md": 4},
-        options=[ft.DropdownOption(key="TOUS", text="Tous les statuts")] + [
-            ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
-        ],
-        value="TOUS",
-        on_select=lambda e: filter_and_display_caveaux()
-    )
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
@@ -60,126 +33,12 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         return ft.Container(
             content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=10, top=5, right=10, bottom=5),  # Padding réduit
+            padding=ft.Padding(left=20, top=10, right=20, bottom=10),
             border_radius=20,
         )
 
-    def open_section_bloc_dialog():
-        sections_raw = get_sections() or []
-        sections = [s for s in sections_raw if isinstance(s, dict)] if isinstance(sections_raw, list) else []
-
-        nom_section_field = ft.TextField(
-            label="Nom de la section",
-            width=300,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
-        )
-        desc_section_field = ft.TextField(
-            label="Description (optionnel)",
-            width=300,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
-        )
-
-        nom_bloc_field = ft.TextField(
-            label="Nom du bloc",
-            width=300,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
-        )
-        section_dropdown = ft.Dropdown(
-            label="Section",
-            width=300,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
-            options=[
-                ft.DropdownOption(key=str(s["id"]), text=s["nom"])
-                for s in sections
-            ],
-        )
-
-        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
-        success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False)
-
-        def handle_save_section(e):
-            if not nom_section_field.value:
-                error_text.value = "Nom obligatoire"
-                error_text.visible = True
-                page.update()
-                return
-            result = create_section({
-                "nom": nom_section_field.value,
-                "description": desc_section_field.value or ""
-            })
-            if result.get("success"):
-                success_text.value = "Section créée"
-                success_text.visible = True
-                error_text.visible = False
-                nom_section_field.value = ""
-                desc_section_field.value = ""
-                nouvelles_sections = get_sections() or []
-                section_dropdown.options = [
-                    ft.DropdownOption(key=str(s["id"]), text=s["nom"])
-                    for s in nouvelles_sections
-                    if isinstance(s, dict)
-                ]
-                page.update()
-            else:
-                error_text.value = result.get("message", "Erreur")
-                error_text.visible = True
-                page.update()
-
-        def handle_save_bloc(e):
-            nonlocal blocs_list
-            if not nom_bloc_field.value or not section_dropdown.value:
-                error_text.value = "Tous les champs sont obligatoires"
-                error_text.visible = True
-                page.update()
-                return
-            result = create_bloc({
-                "nom": nom_bloc_field.value,
-                "section_id": int(section_dropdown.value)
-            })
-            if result.get("success"):
-                success_text.value = "Bloc créé"
-                success_text.visible = True
-                error_text.visible = False
-                nom_bloc_field.value = ""
-                blocs_list = get_blocs() or []
-                page.update()
-            else:
-                error_text.value = result.get("message", "Erreur")
-                error_text.visible = True
-                page.update()
-
-        def handle_cancel(e):
-            sb_dialog.open = False
-            page.update()
-
-        sb_dialog = ft.AlertDialog(
-            bgcolor=COLOR_CARD,
-            title=ft.Text("Gérer Sections & Blocs", color=COLOR_TEXT),
-            content=ft.Column(
-                [
-                    ft.Text("Nouvelle Section", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
-                    nom_section_field,
-                    desc_section_field,
-                    ft.ElevatedButton("Créer la section", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save_section),
-                    ft.Divider(color=COLOR_BORDER),
-                    ft.Text("Nouveau Bloc", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
-                    section_dropdown,
-                    nom_bloc_field,
-                    ft.ElevatedButton("Créer le bloc", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save_bloc),
-                    error_text,
-                    success_text,
-                ],
-                spacing=12, width=320, scroll=ft.ScrollMode.AUTO,
-            ),
-            actions=[
-                ft.TextButton("Fermer", on_click=handle_cancel),
-            ],
-        )
-        page.dialog = sb_dialog
-        sb_dialog.open = True
-        page.update()
-
     def open_form_dialog(caveau=None, prefill_lat=None, prefill_lng=None):
+        is_edit = caveau is not None
         is_edit = caveau is not None
 
         bloc_dropdown = ft.Dropdown(
@@ -189,7 +48,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
             options=[
-                ft.DropdownOption(key=str(b["id"]), text=f"{b.get('section__nom', '')} - {b['nom']}")
+                ft.dropdown.Option(key=str(b["id"]), text=f"{b['section__nom']} - {b['nom']}")
                 for b in blocs_list
             ],
             value=str(caveau["bloc_id"]) if is_edit and caveau.get("bloc_id") else None,
@@ -246,8 +105,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
 
         async def handle_pick_location(e):
             token = api_client.access_token or ""
-            backend_url = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000').replace('/api', '')
-            url = f"{backend_url}/carte/admin-pick/?token={token}"
+            url = f"http://127.0.0.1:8000/carte/admin-pick/?token={token}"
             if is_edit:
                 url += f"&caveau_id={caveau['id']}"
             await page.launch_url(url)
@@ -285,12 +143,26 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                     dialog.open = False
                     page.update()
                     refresh_list()
+                    print("DEBUG caveaux_page - pick_lat:", pick_lat, "pick_lng:", pick_lng, "pick_caveau_id:", pick_caveau_id)
+                    # Ouverture automatique du formulaire si coordonnées reçues depuis la carte
+                    if pick_lat and pick_lng:
+                        if pick_caveau_id:
+                            try:
+                                pcid = int(pick_caveau_id)
+                                match = next((c for c in caveaux_list if c["id"] == pcid), None)
+                                if match:
+                                    open_form_dialog(match, prefill_lat=pick_lat, prefill_lng=pick_lng)
+                            except (ValueError, TypeError):
+                                open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
+                        else:
+                            open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
+
                 else:
                     error_text.value = result.get("message", "Erreur")
                     error_text.visible = True
                     page.update()
-            except (ValueError, TypeError) as e:
-                error_text.value = f"Veuillez vérifier les valeurs saisies: {str(e)}"
+            except (ValueError, TypeError):
+                error_text.value = "Veuillez vérifier les valeurs saisies"
                 error_text.visible = True
                 page.update()
 
@@ -305,14 +177,14 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Modifier le caveau" if is_edit else "Nouveau caveau", color=COLOR_TEXT),
-            content=ft.Column(fields + [error_text], spacing=12, width=320),
+            content=ft.Column(fields + [error_text], spacing=12, tight=True, width=320),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.ElevatedButton("Enregistrer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save),
             ],
         )
 
-        page.dialog = dialog
+        page.overlay.append(dialog)
         dialog.open = True
         page.update()
 
@@ -337,7 +209,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 ft.ElevatedButton("Supprimer", bgcolor=COLOR_RED, color=ft.Colors.WHITE, on_click=handle_confirm),
             ],
         )
-        page.dialog = confirm_dialog
+        page.overlay.append(confirm_dialog)
         confirm_dialog.open = True
         page.update()
 
@@ -365,51 +237,20 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
-    def filter_and_display_caveaux():
-        query = search_field.value.lower().strip()
-        selected_status = status_filter.value
-
-        filtered_caveaux = []
-        for c in caveaux_list_cached:
-            reference = c.get("reference", "").lower()
-            statut = c.get("statut", "")
-
-            matches_search = query in reference
-            matches_status = selected_status == "TOUS" or statut == selected_status
-
-            if matches_search and matches_status:
-                filtered_caveaux.append(c)
-
+    def refresh_list():
+        nonlocal caveaux_list
+        caveaux_list = get_caveaux() or []
         list_container.controls.clear()
-        if not filtered_caveaux:
+        if not caveaux_list:
             list_container.controls.append(
-                ft.Text("Aucun caveau ne correspond aux critères", color=COLOR_TEXT_MUTED, size=14)
+                ft.Text("Aucun caveau enregistré", color=COLOR_TEXT_MUTED, size=14)
             )
         else:
-            for c in filtered_caveaux:
+            for c in caveaux_list:
                 list_container.controls.append(build_caveau_row(c))
         page.update()
 
-    def refresh_list():
-        nonlocal caveaux_list_cached
-        caveaux_list_cached = get_caveaux() or []
-        filter_and_display_caveaux()
-
     refresh_list()
-
-    if pick_lat and pick_lng:
-        if pick_caveau_id:
-            try:
-                pcid = int(pick_caveau_id)
-                match = next((c for c in caveaux_list_cached if c["id"] == pcid), None)
-                if match:
-                    open_form_dialog(match, prefill_lat=pick_lat, prefill_lng=pick_lng)
-                else:
-                    open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
-            except (ValueError, TypeError):
-                open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
-        else:
-            open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
 
     drawer_ref = {"overlay": None}
 
@@ -440,26 +281,22 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
     header_controls.append(ft.Text("Caveaux", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
     header_controls.append(ft.Container(expand=True))
     header_controls.append(
-        ft.ElevatedButton("Sections & Blocs", icon=ft.Icons.CATEGORY_OUTLINED, bgcolor=COLOR_CARD, color=COLOR_TEXT, on_click=lambda e: open_section_bloc_dialog())
-    )
-    header_controls.append(
-        ft.ElevatedButton("Nouveau caveau", icon=ft.Icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_form_dialog())
+        ft.ElevatedButton(
+            "Nouveau caveau",
+            icon=ft.Icons.ADD,
+            bgcolor=COLOR_PRIMARY,
+            color=COLOR_TEXT,
+            on_click=lambda e: open_form_dialog(),
+        )
     )
 
     header = ft.Row(header_controls)
-
-    search_bar = ft.ResponsiveRow(
-        controls=[search_field, status_filter],
-        spacing=10
-    )
 
     content = ft.Container(
         content=ft.Column(
             [
                 header,
-                ft.Container(height=10),
-                search_bar,
-                ft.Container(height=10),
+                ft.Container(height=20),
                 list_container,
             ],
             expand=True,
@@ -473,4 +310,4 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         return content
 
     sidebar = build_sidebar(page, "caveaux", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True)
+    return ft.Row([sidebar, content], spacing=0, expand=True) 
