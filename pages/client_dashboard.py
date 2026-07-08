@@ -125,7 +125,7 @@ def client_dashboard(page: ft.Page, on_navigate, on_logout):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
         bgcolor=COLOR_PRIMARY, padding=24, border_radius=14, expand=True,
-        alignment=ft.alignment.center,  # Correction ici
+        alignment=ft.Alignment.CENTER
     )
 
     bottom_section = (
