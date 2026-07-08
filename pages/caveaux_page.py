@@ -3,6 +3,8 @@ from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIM
 from components.sidebar import build_sidebar
 from components.data_fetcher import get_caveaux, get_blocs, create_caveau, update_caveau, delete_caveau,get_sections,create_bloc,create_section
 from api_client import api_client
+import os
+
 MOBILE_BREAKPOINT = 768
 
 STATUT_COLORS = {
@@ -368,6 +370,15 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
     header_controls.append(ft.Text("Caveaux", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
     header_controls.append(ft.Container(expand=True))
+    header_controls.append(
+        ft.ElevatedButton(
+            "Sections & Blocs", 
+            icon=ft.Icons.CATEGORY_OUTLINED, 
+            bgcolor=COLOR_CARD, 
+            color=COLOR_TEXT, 
+            on_click=lambda e: open_section_bloc_dialog(),
+        )
+    )
     header_controls.append(
         ft.ElevatedButton(
             "Nouveau caveau",
