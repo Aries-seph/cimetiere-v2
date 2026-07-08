@@ -37,6 +37,121 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             border_radius=20,
         )
 
+    def open_section_bloc_dialog():
+        sections_raw = get_sections() or []
+        sections = [s for s in sections_raw if isinstance(s, dict)] if isinstance(sections_raw, list) else []
+
+        nom_section_field = ft.TextField(
+            label="Nom de la section",
+            width=300,
+            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+        )
+        desc_section_field = ft.TextField(
+            label="Description (optionnel)",
+            width=300,
+            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+        )
+
+        nom_bloc_field = ft.TextField(
+            label="Nom du bloc",
+            width=300,
+            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+        )
+        section_dropdown = ft.Dropdown(
+            label="Section",
+            width=300,
+            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            options=[
+                ft.DropdownOption(key=str(s["id"]), text=s["nom"])
+                for s in sections
+            ],
+        )
+
+        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
+        success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False)
+
+        def handle_save_section(e):
+            if not nom_section_field.value:
+                error_text.value = "Nom obligatoire"
+                error_text.visible = True
+                page.update()
+                return
+            result = create_section({
+                "nom": nom_section_field.value,
+                "description": desc_section_field.value or ""
+            })
+            if result.get("success"):
+                success_text.value = "Section créée"
+                success_text.visible = True
+                error_text.visible = False
+                nom_section_field.value = ""
+                desc_section_field.value = ""
+                nouvelles_sections = get_sections() or []
+                section_dropdown.options = [
+                    ft.DropdownOption(key=str(s["id"]), text=s["nom"])
+                    for s in nouvelles_sections
+                    if isinstance(s, dict)
+                ]
+                page.update()
+            else:
+                error_text.value = result.get("message", "Erreur")
+                error_text.visible = True
+                page.update()
+
+        def handle_save_bloc(e):
+            nonlocal blocs_list
+            if not nom_bloc_field.value or not section_dropdown.value:
+                error_text.value = "Tous les champs sont obligatoires"
+                error_text.visible = True
+                page.update()
+                return
+            result = create_bloc({
+                "nom": nom_bloc_field.value,
+                "section_id": int(section_dropdown.value)
+            })
+            if result.get("success"):
+                success_text.value = "Bloc créé"
+                success_text.visible = True
+                error_text.visible = False
+                nom_bloc_field.value = ""
+                blocs_list = get_blocs() or []
+                page.update()
+            else:
+                error_text.value = result.get("message", "Erreur")
+                error_text.visible = True
+                page.update()
+
+        def handle_cancel(e):
+            sb_dialog.open = False
+            page.update()
+
+        sb_dialog = ft.AlertDialog(
+            bgcolor=COLOR_CARD,
+            title=ft.Text("Gérer Sections & Blocs", color=COLOR_TEXT),
+            content=ft.Column(
+                [
+                    ft.Text("Nouvelle Section", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                    nom_section_field,
+                    desc_section_field,
+                    ft.ElevatedButton("Créer la section", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save_section),
+                    ft.Divider(color=COLOR_BORDER),
+                    ft.Text("Nouveau Bloc", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                    section_dropdown,
+                    nom_bloc_field,
+                    ft.ElevatedButton("Créer le bloc", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save_bloc),
+                    error_text,
+                    success_text,
+                ],
+                spacing=12, width=320, scroll=ft.ScrollMode.AUTO,
+            ),
+            actions=[
+                ft.TextButton("Fermer", on_click=handle_cancel),
+            ],
+        )
+        page.dialog = sb_dialog
+        sb_dialog.open = True
+        page.update()
+    
     def open_form_dialog(caveau=None, prefill_lat=None, prefill_lng=None):
         is_edit = caveau is not None
         is_edit = caveau is not None
