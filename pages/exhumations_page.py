@@ -106,6 +106,11 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
             page.update()
             return
 
+        def close_page_dialog():
+            dialog.open = False
+            page.update()
+
+
         dialog= ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text(f"Demande #{detail.get('id', exhumation_id)}", color=COLOR_TEXT),
@@ -127,9 +132,7 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
         dialog.open = True
         page.update()
 
-    def close_page_dialog():
-        page.dialog.open = False
-        page.update()
+    
 
     def handle_search(e):
         if not search_field.value:

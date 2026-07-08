@@ -154,7 +154,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 page.update()
 
         def handle_cancel(ev):
-            page.dialog.open = False
+            dialog.open = False
             page.update()
 
         dialog= ft.AlertDialog(
