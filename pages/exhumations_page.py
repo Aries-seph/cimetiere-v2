@@ -78,7 +78,7 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
             page.dialog.open = False
             page.update()
 
-        page.overlay.append = ft.AlertDialog(
+        dialog= ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Approuver l'exhumation", color=COLOR_TEXT),
             content=ft.Column([date_field, observations_field, error_text], spacing=12, tight=True, width=320),
@@ -87,24 +87,26 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
                 ft.ElevatedButton("Approuver", bgcolor=COLOR_GREEN, color=ft.Colors.WHITE, on_click=handle_confirm),
             ],
         )
-        page.dialog.open = True
+        page.overlay.append(dialog)
+        dialog.open = True
         page.update()
 
     def show_detail_dialog(exhumation_id):
         detail = get_exhumation_by_id(exhumation_id)
 
         if not detail or detail.get("success") is False:
-            page.overlay.append = ft.AlertDialog(
+            dialog= ft.AlertDialog(
                 bgcolor=COLOR_CARD,
                 title=ft.Text("Erreur", color=COLOR_TEXT),
                 content=ft.Text(detail.get("message", "Demande introuvable"), color=COLOR_TEXT_MUTED),
                 actions=[ft.TextButton("Fermer", on_click=lambda e: close_page_dialog())],
             )
-            page.dialog.open = True
+            page.overlay.append(dialog)
+            dialog.open = True
             page.update()
             return
 
-        page.overlay.append = ft.AlertDialog(
+        dialog= ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text(f"Demande #{detail.get('id', exhumation_id)}", color=COLOR_TEXT),
             content=ft.Column(
@@ -121,7 +123,8 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
             ),
             actions=[ft.TextButton("Fermer", on_click=lambda e: close_page_dialog())],
         )
-        page.dialog.open = True
+        page.overlay.append(dialog)
+        dialog.open = True
         page.update()
 
     def close_page_dialog():

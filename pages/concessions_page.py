@@ -157,7 +157,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
             page.dialog.open = False
             page.update()
 
-        page.overlay.append = ft.AlertDialog(
+        dialog= ft.AlertDialog(
             bgcolor=COLOR_CARD,
             title=ft.Text("Nouvelle concession", color=COLOR_TEXT),
             content=ft.Column(
@@ -169,7 +169,8 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 ft.ElevatedButton("Créer", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_save),
             ],
         )
-        page.dialog.open = True
+        page.overlay.append(dialog)
+        dialog.open = True
         page.update()
 
     def build_concession_row(c):
