@@ -66,7 +66,7 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
                 date_exhumation=date_field.value or None,
             )
             if result.get("success"):
-                page.dialog.open = False
+                dialog.open = False
                 page.update()
                 refresh_list()
             else:
@@ -75,7 +75,7 @@ def exhumations_page(page: ft.Page, on_navigate, on_logout):
                 page.update()
 
         def handle_cancel(e):
-            page.dialog.open = False
+            dialog.open = False
             page.update()
 
         dialog= ft.AlertDialog(

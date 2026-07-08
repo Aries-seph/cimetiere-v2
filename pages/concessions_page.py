@@ -85,7 +85,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 return
             result = renouveler_concession(concession_id, date_field.value)
             if result.get("success"):
-                page.dialog.open = False
+                dialog.open = False
                 page.update()
                 refresh_list()
             else:
@@ -94,7 +94,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
                 page.update()
 
         def handle_cancel(e):
-            page.dialog.open = False
+            dialog.open = False
             page.update()
 
         dialog = ft.AlertDialog(
@@ -141,7 +141,7 @@ def concessions_page(page: ft.Page, on_navigate, on_logout):
 
                 result = create_concession(payload)
                 if result.get("success"):
-                    page.dialog.open = False
+                    dialog.open = False
                     page.update()
                     refresh_list()
                 else:

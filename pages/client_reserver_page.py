@@ -56,7 +56,7 @@ def client_reserver_page(page: ft.Page, on_navigate, on_logout, preselect_caveau
                 page.update()
 
         def handle_cancel(e):
-            page.dialog.open = False
+            dialog.open = False
             page.update()
 
         dialog= ft.AlertDialog(
