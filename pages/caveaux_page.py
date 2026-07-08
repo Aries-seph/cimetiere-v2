@@ -195,7 +195,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
 
         async def handle_pick_location(e):
             token = api_client.access_token or ""
-            url = f"http://127.0.0.1:8000/carte/admin-pick/?token={token}"
+            url = f"https://cimetiere-backend-production.up.railway.app/carte/admin-pick/?token={token}"
             if is_edit:
                 url += f"&caveau_id={caveau['id']}"
             await page.launch_url(url)
