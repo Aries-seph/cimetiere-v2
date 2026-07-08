@@ -95,7 +95,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                 page.update()
  
         def handle_cancel(e):
-            page.dialog.open = False
+            sb_dialog.open = False
             page.update()
  
 
