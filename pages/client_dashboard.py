@@ -45,7 +45,7 @@ def client_dashboard(page: ft.Page, on_navigate, on_logout):
                                 bgcolor=color,
                                 width=42, height=42,
                                 border_radius=12,
-                                alignment=ft.alignment.center,  # Correction ici
+                                alignment=ft.Alignment.CENTER,
                             ),
                         ],
                     ),
