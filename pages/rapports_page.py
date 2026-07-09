@@ -4,7 +4,8 @@ import subprocess
 import sys
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_BORDER
 from components.sidebar import build_sidebar
-from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal, download_export
+from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal
+from api_client import api_client, BASE_URL
 
 MOBILE_BREAKPOINT = 768
 
@@ -25,35 +26,25 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
 
     export_status = ft.Text("", size=12, color=COLOR_GREEN, visible=False)
 
-    def open_file_location(filepath):
-        try:
-            if sys.platform == "win32":
-                subprocess.run(["explorer", "/select,", filepath])
-            elif sys.platform == "darwin":
-                subprocess.run(["open", "-R", filepath])
-            else:
-                subprocess.run(["xdg-open", os.path.dirname(filepath)])
-        except Exception:
-            pass
-
     def handle_export(export_type, extension):
-        content = download_export(export_type)
-        if content:
-            downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
-            os.makedirs(downloads_folder, exist_ok=True)
-            filepath = os.path.join(downloads_folder, f"registre_cimetiere.{extension}")
-            with open(filepath, "wb") as f:
-                f.write(content)
-            export_status.value = f"Fichier enregistré : {filepath}"
-            export_status.visible = True
-            page.update()
-            open_file_location(filepath)
-        else:
-            export_status.value = "Erreur lors de l'export"
+        token = api_client.access_token
+
+        if not token:
+            export_status.value = "Session expirée, veuillez vous reconnecter."
             export_status.color = "#EF4444"
             export_status.visible = True
             page.update()
+            return
 
+        endpoint = "export-csv" if export_type == "csv" else "export-excel"
+        url = f"{BASE_URL}/dashboard/{endpoint}?token={token}"
+
+        page.launch_url(url, web_popup_window_name=ft.UrlTarget.SELF)
+
+        export_status.value = "Téléchargement lancé..."
+        export_status.color = "#10B981"
+        export_status.visible = True
+        page.update()
     occupation_rows = []
     if occupation_data and isinstance(occupation_data, list):
         for item in occupation_data:
