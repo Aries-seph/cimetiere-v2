@@ -26,7 +26,7 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
 
     export_status = ft.Text("", size=12, color=COLOR_GREEN, visible=False)
 
-    def handle_export(export_type, extension):
+    async def handle_export(export_type, extension):
         token = api_client.access_token
 
         if not token:
@@ -39,12 +39,13 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
         endpoint = "export-csv" if export_type == "csv" else "export-excel"
         url = f"{BASE_URL}/dashboard/{endpoint}?token={token}"
 
-        page.launch_url(url, web_popup_window_name=ft.UrlTarget.SELF)
+        await page.launch_url(url, web_popup_window_name=ft.UrlTarget.SELF)
 
         export_status.value = "Téléchargement lancé..."
         export_status.color = "#10B981"
         export_status.visible = True
         page.update()
+
     occupation_rows = []
     if occupation_data and isinstance(occupation_data, list):
         for item in occupation_data:
@@ -119,14 +120,14 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
                             icon=ft.Icons.DESCRIPTION_OUTLINED,
                             bgcolor=COLOR_PRIMARY,
                             color=COLOR_TEXT,
-                            on_click=lambda e: handle_export("csv", "csv"),
+                            on_click=lambda e: page.run_task(handle_export, "csv", "csv"),
                         ),
                         ft.ElevatedButton(
                             "Exporter en Excel",
                             icon=ft.Icons.TABLE_CHART_OUTLINED,
                             bgcolor=COLOR_GREEN,
                             color=ft.Colors.WHITE,
-                            on_click=lambda e: handle_export("excel", "xlsx"),
+                            on_click=lambda e: page.run_task(handle_export, "excel", "xlsx"),
                         ),
                     ],
                     spacing=12,
