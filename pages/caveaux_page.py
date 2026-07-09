@@ -197,11 +197,7 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             url = f"https://cimetiere-backend-production.up.railway.app/carte/admin-pick/?token={token}"
             if is_edit:
                 url += f"&caveau_id={caveau['id']}"
-            # web_window_name="_self" : force l'ouverture dans le MÊME onglet.
-            # Sans ça, la carte s'ouvre dans un nouvel onglet et le retour
-            # "window.location.href = FLET_APP_URL" navigue dans CET autre onglet,
-            # créant une nouvelle session Flet différente de celle où on travaillait.
-            await page.launch_url(url, web_window_name="_self")
+            await page.launch_url(url, web_popup_window_name=ft.UrlTarget.SELF)
 
         pick_button = ft.ElevatedButton(
             content="  Choisir sur la carte",
