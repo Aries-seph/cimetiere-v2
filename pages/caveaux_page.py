@@ -129,7 +129,6 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
     
     def open_form_dialog(caveau=None, prefill_lat=None, prefill_lng=None):
         is_edit = caveau is not None
-        is_edit = caveau is not None
 
         bloc_dropdown = ft.Dropdown(
             label="Bloc",
@@ -198,7 +197,11 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
             url = f"https://cimetiere-backend-production.up.railway.app/carte/admin-pick/?token={token}"
             if is_edit:
                 url += f"&caveau_id={caveau['id']}"
-            await page.launch_url(url)
+            # web_window_name="_self" : force l'ouverture dans le MÊME onglet.
+            # Sans ça, la carte s'ouvre dans un nouvel onglet et le retour
+            # "window.location.href = FLET_APP_URL" navigue dans CET autre onglet,
+            # créant une nouvelle session Flet différente de celle où on travaillait.
+            await page.launch_url(url, web_window_name="_self")
 
         pick_button = ft.ElevatedButton(
             content="  Choisir sur la carte",
@@ -233,20 +236,6 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
                     dialog.open = False
                     page.update()
                     refresh_list()
-                    print("DEBUG caveaux_page - pick_lat:", pick_lat, "pick_lng:", pick_lng, "pick_caveau_id:", pick_caveau_id)
-                    # Ouverture automatique du formulaire si coordonnées reçues depuis la carte
-                    if pick_lat and pick_lng:
-                        if pick_caveau_id:
-                            try:
-                                pcid = int(pick_caveau_id)
-                                match = next((c for c in caveaux_list if c["id"] == pcid), None)
-                                if match:
-                                    open_form_dialog(match, prefill_lat=pick_lat, prefill_lng=pick_lng)
-                            except (ValueError, TypeError):
-                                open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
-                        else:
-                            open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
-
                 else:
                     error_text.value = result.get("message", "Erreur")
                     error_text.visible = True
@@ -342,6 +331,23 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
 
     refresh_list()
 
+    # --- Ouverture automatique du formulaire pré-rempli au chargement de la page ---
+    # C'est ici que la logique manquait : pick_lat/pick_lng arrivaient bien en paramètre
+    # de caveaux_page(), mais rien ne les utilisait avant qu'un save ne soit déclenché.
+    if pick_lat and pick_lng:
+        if pick_caveau_id:
+            try:
+                pcid = int(pick_caveau_id)
+                match = next((c for c in caveaux_list if c["id"] == pcid), None)
+                if match:
+                    open_form_dialog(match, prefill_lat=pick_lat, prefill_lng=pick_lng)
+                else:
+                    open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
+            except (ValueError, TypeError):
+                open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
+        else:
+            open_form_dialog(prefill_lat=pick_lat, prefill_lng=pick_lng)
+
     drawer_ref = {"overlay": None}
 
     def close_drawer():
@@ -409,4 +415,4 @@ def caveaux_page(page: ft.Page, on_navigate, on_logout, pick_lat=None, pick_lng=
         return content
 
     sidebar = build_sidebar(page, "caveaux", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True) 
+    return ft.Row([sidebar, content], spacing=0, expand=True)

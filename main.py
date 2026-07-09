@@ -172,13 +172,7 @@ async def main(page: ft.Page):
             page.add(ft.Text(f"Page '{name}' à venir", color="white"))
         page.update()
 
-    """"
-    def handle_resize(e):
-        render()
-    page.on_resize = handle_resize
-    """
 
-    # --- Démarrage initial ---
     session_ok = await restore_session()
 
     if session_ok:
