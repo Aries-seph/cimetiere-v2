@@ -1,10 +1,8 @@
-# client_paiements_page.py (corrigé)
+# pages/client_paiements_page.py
 import flet as ft
-from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
-from components.sidebar_client import build_sidebar_client
+from components.navbar import build_navbar
 from components.data_fetcher import get_mes_paiements, get_mes_reservations, create_paiement_client
-
-MOBILE_BREAKPOINT = 768
+from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
 STATUT_COLORS = {
     "EN_ATTENTE": COLOR_ORANGE,
@@ -26,9 +24,13 @@ CANAL_LABELS = {
 }
 
 
-def client_paiements_page(page: ft.Page, on_navigate, on_logout):
-
-    is_mobile = page.width < MOBILE_BREAKPOINT  # Correction ici
+def client_paiements_page(page: ft.Page, on_logout):
+    """Page des paiements du client."""
+    
+    is_mobile = page.width < 768
+    
+    navbar, _ = build_navbar(page, "CLIENT", on_logout)
+    
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
     def status_badge(statut):
@@ -37,15 +39,13 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
         return ft.Container(
             content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=10, top=5, right=10, bottom=5),  # Padding réduit
+            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
             border_radius=20,
         )
 
     def open_new_paiement_dialog():
         reservations = get_mes_reservations() or []
-        if not isinstance(reservations, list):
-            reservations = []
-        reservations_validees = [r for r in reservations if r.get("statut") == "VALIDEE"]
+        reservations_validees = [r for r in reservations if isinstance(reservations, list) and r.get("statut") == "VALIDEE"]
 
         if not reservations_validees:
             info_dialog = ft.AlertDialog(
@@ -62,27 +62,33 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
         reservation_dropdown = ft.Dropdown(
             label="Réservation",
             width=320,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
             options=[
-                ft.DropdownOption(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
+                ft.dropdown.Option(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
                 for r in reservations_validees
             ],
         )
         montant_field = ft.TextField(
             label="Montant (FCFA)",
             width=320,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
             keyboard_type=ft.KeyboardType.NUMBER,
         )
         canal_dropdown = ft.Dropdown(
             label="Canal de paiement",
             width=320,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
             options=[
-                ft.DropdownOption(key="MOBILE_MONEY", text="Mobile Money"),
-                ft.DropdownOption(key="AIRTEL_MONEY", text="Airtel Money"),
-                ft.DropdownOption(key="ESPECES", text="Espèces"),
-                ft.DropdownOption(key="VIREMENT", text="Virement"),
+                ft.dropdown.Option(key="MOBILE_MONEY", text="Mobile Money"),
+                ft.dropdown.Option(key="AIRTEL_MONEY", text="Airtel Money"),
+                ft.dropdown.Option(key="ESPECES", text="Espèces"),
+                ft.dropdown.Option(key="VIREMENT", text="Virement"),
             ],
         )
         error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
@@ -129,7 +135,7 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
             ),
             actions=[
                 ft.TextButton("Fermer", on_click=handle_cancel),
-                ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_submit),
+                ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_submit),
             ],
         )
         page.overlay.append(dialog)
@@ -178,56 +184,34 @@ def client_paiements_page(page: ft.Page, on_navigate, on_logout):
 
     refresh_list()
 
-    drawer_ref = {"overlay": None}
-
-    def close_drawer():
-        if drawer_ref["overlay"] in page.overlay:
-            page.overlay.remove(drawer_ref["overlay"])
-            page.update()
-
-    def open_drawer():
-        sidebar_mobile = build_sidebar_client(page, "client_paiements", on_navigate, on_logout, on_close=close_drawer)
-        overlay = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Container(width=260, content=sidebar_mobile, bgcolor="#13131F"),
-                    ft.Container(expand=True, bgcolor="#00000099", on_click=lambda e: close_drawer()),
-                ],
-                spacing=0,
-            ),
-            expand=True,
-        )
-        drawer_ref["overlay"] = overlay
-        page.overlay.append(overlay)
-        page.update()
-
-    header_controls = []
-    if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
-    header_controls.append(ft.Text("Mes paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
-    header_controls.append(ft.Container(expand=True))
-    header_controls.append(
-        ft.ElevatedButton("Nouveau paiement", icon=ft.Icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_new_paiement_dialog())
-    )
-
-    header = ft.Row(header_controls)
-
     content = ft.Container(
         content=ft.Column(
             [
-                header,
+                navbar,
+                ft.Container(height=20),
+                ft.Row(
+                    [
+                        ft.Text("Mes paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                        ft.Container(expand=True),
+                        ft.ElevatedButton(
+                            "Nouveau paiement",
+                            icon=ft.Icons.ADD,
+                            bgcolor=COLOR_PRIMARY,
+                            color=ft.Colors.WHITE,
+                            on_click=lambda e: open_new_paiement_dialog(),
+                        ),
+                    ],
+                ),
                 ft.Container(height=20),
                 list_container,
+                ft.Container(height=20),
             ],
             expand=True,
+            scroll=ft.ScrollMode.AUTO,
         ),
-        padding=16 if is_mobile else 30,
+        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
 
-    if is_mobile:
-        return content
-
-    sidebar = build_sidebar_client(page, "client_paiements", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True)
+    return content

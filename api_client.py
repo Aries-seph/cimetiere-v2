@@ -1,42 +1,47 @@
+# api_client.py
 import httpx
-import os
+from typing import Optional, Dict, Any
 
-BASE_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000/api')
-print(f"===== BASE_URL = {BASE_URL} =====")
-_global_token = {"access": None, "refresh": None, "user": None}
+BASE_URL = "http://127.0.0.1:8000/api"
 
 
 class APIClient:
+    """Client API pour communiquer avec le backend."""
+    
     def __init__(self):
-        self.access_token = None
-        self.refresh_token = None
-        self.user = None
+        self.access_token: Optional[str] = None
+        self.refresh_token: Optional[str] = None
+        self.user: Optional[Dict[str, Any]] = None
 
-    def register(self, username: str, email: str, password: str, telephone: str = ""):
-        response = httpx.post(f"{BASE_URL}/users/register/", json={
-            "username": username,
-            "email": email,
-            "password": password,
-            "telephone": telephone
-        }, timeout=60.0)
-        return response.json()
-
-    def login(self, email, password):
+    def register(self, username: str, email: str, password: str, telephone: str = "") -> Dict[str, Any]:
+        """Inscription d'un nouvel utilisateur."""
         response = httpx.post(
-            f"{BASE_URL}/users/login/",
-            json={"email": email, "password": password},
-            timeout=60.0
+            f"{BASE_URL}/users/register",
+            json={
+                "username": username,
+                "email": email,
+                "password": password,
+                "telephone": telephone
+            },
+            timeout=30.0
         )
-        if response.status_code != 200:
-            print(f"ERREUR BACKEND ({response.status_code}): {response.text}")
-            return {"error": True, "message": f"Erreur serveur {response.status_code}"}
+        return response.json()
+    
+    def login(self, email: str, password: str) -> Dict[str, Any]:
+        """Connexion de l'utilisateur."""
+        response = httpx.post(
+            f"{BASE_URL}/users/login",
+            json={"email": email, "password": password},
+            timeout=30.0
+        )
         return response.json()
 
-    def verify_mfa(self, email: str, code: str):
+    def verify_mfa(self, email: str, code: str) -> Dict[str, Any]:
+        """Vérification du code MFA."""
         response = httpx.post(
-            f"{BASE_URL}/users/verify-mfa/",
+            f"{BASE_URL}/users/verify-mfa",
             json={"email": email, "code": code},
-            timeout=60.0
+            timeout=30.0
         )
         data = response.json()
         if data.get("success"):
@@ -45,37 +50,19 @@ class APIClient:
             self.user = data.get("user")
         return data
 
-    def get_headers(self):
-        return {"Authorization": f"Bearer {self.access_token}"}
+    def get_headers(self) -> Dict[str, str]:
+        """Récupère les headers d'authentification."""
+        return {"Authorization": f"Bearer {self.access_token}"} if self.access_token else {}
 
-    def get_me(self):
-        try:
-            print(f"===== TOKEN = {self.access_token} =====")
-            response = httpx.get(
-                f"{BASE_URL}/users/me",
-                headers=self.get_headers(),
-                timeout=30.0
-            )
-            print(f"===== get_me status = {response.status_code} =====")
-            return response.json()
-        except Exception as e:
-            print(f"===== get_me erreur = {e} =====")
-            return {}
+    def get_me(self) -> Dict[str, Any]:
+        """Récupère le profil de l'utilisateur connecté."""
+        response = httpx.get(
+            f"{BASE_URL}/users/me",
+            headers=self.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+
+
+# Instance globale du client
 api_client = APIClient()
-
-
-def set_global_session(access, refresh, user):
-        _global_token["access"] = access
-        _global_token["refresh"] = refresh
-        _global_token["user"] = user
-        api_client.access_token = access
-        api_client.refresh_token = refresh
-        api_client.user = user
-
-def restore_global_session():
-    if _global_token["access"]:
-        api_client.access_token = _global_token["access"]
-        api_client.refresh_token = _global_token["refresh"]
-        api_client.user = _global_token["user"]
-        return True
-    return False

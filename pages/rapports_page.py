@@ -1,13 +1,11 @@
+# pages/rapports_page.py
 import flet as ft
 import os
 import subprocess
 import sys
+from components.navbar import build_navbar
+from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal, download_export
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_BORDER
-from components.sidebar import build_sidebar
-from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal
-from api_client import api_client, BASE_URL
-
-MOBILE_BREAKPOINT = 768
 
 CANAL_LABELS = {
     "MOBILE_MONEY": "Mobile Money",
@@ -17,34 +15,47 @@ CANAL_LABELS = {
 }
 
 
-def rapports_page(page: ft.Page, on_navigate, on_logout):
-
-    is_mobile = page.width < MOBILE_BREAKPOINT
-
+def rapports_page(page: ft.Page, on_logout):
+    """Page des rapports et exports."""
+    
+    is_mobile = page.width < 768
+    
+    navbar, _ = build_navbar(page, "ADMIN", on_logout)
+    
     occupation_data = get_occupation_par_bloc() or []
     revenus_data = get_revenus_par_canal() or []
 
     export_status = ft.Text("", size=12, color=COLOR_GREEN, visible=False)
 
-    async def handle_export(export_type, extension):
-        token = api_client.access_token
+    def open_file_location(filepath):
+        try:
+            if sys.platform == "win32":
+                subprocess.run(["explorer", "/select,", filepath])
+            elif sys.platform == "darwin":
+                subprocess.run(["open", "-R", filepath])
+            else:
+                subprocess.run(["xdg-open", os.path.dirname(filepath)])
+        except Exception:
+            pass
 
-        if not token:
-            export_status.value = "Session expirée, veuillez vous reconnecter."
+    def handle_export(export_type, extension):
+        content = download_export(export_type)
+        if content:
+            downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
+            os.makedirs(downloads_folder, exist_ok=True)
+            filepath = os.path.join(downloads_folder, f"registre_cimetiere.{extension}")
+            with open(filepath, "wb") as f:
+                f.write(content)
+            export_status.value = f"Fichier enregistré : {filepath}"
+            export_status.color = COLOR_GREEN
+            export_status.visible = True
+            page.update()
+            open_file_location(filepath)
+        else:
+            export_status.value = "Erreur lors de l'export"
             export_status.color = "#EF4444"
             export_status.visible = True
             page.update()
-            return
-
-        endpoint = "export-csv" if export_type == "csv" else "export-excel"
-        url = f"{BASE_URL}/dashboard/{endpoint}?token={token}"
-
-        await page.launch_url(url, web_popup_window_name=ft.UrlTarget.SELF)
-
-        export_status.value = "Téléchargement lancé..."
-        export_status.color = "#10B981"
-        export_status.visible = True
-        page.update()
 
     occupation_rows = []
     if occupation_data and isinstance(occupation_data, list):
@@ -57,7 +68,7 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
                         ft.Container(
                             content=ft.Text(item.get("taux_occupation", "0%"), size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
                             bgcolor=COLOR_PRIMARY,
-                            padding=ft.Padding(left=20, top=10, right=20, bottom=10),
+                            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
                             border_radius=20,
                         ),
                     ],
@@ -75,7 +86,11 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
                 ft.Column(occupation_rows, spacing=12),
             ],
         ),
-        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.Border.all(1, COLOR_BORDER), expand=True,
+        bgcolor=COLOR_CARD,
+        padding=20,
+        border_radius=14,
+        border=ft.Border.all(1, COLOR_BORDER),
+        expand=True,
     )
 
     revenus_rows = []
@@ -105,7 +120,11 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
                 ft.Column(revenus_rows, spacing=12),
             ],
         ),
-        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.Border.all(1, COLOR_BORDER), expand=True,
+        bgcolor=COLOR_CARD,
+        padding=20,
+        border_radius=14,
+        border=ft.Border.all(1, COLOR_BORDER),
+        expand=True,
     )
 
     export_card = ft.Container(
@@ -119,15 +138,15 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
                             "Exporter en CSV",
                             icon=ft.Icons.DESCRIPTION_OUTLINED,
                             bgcolor=COLOR_PRIMARY,
-                            color=COLOR_TEXT,
-                            on_click=lambda e: page.run_task(handle_export, "csv", "csv"),
+                            color=ft.Colors.WHITE,
+                            on_click=lambda e: handle_export("csv", "csv"),
                         ),
                         ft.ElevatedButton(
                             "Exporter en Excel",
                             icon=ft.Icons.TABLE_CHART_OUTLINED,
                             bgcolor=COLOR_GREEN,
                             color=ft.Colors.WHITE,
-                            on_click=lambda e: page.run_task(handle_export, "excel", "xlsx"),
+                            on_click=lambda e: handle_export("excel", "xlsx"),
                         ),
                     ],
                     spacing=12,
@@ -136,7 +155,10 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
                 export_status,
             ],
         ),
-        bgcolor=COLOR_CARD, padding=20, border_radius=14, border=ft.Border.all(1, COLOR_BORDER),
+        bgcolor=COLOR_CARD,
+        padding=20,
+        border_radius=14,
+        border=ft.Border.all(1, COLOR_BORDER),
     )
 
     bottom_section = (
@@ -145,57 +167,28 @@ def rapports_page(page: ft.Page, on_navigate, on_logout):
         else ft.Row([occupation_card, revenus_card], spacing=16, expand=True)
     )
 
-    drawer_ref = {"overlay": None}
-
-    def close_drawer():
-        if drawer_ref["overlay"] in page.overlay:
-            page.overlay.remove(drawer_ref["overlay"])
-            page.update()
-
-    def open_drawer():
-        sidebar_mobile = build_sidebar(page, "rapports", on_navigate, on_logout, on_close=close_drawer)
-        overlay = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Container(width=260, content=sidebar_mobile, bgcolor="#13131F"),
-                    ft.Container(expand=True, bgcolor="#00000099", on_click=lambda e: close_drawer()),
-                ],
-                spacing=0,
-            ),
-            expand=True,
-        )
-        drawer_ref["overlay"] = overlay
-        page.overlay.append(overlay)
-        page.update()
-
-    header_controls = []
-    if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
-    header_controls.append(ft.Text("Rapports", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
-
-    header = ft.Row(header_controls)
-
-    content_column = ft.Column(
-        [
-            header,
-            ft.Container(height=20),
-            export_card,
-            ft.Container(height=20),
-            bottom_section,
-        ],
-        scroll=ft.ScrollMode.AUTO,
-        expand=True,
-    )
-
     content = ft.Container(
-        content=content_column,
-        padding=16 if is_mobile else 30,
+        content=ft.Column(
+            [
+                navbar,
+                ft.Container(height=20),
+                ft.Row(
+                    [
+                        ft.Text("Rapports et analyses", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                    ],
+                ),
+                ft.Container(height=20),
+                export_card,
+                ft.Container(height=20),
+                bottom_section,
+                ft.Container(height=20),
+            ],
+            scroll=ft.ScrollMode.AUTO,
+            expand=True,
+        ),
+        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
 
-    if is_mobile:
-        return content
-
-    sidebar = build_sidebar(page, "rapports", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True)
+    return content

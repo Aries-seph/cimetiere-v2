@@ -1,10 +1,9 @@
+# pages/client_exhumations_page.py
 import flet as ft
 from datetime import datetime
-from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
-from components.sidebar_client import build_sidebar_client
+from components.navbar import build_navbar
 from components.data_fetcher import get_mes_exhumations, create_exhumation_client
-
-MOBILE_BREAKPOINT = 768
+from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
 STATUT_COLORS = {
     "EN_ATTENTE": COLOR_ORANGE,
@@ -21,9 +20,13 @@ STATUT_LABELS = {
 }
 
 
-def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
-
-    is_mobile = page.width < MOBILE_BREAKPOINT
+def client_exhumations_page(page: ft.Page, on_logout):
+    """Page des exhumations du client."""
+    
+    is_mobile = page.width < 768
+    
+    navbar, _ = build_navbar(page, "CLIENT", on_logout)
+    
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
     def status_badge(statut):
@@ -32,7 +35,7 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
         return ft.Container(
             content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=10, top=5, right=10, bottom=5),
+            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
             border_radius=20,
         )
 
@@ -40,26 +43,34 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
         caveau_id_field = ft.TextField(
             label="ID du caveau",
             width=320,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
             keyboard_type=ft.KeyboardType.NUMBER,
         )
         nom_defunt_field = ft.TextField(
             label="Nom complet du défunt",
             width=320,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
         )
         motif_field = ft.TextField(
             label="Motif de la demande",
             width=320,
             multiline=True,
             min_lines=2,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
         )
 
         date_field = ft.TextField(
             label="Date d'exhumation souhaitée",
             width=260,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
             read_only=True,
         )
 
@@ -112,9 +123,6 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
                     error_text.visible = False
                     page.update()
                     refresh_list()
-                    # Fermer le dialogue après succès
-                    dialog.open = False
-                    page.update()
                 else:
                     error_text.value = result.get("message", "Erreur lors de la soumission")
                     error_text.visible = True
@@ -137,10 +145,10 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
             ),
             actions=[
                 ft.TextButton("Fermer", on_click=handle_cancel),
-                ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_submit),
+                ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_submit),
             ],
         )
-        page.overlay.append(dialog) 
+        page.overlay.append(dialog)
         dialog.open = True
         page.update()
 
@@ -168,10 +176,8 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
 
     def refresh_list():
         exhumations = get_mes_exhumations() or []
-        if not isinstance(exhumations, list):
-            exhumations = []
         list_container.controls.clear()
-        if not exhumations:
+        if not exhumations or not isinstance(exhumations, list):
             list_container.controls.append(
                 ft.Text("Vous n'avez aucune demande d'exhumation", color=COLOR_TEXT_MUTED, size=14)
             )
@@ -182,56 +188,34 @@ def client_exhumations_page(page: ft.Page, on_navigate, on_logout):
 
     refresh_list()
 
-    drawer_ref = {"overlay": None}
-
-    def close_drawer():
-        if drawer_ref["overlay"] in page.overlay:
-            page.overlay.remove(drawer_ref["overlay"])
-            page.update()
-
-    def open_drawer():
-        sidebar_mobile = build_sidebar_client(page, "client_exhumations", on_navigate, on_logout, on_close=close_drawer)
-        overlay = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Container(width=260, content=sidebar_mobile, bgcolor="#13131F"),
-                    ft.Container(expand=True, bgcolor="#00000099", on_click=lambda e: close_drawer()),
-                ],
-                spacing=0,
-            ),
-            expand=True,
-        )
-        drawer_ref["overlay"] = overlay
-        page.overlay.append(overlay)
-        page.update()
-
-    header_controls = []
-    if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
-    header_controls.append(ft.Text("Exhumations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
-    header_controls.append(ft.Container(expand=True))
-    header_controls.append(
-        ft.ElevatedButton("Nouvelle demande", icon=ft.Icons.ADD, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=lambda e: open_create_dialog())
-    )
-
-    header = ft.Row(header_controls)
-
     content = ft.Container(
         content=ft.Column(
             [
-                header,
+                navbar,
+                ft.Container(height=20),
+                ft.Row(
+                    [
+                        ft.Text("Mes exhumations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                        ft.Container(expand=True),
+                        ft.ElevatedButton(
+                            "Nouvelle demande",
+                            icon=ft.Icons.ADD,
+                            bgcolor=COLOR_PRIMARY,
+                            color=ft.Colors.WHITE,
+                            on_click=lambda e: open_create_dialog(),
+                        ),
+                    ],
+                ),
                 ft.Container(height=20),
                 list_container,
+                ft.Container(height=20),
             ],
             expand=True,
+            scroll=ft.ScrollMode.AUTO,
         ),
-        padding=16 if is_mobile else 30,
+        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
 
-    if is_mobile:
-        return content
-
-    sidebar = build_sidebar_client(page, "client_exhumations", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True)
+    return content

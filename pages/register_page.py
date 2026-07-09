@@ -1,3 +1,4 @@
+# pages/register_page.py
 import flet as ft
 from theme import (
     COLOR_BG, COLOR_CARD, COLOR_PRIMARY, COLOR_PRIMARY_LIGHT,
@@ -7,6 +8,14 @@ from api_client import api_client
 
 
 def register_page(page: ft.Page, on_register_success, on_go_to_login):
+    """
+    Page d'inscription pour les nouveaux utilisateurs.
+    
+    Args:
+        page: Page Flet
+        on_register_success: Callback appelée après une inscription réussie
+        on_go_to_login: Callback pour aller vers la page de connexion
+    """
 
     username_field = ft.TextField(
         label="Nom d'utilisateur",
@@ -17,6 +26,7 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
         prefix_icon=ft.Icons.PERSON_OUTLINE,
+        hint_text="Choisissez un nom d'utilisateur unique",
     )
 
     email_field = ft.TextField(
@@ -28,6 +38,7 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
         prefix_icon=ft.Icons.EMAIL_OUTLINED,
+        hint_text="Entrez votre adresse email valide",
     )
 
     telephone_field = ft.TextField(
@@ -39,6 +50,7 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
         prefix_icon=ft.Icons.PHONE_OUTLINED,
+        hint_text="Ex: +242 06 123 4567",
     )
 
     password_field = ft.TextField(
@@ -52,6 +64,7 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
         prefix_icon=ft.Icons.LOCK_OUTLINE,
+        hint_text="Minimum 8 caractères",
     )
 
     confirm_password_field = ft.TextField(
@@ -65,56 +78,89 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
         prefix_icon=ft.Icons.LOCK_OUTLINE,
+        hint_text="Répétez votre mot de passe",
     )
 
     error_text = ft.Text("", color=COLOR_RED, size=13, visible=False)
     success_text = ft.Text("", color=COLOR_GREEN, size=13, visible=False)
     loading = ft.ProgressRing(width=20, height=20, stroke_width=2, visible=False, color=COLOR_PRIMARY)
+    
+    # État pour éviter les doubles soumissions
+    is_registering = [False]
 
     def handle_register(e):
+        """Gère l'inscription."""
+        if is_registering[0]:
+            return
+        
         error_text.visible = False
         success_text.visible = False
+        is_registering[0] = True
 
-        if not username_field.value or not email_field.value or not password_field.value:
+        username = username_field.value
+        email = email_field.value
+        password = password_field.value
+        confirm_password = confirm_password_field.value
+        telephone = telephone_field.value or ""
+
+        # Validations
+        if not username or not email or not password:
             error_text.value = "Veuillez remplir tous les champs obligatoires"
             error_text.visible = True
+            is_registering[0] = False
             page.update()
             return
 
-        if password_field.value != confirm_password_field.value:
+        if len(password) < 8:
+            error_text.value = "Le mot de passe doit contenir au moins 8 caractères"
+            error_text.visible = True
+            is_registering[0] = False
+            page.update()
+            return
+
+        if password != confirm_password:
             error_text.value = "Les mots de passe ne correspondent pas"
             error_text.visible = True
+            is_registering[0] = False
             page.update()
             return
 
         loading.visible = True
         page.update()
 
-        result = api_client.register(
-            username_field.value,
-            email_field.value,
-            password_field.value,
-            telephone_field.value or "",
-        )
+        result = api_client.register(username, email, password, telephone)
 
         loading.visible = False
+        is_registering[0] = False
 
         if result.get("success"):
             success_text.value = "Compte créé avec succès ! Redirection vers la connexion..."
             success_text.visible = True
             page.update()
-            on_register_success()
+            # Attendre 2 secondes avant de rediriger
+            import asyncio
+            async def redirect():
+                await asyncio.sleep(2)
+                on_register_success()
+            page.run_task(redirect)
         else:
             error_text.value = result.get("message", "Erreur lors de l'inscription")
             error_text.visible = True
             page.update()
+
+    # Gérer la touche Entrée
+    def on_keyboard(e):
+        if e.key == "Enter":
+            handle_register(e)
+
+    page.on_keyboard_event = on_keyboard
 
     register_button = ft.ElevatedButton(
         content="Créer mon compte",
         width=350,
         height=45,
         bgcolor=COLOR_PRIMARY,
-        color=COLOR_TEXT,
+        color=ft.Colors.WHITE,
         style=ft.ButtonStyle(
             shape=ft.RoundedRectangleBorder(radius=8),
         ),
@@ -160,6 +206,7 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
         border_radius=16,
         border=ft.Border.all(1, COLOR_BORDER),
         width=450,
+        height=600,
     )
 
     return ft.Container(

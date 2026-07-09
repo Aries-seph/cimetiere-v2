@@ -1,44 +1,45 @@
+# components/stat_card.py
 import flet as ft
-from theme import COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_GREEN, COLOR_BORDER
+from theme import COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_BORDER
 
 
 def build_stat_card(title: str, value: str, icon, icon_bgcolor: str, subtitle: str = None, trend: str = None):
-
+    """Carte de statistique avec icône"""
+    
     content_items = [
         ft.Row(
             [
                 ft.Container(
-                    content=ft.Icon(icon, color=ft.Colors.WHITE, size=22),
+                    content=ft.Icon(icon, color=ft.Colors.WHITE, size=20),
                     bgcolor=icon_bgcolor,
-                    width=46,
-                    height=46,
-                    border_radius=12,
+                    width=42,
+                    height=42,
+                    border_radius=10,
                     alignment=ft.Alignment.CENTER,
                 ),
                 ft.Column(
                     [
-                        ft.Text(title, size=13, color=COLOR_TEXT_MUTED),
+                        ft.Text(title, size=12, color=COLOR_TEXT_MUTED),
+                        ft.Text(value, size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                     spacing=0,
                 ),
             ],
-            spacing=12,
+            spacing=10,
         ),
-        ft.Container(height=8),
-        ft.Text(value, size=24, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
     ]
-
+    
     if subtitle:
-        sub_row = [ft.Text(subtitle, size=12, color=COLOR_TEXT_MUTED)]
-        if trend:
-            sub_row.insert(0, ft.Text(trend, size=12, color=COLOR_GREEN, weight=ft.FontWeight.W_500))
-        content_items.append(ft.Row(sub_row, spacing=4))
-
+        content_items.append(
+            ft.Text(subtitle, size=11, color=COLOR_TEXT_MUTED)
+        )
+    
     return ft.Container(
-        content=ft.Column(content_items, spacing=0),
+        content=ft.Column(content_items, spacing=4),
         bgcolor=COLOR_CARD,
-        padding=20,
-        border_radius=14,
+        padding=ft.Padding(left=16, top=12, right=16, bottom=12),
+        border_radius=10,
         border=ft.Border.all(1, COLOR_BORDER),
         expand=True,
+        min_width=150,
     )

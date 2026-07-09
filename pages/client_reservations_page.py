@@ -1,9 +1,8 @@
+# pages/client_reservations_page.py
 import flet as ft
-from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
-from components.sidebar_client import build_sidebar_client
+from components.navbar import build_navbar
 from components.data_fetcher import get_mes_reservations
-
-MOBILE_BREAKPOINT = 768
+from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
 STATUT_COLORS = {
     "EN_ATTENTE": COLOR_ORANGE,
@@ -18,9 +17,13 @@ STATUT_LABELS = {
 }
 
 
-def client_reservations_page(page: ft.Page, on_navigate, on_logout):
-
-    is_mobile = page.width < MOBILE_BREAKPOINT
+def client_reservations_page(page: ft.Page, on_logout):
+    """Page des réservations du client."""
+    
+    is_mobile = page.width < 768
+    
+    navbar, _ = build_navbar(page, "CLIENT", on_logout)
+    
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
     def status_badge(statut):
@@ -29,7 +32,7 @@ def client_reservations_page(page: ft.Page, on_navigate, on_logout):
         return ft.Container(
             content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=10, top=5, right=10, bottom=5),
+            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
             border_radius=20,
         )
 
@@ -58,10 +61,8 @@ def client_reservations_page(page: ft.Page, on_navigate, on_logout):
 
     def refresh_list():
         reservations = get_mes_reservations() or []
-        if not isinstance(reservations, list):
-            reservations = []
         list_container.controls.clear()
-        if not reservations:
+        if not reservations or not isinstance(reservations, list):
             list_container.controls.append(
                 ft.Text("Vous n'avez aucune réservation", color=COLOR_TEXT_MUTED, size=14)
             )
@@ -72,52 +73,26 @@ def client_reservations_page(page: ft.Page, on_navigate, on_logout):
 
     refresh_list()
 
-    drawer_ref = {"overlay": None}
-
-    def close_drawer():
-        if drawer_ref["overlay"] in page.overlay:
-            page.overlay.remove(drawer_ref["overlay"])
-            page.update()
-
-    def open_drawer():
-        sidebar_mobile = build_sidebar_client(page, "client_reservations", on_navigate, on_logout, on_close=close_drawer)
-        overlay = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Container(width=260, content=sidebar_mobile, bgcolor="#13131F"),
-                    ft.Container(expand=True, bgcolor="#00000099", on_click=lambda e: close_drawer()),
-                ],
-                spacing=0,
-            ),
-            expand=True,
-        )
-        drawer_ref["overlay"] = overlay
-        page.overlay.append(overlay)
-        page.update()
-
-    header_controls = []
-    if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
-    header_controls.append(ft.Text("Mes réservations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
-
-    header = ft.Row(header_controls)
-
     content = ft.Container(
         content=ft.Column(
             [
-                header,
+                navbar,
+                ft.Container(height=20),
+                ft.Row(
+                    [
+                        ft.Text("Mes réservations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                    ],
+                ),
                 ft.Container(height=20),
                 list_container,
+                ft.Container(height=20),
             ],
             expand=True,
+            scroll=ft.ScrollMode.AUTO,
         ),
-        padding=16 if is_mobile else 30,
+        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
 
-    if is_mobile:
-        return content
-
-    sidebar = build_sidebar_client(page, "client_reservations", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True)
+    return content

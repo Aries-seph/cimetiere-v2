@@ -1,11 +1,10 @@
+# pages/client_carte_page.py
 import flet as ft
 import flet_map as fm
 from datetime import datetime
-from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
-from components.sidebar_client import build_sidebar_client
+from components.navbar import build_navbar
 from components.data_fetcher import get_caveaux, create_reservation_client
-
-MOBILE_BREAKPOINT = 768
+from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
 STATUT_COLORS = {
     "DISPONIBLE": COLOR_GREEN,
@@ -21,13 +20,16 @@ STATUT_LABELS = {
     "INEXPLOITABLE": "Inexploitable",
 }
 
-DEFAULT_CENTER = fm.MapLatitudeLongitude(-4.7761, 11.8635)  # Pointe-Noire
+DEFAULT_CENTER = fm.MapLatitudeLongitude(-4.7761, 11.8635)
 
 
-def client_carte_page(page: ft.Page, on_navigate, on_logout):
-
-    is_mobile = page.width < MOBILE_BREAKPOINT
-
+def client_carte_page(page: ft.Page, on_logout):
+    """Page de la carte interactive pour les clients."""
+    
+    is_mobile = page.width < 768
+    
+    navbar, _ = build_navbar(page, "CLIENT", on_logout)
+    
     caveaux = get_caveaux() or []
     caveaux_avec_coords = [
         c for c in caveaux if c.get("latitude") and c.get("longitude")
@@ -41,13 +43,17 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
         nom_defunt_field = ft.TextField(
             label="Nom complet du défunt",
             width=320,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
         )
 
         date_deces_field = ft.TextField(
             label="Date de décès",
             width=260,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
             read_only=True,
         )
 
@@ -80,7 +86,9 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
             width=320,
             multiline=True,
             min_lines=2,
-            bgcolor=COLOR_BG, color=COLOR_TEXT, border_color=COLOR_BORDER,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
         )
         error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
         success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False)
@@ -122,8 +130,8 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
                 spacing=12, tight=True, width=340, scroll=ft.ScrollMode.AUTO,
             ),
             actions=[
-                ft.TextButton(content="Fermer", on_click=handle_cancel),
-                ft.ElevatedButton(content="Soumettre la demande", bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_submit),
+                ft.TextButton("Fermer", on_click=handle_cancel),
+                ft.ElevatedButton("Soumettre la demande", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_submit),
             ],
         )
         page.overlay.append(res_dialog)
@@ -138,12 +146,12 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
             close_dialog(info_dialog)
             open_reservation_dialog(caveau)
 
-        actions = [ft.TextButton(content="Fermer", on_click=lambda e: close_dialog(info_dialog))]
+        actions = [ft.TextButton("Fermer", on_click=lambda e: close_dialog(info_dialog))]
         if statut == "DISPONIBLE":
             actions.insert(0, ft.ElevatedButton(
-                content="Réserver",
+                "Réserver",
                 bgcolor=COLOR_PRIMARY,
-                color=COLOR_TEXT,
+                color=ft.Colors.WHITE,
                 on_click=handle_reserve_click,
             ))
 
@@ -201,6 +209,7 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
         center = fm.MapLatitudeLongitude(avg_lat, avg_lng)
     else:
         center = DEFAULT_CENTER
+        
     map_ref = ft.Ref[fm.Map]()
     map_widget = fm.Map(
         ref=map_ref,
@@ -241,7 +250,6 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
         top=6,
     )
 
-
     attribution = ft.Container(
         content=ft.Text("© OpenStreetMap contributors", size=10, color=COLOR_TEXT_MUTED),
         bgcolor=ft.Colors.with_opacity(0.7, COLOR_BG),
@@ -251,7 +259,6 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
         bottom=6,
     )
 
-    # Légende
     legend_items = [
         ("Disponible", COLOR_GREEN),
         ("Réservé", COLOR_ORANGE),
@@ -276,7 +283,6 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
         border=ft.Border.all(1, COLOR_BORDER),
     )
 
-    
     map_container = ft.Container(
         content=ft.Stack([map_widget, attribution, zoom_controls], expand=True),
         border_radius=14,
@@ -284,7 +290,6 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
         border=ft.Border.all(1, COLOR_BORDER),
         height=400 if is_mobile else 550,
     )
-
 
     no_coords_warning = None
     if isinstance(caveaux, list) and len(caveaux) > len(caveaux_avec_coords):
@@ -303,51 +308,29 @@ def client_carte_page(page: ft.Page, on_navigate, on_logout):
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
-    drawer_ref = {"overlay": None}
-
-    def close_drawer():
-        if drawer_ref["overlay"] in page.overlay:
-            page.overlay.remove(drawer_ref["overlay"])
-            page.update()
-
-    def open_drawer():
-        sidebar_mobile = build_sidebar_client(page, "client_carte", on_navigate, on_logout, on_close=close_drawer)
-        overlay = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Container(width=260, content=sidebar_mobile, bgcolor="#13131F"),
-                    ft.Container(expand=True, bgcolor="#00000099", on_click=lambda e: close_drawer()),
-                ],
-                spacing=0,
-            ),
-            expand=True,
-        )
-        drawer_ref["overlay"] = overlay
-        page.overlay.append(overlay)
-        page.update()
-
-    header_controls = []
-    if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
-    header_controls.append(ft.Text("Carte interactive", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
-
-    header = ft.Row(header_controls)
-
-    body_items = [header, ft.Container(height=16), legend, ft.Container(height=12)]
-    if no_coords_warning:
-        body_items.append(no_coords_warning)
-        body_items.append(ft.Container(height=12))
-    body_items.append(map_container)
-    
     content = ft.Container(
-        content=ft.Column(body_items, expand=True, scroll=ft.ScrollMode.AUTO),
-        padding=16 if is_mobile else 30,
+        content=ft.Column(
+            [
+                navbar,
+                ft.Container(height=20),
+                ft.Row(
+                    [
+                        ft.Text("Carte interactive", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                    ],
+                ),
+                ft.Container(height=10),
+                legend,
+                ft.Container(height=12),
+            ] + ([no_coords_warning, ft.Container(height=12)] if no_coords_warning else []) + [
+                map_container,
+                ft.Container(height=20),
+            ],
+            expand=True,
+            scroll=ft.ScrollMode.AUTO,
+        ),
+        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
 
-    if is_mobile:
-        return content
-
-    sidebar = build_sidebar_client(page, "client_carte", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True)
+    return content

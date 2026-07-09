@@ -1,15 +1,17 @@
+# frontend/Dockerfile
 FROM python:3.11-slim
-
-RUN apt-get update && apt-get install -y gcc && apt-get clean
 
 WORKDIR /app
 
-RUN python -m venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
-
+# Copier et installer les dépendances
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copier le code
 COPY . .
 
-CMD python main.py
+# Exposer le port Flet (8550)
+EXPOSE 8550
+
+# Lancer l'application Flet
+CMD ["python", "main.py"]

@@ -1,9 +1,8 @@
+# pages/paiements_page.py
 import flet as ft
-from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
-from components.sidebar import build_sidebar
+from components.navbar import build_navbar
 from components.data_fetcher import get_all_paiements, validate_paiement, reject_paiement
-
-MOBILE_BREAKPOINT = 768
+from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
 STATUT_COLORS = {
     "EN_ATTENTE": COLOR_ORANGE,
@@ -25,34 +24,14 @@ CANAL_LABELS = {
 }
 
 
-def paiements_page(page: ft.Page, on_navigate, on_logout):
-
-    is_mobile = page.width < MOBILE_BREAKPOINT
+def paiements_page(page: ft.Page, on_logout):
+    """Page de gestion des paiements."""
+    
+    is_mobile = page.width < 768
+    
+    navbar, _ = build_navbar(page, "ADMIN", on_logout)
+    
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
-    all_paiements_cached = []
-
-    search_field = ft.TextField(
-        hint_text="Rechercher par référence...",
-        prefix_icon=ft.Icons.SEARCH,
-        bgcolor=COLOR_CARD,
-        color=COLOR_TEXT,
-        border_color=COLOR_BORDER,
-        col={"sm": 12, "md": 8},
-        on_change=lambda e: filter_and_display_paiements()  
-    )
-
-    status_filter = ft.Dropdown(
-        label="Filtrer par statut",
-        bgcolor=COLOR_CARD,
-        color=COLOR_TEXT,
-        border_color=COLOR_BORDER,
-        col={"sm": 12, "md": 4},
-        options=[ft.DropdownOption(key="TOUS", text="Tous les statuts")] + [
-            ft.DropdownOption(key=k, text=v) for k, v in STATUT_LABELS.items()
-        ],
-        value="TOUS",
-        on_select=lambda e: filter_and_display_paiements()  
-    )
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
@@ -60,7 +39,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
         return ft.Container(
             content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=20, top=10, right=20, bottom=10),
+            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
             border_radius=20,
         )
 
@@ -76,7 +55,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
 
     def build_paiement_row(p):
         actions = []
-        if p["statut"] == "EN_ATTENTE":
+        if p.get("statut") == "EN_ATTENTE":
             actions.append(
                 ft.IconButton(
                     icon=ft.Icons.CHECK_CIRCLE_OUTLINE,
@@ -108,7 +87,7 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
                         spacing=2,
                         expand=True,
                     ),
-                    status_badge(p["statut"]),
+                    status_badge(p.get("statut")),
                     ft.Row(actions, spacing=0),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -119,91 +98,40 @@ def paiements_page(page: ft.Page, on_navigate, on_logout):
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
-    def filter_and_display_paiements():
-        query = search_field.value.lower().strip()
-        selected_status = status_filter.value
-
-        filtered_paiements = []
-        for p in all_paiements_cached:
-            reference = p.get("reference", "").lower()
-            statut = p.get("statut", "")
-
-            matches_search = query in reference
-            matches_status = selected_status == "TOUS" or statut == selected_status
-
-            if matches_search and matches_status:
-                filtered_paiements.append(p)
-
+    def refresh_list():
+        paiements = get_all_paiements() or []
         list_container.controls.clear()
-        if not filtered_paiements:
+        if not paiements or not isinstance(paiements, list):
             list_container.controls.append(
-                ft.Text("Aucun paiement ne correspond aux critères", color=COLOR_TEXT_MUTED, size=14)
+                ft.Text("Aucun paiement enregistré", color=COLOR_TEXT_MUTED, size=14)
             )
         else:
-            for p in filtered_paiements:
+            for p in paiements:
                 list_container.controls.append(build_paiement_row(p))
         page.update()
 
-    def refresh_list():
-        nonlocal all_paiements_cached
-        all_paiements_cached = get_all_paiements() or []
-        filter_and_display_paiements()
-
     refresh_list()
-
-    drawer_ref = {"overlay": None}
-
-    def close_drawer():
-        if drawer_ref["overlay"] in page.overlay:
-            page.overlay.remove(drawer_ref["overlay"])
-            page.update()
-
-    def open_drawer():
-        sidebar_mobile = build_sidebar(page, "paiements", on_navigate, on_logout, on_close=close_drawer)
-        overlay = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Container(width=260, content=sidebar_mobile, bgcolor="#13131F"),
-                    ft.Container(expand=True, bgcolor="#00000099", on_click=lambda e: close_drawer()),
-                ],
-                spacing=0,
-            ),
-            expand=True,
-        )
-        drawer_ref["overlay"] = overlay
-        page.overlay.append(overlay)
-        page.update()
-
-    header_controls = []
-    if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
-    header_controls.append(ft.Text("Paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
-
-    header = ft.Row(header_controls)
-
-    search_bar = ft.ResponsiveRow(
-        controls=[search_field, status_filter],
-        spacing=10
-    )
 
     content = ft.Container(
         content=ft.Column(
             [
-                header,
-                ft.Container(height=10),
-                search_bar,
-                ft.Container(height=10),
+                navbar,
+                ft.Container(height=20),
+                ft.Row(
+                    [
+                        ft.Text("Gestion des paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                    ],
+                ),
+                ft.Container(height=20),
                 list_container,
+                ft.Container(height=20),
             ],
             expand=True,
+            scroll=ft.ScrollMode.AUTO,
         ),
-        padding=16 if is_mobile else 30,
+        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
 
-    if is_mobile:
-        return content
-
-    sidebar = build_sidebar(page, "paiements", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True)
+    return content

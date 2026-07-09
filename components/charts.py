@@ -1,3 +1,4 @@
+# components/charts.py
 import flet as ft
 import flet_charts as fc
 from theme import COLOR_PRIMARY, COLOR_PRIMARY_LIGHT, COLOR_TEXT_MUTED, COLOR_GREEN, COLOR_ORANGE, COLOR_RED
@@ -5,16 +6,16 @@ from theme import COLOR_PRIMARY, COLOR_PRIMARY_LIGHT, COLOR_TEXT_MUTED, COLOR_GR
 
 def build_evolution_chart(data: list):
     """Graphique en courbe — évolution des revenus sur 7 jours."""
-
-    if not data:
+    
+    if not data or not isinstance(data, list):
         data = [{"jour": "-", "montant": 0} for _ in range(7)]
 
     points = [
-        fc.LineChartDataPoint(i, item["montant"])
+        fc.LineChartDataPoint(i, item.get("montant", 0))
         for i, item in enumerate(data)
     ]
 
-    max_val = max([item["montant"] for item in data], default=0)
+    max_val = max([item.get("montant", 0) for item in data], default=0)
     max_y = max_val * 1.2 if max_val > 0 else 100
 
     line_data = fc.LineChartData(
@@ -30,7 +31,7 @@ def build_evolution_chart(data: list):
     bottom_labels = [
         fc.ChartAxisLabel(
             value=i,
-            label=ft.Text(item["jour"], size=11, color=COLOR_TEXT_MUTED)
+            label=ft.Text(item.get("jour", "-"), size=11, color=COLOR_TEXT_MUTED)
         )
         for i, item in enumerate(data)
     ]
@@ -38,7 +39,7 @@ def build_evolution_chart(data: list):
     chart = fc.LineChart(
         data_series=[line_data],
         border=ft.Border.all(0, "transparent"),
-        horizontal_grid_lines=fc.ChartGridLines(interval=max_y / 4 if max_y else 25, color="#2D2D44", width=1),
+        horizontal_grid_lines=fc.ChartGridLines(interval=max_y / 4 if max_y else 25, color="#E5E7EB", width=1),
         left_axis=fc.ChartAxis(title=ft.Text("")),
         bottom_axis=fc.ChartAxis(labels=bottom_labels),
         min_y=0,
@@ -54,36 +55,41 @@ def build_evolution_chart(data: list):
 
 def build_repartition_donut(caveaux_stats: dict):
     """Donut chart — répartition des caveaux par statut."""
-
+    
     disponibles = caveaux_stats.get("disponibles", 0)
     reserves = caveaux_stats.get("reserves", 0)
     occupes = caveaux_stats.get("occupes", 0)
     inexploitables = caveaux_stats.get("inexploitables", 0)
 
+    # Éviter les divisions par zéro
+    total = disponibles + reserves + occupes + inexploitables
+    if total == 0:
+        total = 1
+
     sections = [
         fc.PieChartSection(
-            value=disponibles if disponibles > 0 else 0.001,
+            value=disponibles / total * 100 if disponibles > 0 else 0.1,
             color=COLOR_GREEN,
             radius=50,
             title=f"{disponibles}",
             title_style=ft.TextStyle(size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
         ),
         fc.PieChartSection(
-            value=reserves if reserves > 0 else 0.001,
+            value=reserves / total * 100 if reserves > 0 else 0.1,
             color=COLOR_ORANGE,
             radius=50,
             title=f"{reserves}",
             title_style=ft.TextStyle(size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
         ),
         fc.PieChartSection(
-            value=occupes if occupes > 0 else 0.001,
+            value=occupes / total * 100 if occupes > 0 else 0.1,
             color=COLOR_RED,
             radius=50,
             title=f"{occupes}",
             title_style=ft.TextStyle(size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
         ),
         fc.PieChartSection(
-            value=inexploitables if inexploitables > 0 else 0.001,
+            value=inexploitables / total * 100 if inexploitables > 0 else 0.1,
             color="#6B7280",
             radius=50,
             title=f"{inexploitables}",

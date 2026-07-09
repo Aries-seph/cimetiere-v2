@@ -1,9 +1,11 @@
+# pages/reservations_page.py
 import flet as ft
+from components.navbar import build_navbar
+from components.data_fetcher import (
+    get_all_reservations, validate_reservation, reject_reservation,
+    get_reservation_by_id, get_reservation_audit
+)
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
-from components.sidebar import build_sidebar
-from components.data_fetcher import get_all_reservations, validate_reservation, reject_reservation, get_reservation_by_id, get_reservation_audit
-
-MOBILE_BREAKPOINT = 768
 
 STATUT_COLORS = {
     "EN_ATTENTE": COLOR_ORANGE,
@@ -18,9 +20,13 @@ STATUT_LABELS = {
 }
 
 
-def reservations_page(page: ft.Page, on_navigate, on_logout):
-
-    is_mobile = page.width < MOBILE_BREAKPOINT
+def reservations_page(page: ft.Page, on_logout):
+    """Page de gestion des réservations."""
+    
+    is_mobile = page.width < 768
+    
+    navbar, _ = build_navbar(page, "ADMIN", on_logout)
+    
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
     def status_badge(statut):
@@ -29,7 +35,7 @@ def reservations_page(page: ft.Page, on_navigate, on_logout):
         return ft.Container(
             content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=20, top=10, right=20, bottom=10),
+            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
             border_radius=20,
         )
 
@@ -127,11 +133,17 @@ def reservations_page(page: ft.Page, on_navigate, on_logout):
         keyboard_type=ft.KeyboardType.NUMBER,
     )
     search_error = ft.Text("", color=COLOR_RED, size=12, visible=False)
-    search_button = ft.ElevatedButton("Rechercher", icon=ft.Icons.SEARCH, bgcolor=COLOR_PRIMARY, color=COLOR_TEXT, on_click=handle_search)
+    search_button = ft.ElevatedButton(
+        "Rechercher",
+        icon=ft.Icons.SEARCH,
+        bgcolor=COLOR_PRIMARY,
+        color=ft.Colors.WHITE,
+        on_click=handle_search,
+    )
 
     def build_reservation_row(r):
         actions = []
-        if r["statut"] == "EN_ATTENTE":
+        if r.get("statut") == "EN_ATTENTE":
             actions.append(
                 ft.IconButton(
                     icon=ft.Icons.CHECK_CIRCLE_OUTLINE,
@@ -154,13 +166,13 @@ def reservations_page(page: ft.Page, on_navigate, on_logout):
                 [
                     ft.Column(
                         [
-                            ft.Text(r["nom_defunt"], size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"Caveau ID: {r['caveau_id']} • Décès: {r['date_deces']}", size=12, color=COLOR_TEXT_MUTED),
+                            ft.Text(r.get("nom_defunt", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
+                            ft.Text(f"Caveau ID: {r.get('caveau_id', '-')} • Décès: {r.get('date_deces', '-')}", size=12, color=COLOR_TEXT_MUTED),
                         ],
                         spacing=2,
                         expand=True,
                     ),
-                    status_badge(r["statut"]),
+                    status_badge(r.get("statut")),
                     ft.Row(actions, spacing=0),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -185,59 +197,29 @@ def reservations_page(page: ft.Page, on_navigate, on_logout):
 
     refresh_list()
 
-    drawer_ref = {"overlay": None}
-
-    def close_drawer():
-        if drawer_ref["overlay"] in page.overlay:
-            page.overlay.remove(drawer_ref["overlay"])
-            page.update()
-
-    def open_drawer():
-        sidebar_mobile = build_sidebar(page, "reservations", on_navigate, on_logout, on_close=close_drawer)
-        overlay = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Container(width=260, content=sidebar_mobile, bgcolor="#13131F"),
-                    ft.Container(expand=True, bgcolor="#00000099", on_click=lambda e: close_drawer()),
-                ],
-                spacing=0,
-            ),
-            expand=True,
-        )
-        drawer_ref["overlay"] = overlay
-        page.overlay.append(overlay)
-        page.update()
-
-    header_controls = []
-    if is_mobile:
-        header_controls.append(ft.IconButton(icon=ft.Icons.MENU, icon_color=COLOR_TEXT, on_click=lambda e: open_drawer()))
-    header_controls.append(ft.Text("Réservations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT))
-
-    header = ft.Column(
-        [
-            ft.Row(header_controls),
-            ft.Row([search_field, search_button], spacing=10),
-            search_error,
-        ],
-        spacing=10,
-    )
-
     content = ft.Container(
         content=ft.Column(
             [
-                header,
+                navbar,
                 ft.Container(height=20),
+                ft.Row(
+                    [
+                        ft.Text("Gestion des réservations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                    ],
+                ),
+                ft.Container(height=10),
+                ft.Row([search_field, search_button], spacing=10),
+                search_error,
+                ft.Container(height=10),
                 list_container,
+                ft.Container(height=20),
             ],
             expand=True,
+            scroll=ft.ScrollMode.AUTO,
         ),
-        padding=16 if is_mobile else 30,
+        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
 
-    if is_mobile:
-        return content
-
-    sidebar = build_sidebar(page, "reservations", on_navigate, on_logout)
-    return ft.Row([sidebar, content], spacing=0, expand=True)
+    return content
