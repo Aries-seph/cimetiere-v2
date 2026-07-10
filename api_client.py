@@ -2,7 +2,7 @@
 import httpx
 from typing import Optional, Dict, Any
 
-BASE_URL = "https://cimetiere-backend-v2-production.up.railway.app/api"
+BASE_URL = os.getenv("BACKEND_URL", "https://cimetiere-backend-v2-production.up.railway.app/api")
 
 
 class APIClient:
