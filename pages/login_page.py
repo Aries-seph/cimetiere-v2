@@ -93,7 +93,7 @@ def login_page(page: ft.Page, on_login_success, on_go_to_register):
     card = ft.Container(
         content=ft.Column(
             [
-                ft.Icon(ft.Icons.LOCATION_CITY_SHARP, size=50, color=COLOR_PRIMARY_LIGHT),
+                ft.Icon(ft.Icons.STADIUM, size=50, color=COLOR_PRIMARY_LIGHT),
                 ft.Text("Cimetiere de Ville", size=22, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                 ft.Text("Connectez-vous", size=13, color=COLOR_TEXT_MUTED),
                 ft.Container(height=20),
