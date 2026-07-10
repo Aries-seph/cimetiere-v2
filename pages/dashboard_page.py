@@ -4,7 +4,7 @@ from components.navbar import build_navbar
 from components.stat_card import build_stat_card
 from components.charts import build_evolution_chart, build_repartition_donut
 from components.data_fetcher import get_dashboard_stats, get_evolution_7_jours
-from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_BLUE, COLOR_GREEN, COLOR_ORANGE, COLOR_BORDER
+from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_PRIMARY_LIGHT, COLOR_GREEN, COLOR_ORANGE, COLOR_BORDER
 
 
 def dashboard_page(page: ft.Page, on_logout):
@@ -30,7 +30,7 @@ def dashboard_page(page: ft.Page, on_logout):
     card_defs = [
         ("Caveaux disponibles", str(caveaux_stats.get("disponibles", 0)), ft.Icons.GRID_VIEW_OUTLINED, COLOR_GREEN, f"sur {caveaux_stats.get('total', 0)} au total"),
         ("Réservations en attente", str(stats.get("reservations_en_attente", 0)), ft.Icons.EVENT_NOTE_OUTLINED, COLOR_PRIMARY, "à traiter"),
-        ("Taux d'occupation", caveaux_stats.get("taux_occupation", "0%"), ft.Icons.PIE_CHART_OUTLINE, COLOR_BLUE, "du cimetière"),
+        ("Taux d'occupation", caveaux_stats.get("taux_occupation", "0%"), ft.Icons.PIE_CHART_OUTLINE, COLOR_PRIMARY_LIGHT, "du cimetière"),
         ("Revenus totaux", f"{finances_stats.get('total_revenus', 0):,.0f} FCFA", ft.Icons.PAYMENTS_OUTLINED, COLOR_ORANGE, "paiements validés"),
     ]
     
