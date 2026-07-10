@@ -50,7 +50,7 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
         prefix_icon=ft.Icons.PHONE_OUTLINED,
-        hint_text="Ex: +242 06 123 4567",
+        hint_text="Ex: +242 06 000 0000",
     )
 
     password_field = ft.TextField(
@@ -175,7 +175,7 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
     card = ft.Container(
         content=ft.Column(
             [
-                ft.Icon(ft.Icons.PERSON_ADD_ALT_1_OUTLINED, size=50, color=COLOR_PRIMARY_LIGHT),
+                ft.Icon(ft.Icons.PERSON_ADD_ALT, size=50, color=COLOR_PRIMARY_LIGHT),
                 ft.Text("Créer un compte", size=22, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                 ft.Text("Inscrivez-vous en tant que client", size=13, color=COLOR_TEXT_MUTED),
                 ft.Container(height=20),
