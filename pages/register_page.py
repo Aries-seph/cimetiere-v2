@@ -168,7 +168,7 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
     )
 
     login_link = ft.TextButton(
-        content="Déjà un compte ? Se connecter",
+        content="Vous avez un compte existant ? Connectez-vous",
         on_click=lambda e: on_go_to_login(),
     )
 
@@ -177,7 +177,6 @@ def register_page(page: ft.Page, on_register_success, on_go_to_login):
             [
                 ft.Icon(ft.Icons.PERSON_ADD_ALT, size=50, color=COLOR_PRIMARY_LIGHT),
                 ft.Text("Créer un compte", size=22, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
-                ft.Text("Inscrivez-vous en tant que client", size=13, color=COLOR_TEXT_MUTED),
                 ft.Container(height=20),
                 username_field,
                 ft.Container(height=10),
