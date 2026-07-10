@@ -241,4 +241,4 @@ async def main(page: ft.Page):
         page.go("/login")
 
 
-ft.run(main, view=ft.AppView.WEB_BROWSER, port=8550)
+ft.run(main, view=ft.AppView.WEB_BROWSER, port=8551)
