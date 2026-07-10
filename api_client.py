@@ -2,7 +2,7 @@
 import httpx
 from typing import Optional, Dict, Any
 
-BASE_URL = "http://127.0.0.1:8000/api"
+BASE_URL = "https://cimetiere-backend-v2-production.up.railway.app/api"
 
 
 class APIClient:
