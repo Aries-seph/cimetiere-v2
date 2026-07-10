@@ -42,7 +42,7 @@ _preselect_caveau_id = None
 async def main(page: ft.Page):
     global _pick_lat, _pick_lng, _pick_caveau_id, _preselect_caveau_id
     
-    page.title = "Gestion de Cimetière"
+    page.title = "CIMETIERE de VILLE"
     page.bgcolor = COLOR_BG
     page.padding = 0
     page.theme_mode = ft.ThemeMode.LIGHT
