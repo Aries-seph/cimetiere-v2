@@ -1,7 +1,7 @@
 # api_client.py
 import httpx
 from typing import Optional, Dict, Any
-
+import os
 BASE_URL = os.getenv("BACKEND_URL", "https://cimetiere-backend-v2-production.up.railway.app/api")
 
 
