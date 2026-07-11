@@ -2,7 +2,8 @@
 import httpx
 from typing import Optional, Dict, Any
 import os
-BASE_URL = os.getenv("BACKEND_URL", "https://cimetiere-backend-v2-production.up.railway.app/api")
+BASE_URL = "https://cimetiere-backend-v2-production.up.railway.app/api"
+
 
 
 class APIClient:
@@ -27,14 +28,27 @@ class APIClient:
         )
         return response.json()
     
-    def login(self, email: str, password: str) -> Dict[str, Any]:
-        """Connexion de l'utilisateur."""
-        response = httpx.post(
-            f"{BASE_URL}/users/login",
-            json={"email": email, "password": password},
-            timeout=30.0
-        )
-        return response.json()
+    def login(self, email: str, password: str):
+        try:
+            response = httpx.post(
+                f"{self.base_url}/users/login",
+                json={"email": email, "password": password},
+                timeout=30.0
+            )
+                        
+            print(f"Status: {response.status_code}")
+            print(f"Content: {response.text[:200]}")
+            
+            return response.json()
+        except httpx.JSONDecodeError as e:
+            print(f"Erreur JSON: {e}")
+            return {
+                "success": False,
+                "message": f"Erreur de réponse du serveur (status {response.status_code})"
+            }
+        except Exception as e:
+            print(f"Erreur: {e}")
+            return {"success": False, "message": str(e)}
 
     def verify_mfa(self, email: str, code: str) -> Dict[str, Any]:
         """Vérification du code MFA."""
@@ -64,5 +78,4 @@ class APIClient:
         return response.json()
 
 
-# Instance globale du client
 api_client = APIClient()
