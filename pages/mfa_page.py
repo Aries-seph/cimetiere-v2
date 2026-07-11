@@ -8,14 +8,7 @@ from api_client import api_client
 
 
 def mfa_page(page: ft.Page, email: str, on_mfa_success):
-    """
-    Page de vérification MFA (code à 6 chiffres).
-    
-    Args:
-        page: Page Flet
-        email: Email de l'utilisateur
-        on_mfa_success: Callback appelée après une vérification MFA réussie
-    """
+    """Page de vérification MFA."""
     
     code_field = ft.TextField(
         label="Code à 6 chiffres",
@@ -33,17 +26,9 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
 
     error_text = ft.Text("", color=COLOR_RED, size=13, visible=False)
     loading = ft.ProgressRing(width=20, height=20, stroke_width=2, visible=False, color=COLOR_PRIMARY)
-    
-    # État pour éviter les doubles soumissions
-    is_verifying = [False]
 
     async def handle_verify(e):
-        """Gère la vérification du code MFA."""
-        if is_verifying[0]:
-            return
-        
         error_text.visible = False
-        is_verifying[0] = True
         loading.visible = True
         page.update()
 
@@ -51,7 +36,6 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
 
         if not code or len(code) != 6:
             loading.visible = False
-            is_verifying[0] = False
             error_text.value = "Veuillez entrer un code à 6 chiffres valide"
             error_text.visible = True
             page.update()
@@ -59,7 +43,6 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
 
         result = api_client.verify_mfa(email, code)
         loading.visible = False
-        is_verifying[0] = False
 
         if result.get("success"):
             page.update()
@@ -68,7 +51,6 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
             error_text.value = result.get("message", "Code invalide ou expiré")
             error_text.visible = True
             page.update()
-            # Réinitialiser le champ pour permettre une nouvelle tentative
             code_field.value = ""
             page.update()
 
@@ -91,31 +73,6 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
         on_click=handle_verify,
     )
 
-    # Bouton pour renvoyer le code
-    async def resend_code(e):
-        """Renvoie un nouveau code MFA."""
-        loading.visible = True
-        page.update()
-        
-        result = api_client.login(email, "")  # Réutiliser l'endpoint login pour renvoyer le code
-        loading.visible = False
-        
-        if result.get("success") and result.get("mfa_required"):
-            error_text.value = "Un nouveau code a été envoyé à votre email"
-            error_text.color = COLOR_GREEN
-            error_text.visible = True
-            page.update()
-        else:
-            error_text.value = "Erreur lors de l'envoi du code"
-            error_text.color = COLOR_RED
-            error_text.visible = True
-            page.update()
-
-    resend_button = ft.TextButton(
-        content="Renvoyer le code",
-        on_click=resend_code,
-    )
-
     card = ft.Container(
         content=ft.Column(
             [
@@ -129,8 +86,6 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
                 ft.Container(height=10),
                 verify_button,
                 ft.Row([loading], alignment=ft.MainAxisAlignment.CENTER),
-                ft.Container(height=5),
-                resend_button,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=5,
