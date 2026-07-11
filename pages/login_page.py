@@ -44,6 +44,7 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register):
     error_text = ft.Text("", color=COLOR_RED, size=13, visible=False)
     loading = ft.ProgressRing(width=20, height=20, stroke_width=2, visible=False, color=COLOR_PRIMARY)
 
+    # pages/login_page.py
     def handle_login(e):
         """Gère la tentative de connexion."""
         error_text.visible = False
@@ -65,11 +66,11 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register):
 
         # ✅ Vérifier si MFA est requis
         if result.get("success") and result.get("mfa_required"):
+            print(f"✅ MFA requis pour {email}")  # Debug
             page.update()
-            # ✅ Aller vers la page MFA avec l'email
-            page.go(f"/mfa?email={email}")
+            # ✅ Utiliser show_mfa (pas page.go direct)
+            show_mfa(email)  # ← C'est la clé !
         elif result.get("success"):
-            # Connexion directe sans MFA (rare)
             page.update()
             show_mfa(email)
         else:
