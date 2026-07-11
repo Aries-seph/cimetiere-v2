@@ -7,7 +7,7 @@ from theme import (
 from api_client import api_client
 
 
-def login_page(page: ft.Page, on_login_success, on_go_to_register):
+def login_page(page: ft.Page, show_mfa, on_go_to_register):
     """
     Page de connexion avec MFA.
     
@@ -71,7 +71,7 @@ def login_page(page: ft.Page, on_login_success, on_go_to_register):
         elif result.get("success"):
             # Connexion directe sans MFA (rare)
             page.update()
-            on_login_success(email)
+            show_mfa(email)
         else:
             error_text.value = result.get("message", "Erreur de connexion")
             error_text.visible = True
