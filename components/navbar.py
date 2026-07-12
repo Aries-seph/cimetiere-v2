@@ -85,15 +85,19 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
         for item in get_nav_items()
     ]
     
-    # Pour mobile, on affiche un menu burger
+    # ✅ Utiliser un Ref pour le drawer
+    drawer_ref = ft.Ref[ft.NavigationDrawer]()
+    
     def toggle_mobile_menu(e):
-        if mobile_menu.open:
-            mobile_menu.open=False
+        if drawer_ref.current.open:
+            drawer_ref.current.open = False
         else:
-            mobile_menu.open = True
+            drawer_ref.current.open = True
         page.update()
     
-    mobile_menu = ft.NavigationDrawer(
+    # ✅ Créer le drawer UNIQUEMENT pour mobile
+    mobile_drawer = ft.NavigationDrawer(
+        ref=drawer_ref,
         controls=ft.Column(
             [
                 ft.Container(
@@ -119,7 +123,7 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                             ),
                             padding=16,
                             on_click=lambda e, r=item["route"]: [
-                                mobile_menu.close(),
+                                drawer_ref.current.close(),
                                 page.go(f"/{r}" if r != "dashboard" else "/")
                             ],
                             ink=True,
@@ -150,10 +154,10 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
         width=280,
     )
     
-    page.overlay.append(mobile_menu)
-    
-    # Navbar principale
+    # ✅ Ajouter le drawer UNIQUEMENT sur mobile
     is_mobile = page.width < 768
+    if is_mobile:
+        page.overlay.append(mobile_drawer)
     
     if is_mobile:
         # Version mobile avec menu burger
@@ -208,4 +212,4 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             ),
         )
     
-    return navbar, mobile_menu
+    return navbar, mobile_drawer
