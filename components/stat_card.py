@@ -41,5 +41,5 @@ def build_stat_card(title: str, value: str, icon, icon_bgcolor: str, subtitle: s
         border_radius=10,
         border=ft.Border.all(1, COLOR_BORDER),
         expand=True,
-        min_width=150,
+        width=150,
     )
