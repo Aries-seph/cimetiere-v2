@@ -4,7 +4,7 @@ from theme import COLOR_PRIMARY, COLOR_TEXT, COLOR_TEXT_MUTED
 
 def build_navbar(page: ft.Page, user_role: str, on_logout):
     """Barre de navigation adaptative Desktop / Mobile."""
-    
+
     def get_nav_items():
         if user_role == "CLIENT":
             return [
@@ -27,7 +27,7 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                 {"label": "Rapports", "icon": ft.Icons.BAR_CHART_OUTLINED, "route": "rapports"},
                 {"label": "Utilisateurs", "icon": ft.Icons.PEOPLE_OUTLINE, "route": "utilisateurs"},
             ]
-    
+
     def build_nav_item(item, active_route):
         is_active = item["route"] == active_route
         return ft.Container(
@@ -49,7 +49,7 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             on_click=lambda e, r=item["route"]: page.go(f"/{r}" if r != "dashboard" else "/"),
             ink=True,
         )
-    
+
     def get_user_display():
         from api_client import api_client
         user = api_client.user
@@ -72,14 +72,14 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                 spacing=10,
             )
         return ft.Container()
-    
+
     route = page.route.replace("/", "") or "dashboard"
     nav_items = [build_nav_item(item, route) for item in get_nav_items()]
-    
+
     # --- Gestion du menu mobile (NavigationDrawer) ---
-    def navigate_mobile(r):
-        mobile_menu.open = False
-        page.update()
+    async def navigate_mobile(r):
+        # Ferme le drawer via l'API dédiée (page.close_drawer), pas juste .open = False
+        await page.close_drawer()
         page.go(f"/{r}" if r != "dashboard" else "/")
 
     mobile_menu = ft.NavigationDrawer(
@@ -100,7 +100,8 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                     ft.Container(
                         content=ft.Row([ft.Icon(item["icon"], size=18, color=COLOR_PRIMARY), ft.Text(item["label"], size=14, color=COLOR_TEXT)], spacing=12),
                         padding=16,
-                        on_click=lambda e, r=item["route"]: navigate_mobile(r),
+                        # on_click accepte directement un handler async dans Flet 0.85.x
+                        on_click=(lambda r: (lambda e: page.run_task(navigate_mobile, r)))(item["route"]),
                         ink=True,
                     )
                     for item in get_nav_items()
@@ -111,13 +112,17 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
         bgcolor=ft.Colors.WHITE,
         width=280,
     )
-    
+
     # Nettoyer et réassigner le drawer global de la page
     page.drawer = mobile_menu
 
-    def toggle_mobile_menu(e):
-        mobile_menu.open = not mobile_menu.open
-        page.update()
+    async def toggle_mobile_menu(e):
+        # Flet 0.85.x exige page.show_drawer()/page.close_drawer() (async)
+        # au lieu de mobile_menu.open = ... + page.update()
+        if mobile_menu.open:
+            await page.close_drawer()
+        else:
+            await page.show_drawer()
 
     # Conteneurs de Navbar (Desktop et Mobile)
     navbar_content = ft.Container(bgcolor=COLOR_PRIMARY, border_radius=ft.BorderRadius(0, 0, 12, 12))
@@ -136,7 +141,9 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             )
             navbar_content.padding = ft.Padding(left=12, top=8, right=12, bottom=8)
         else:
-            mobile_menu.open = False  # Forcer la fermeture du menu si on repasse sur desktop
+            if mobile_menu.open:
+                # Fermeture asynchrone propre si on repasse en desktop
+                page.run_task(page.close_drawer)
             navbar_content.content = ft.Row(
                 [
                     ft.Row([ft.Icon(ft.Icons.LOCATION_CITY, size=26, color=ft.Colors.WHITE), ft.Text("CIMETIERE", size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)], spacing=8),
