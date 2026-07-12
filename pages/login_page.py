@@ -5,9 +5,10 @@ from theme import (
     COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_BORDER, COLOR_RED
 )
 from api_client import api_client
+from pages.mfa_page import mfa_page 
 
 
-def login_page(page: ft.Page, show_mfa, on_go_to_register):
+def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
     """
     Page de connexion avec MFA.
     
@@ -44,7 +45,6 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register):
     error_text = ft.Text("", color=COLOR_RED, size=13, visible=False)
     loading = ft.ProgressRing(width=20, height=20, stroke_width=2, visible=False, color=COLOR_PRIMARY)
 
-    # pages/login_page.py
     def handle_login(e):
         """Gère la tentative de connexion."""
         error_text.visible = False
@@ -64,12 +64,13 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register):
         result = api_client.login(email, password)
         loading.visible = False
 
-        # ✅ Vérifier si MFA est requis
+        # ✅ Si MFA est requis, afficher DIRECTEMENT la page MFA
         if result.get("success") and result.get("mfa_required"):
-            print(f"✅ MFA requis pour {email}")  # Debug
+            print(f"✅ MFA requis pour {email}, affichage direct de la page MFA")
+            page.controls.clear()
+            page.add(mfa_page(page, email, on_mfa_success))
             page.update()
-            # ✅ Utiliser show_mfa (pas page.go direct)
-            show_mfa(email)  # ← C'est la clé !
+            return
         elif result.get("success"):
             page.update()
             show_mfa(email)

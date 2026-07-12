@@ -120,12 +120,12 @@ async def main(page: ft.Page):
     # --- Route change handler ---
     async def on_route_change(e):
         global _pick_lat, _pick_lng, _pick_caveau_id, _preselect_caveau_id
-        
-        route = page.route.replace("/", "") or "dashboard"
+
         parsed = urlparse(page.route)
+        route = parsed.path.strip("/") or "dashboard"   #  on utilise le path, pas la route brute
         params = parse_qs(parsed.query)
         params = {k: v[0] if v else None for k, v in params.items()}
-        
+
         # Extraire les paramètres
         _pick_lat = params.get("pick_lat")
         _pick_lng = params.get("pick_lng")
@@ -133,7 +133,7 @@ async def main(page: ft.Page):
         _preselect_caveau_id = params.get("caveau_id")
         
         # Si ce n'est pas une page publique et qu'on n'est pas connecté
-        if route not in ["login", "register"]:
+        if route not in ["login", "register","mfa"]:
             if not api_client.access_token:
                 page.go("/login")
                 return
@@ -153,8 +153,9 @@ async def main(page: ft.Page):
         page.controls.clear()
         
         try:
+            # main.py - Dans on_route_change
             if route == "login":
-                page.add(login_page(page, show_mfa, show_register))
+                page.add(login_page(page, show_mfa, show_register, on_mfa_success))  # ← Ajouter on_mfa_success
             elif route == "register":
                 page.add(register_page(page, lambda: page.go("/login"), lambda: page.go("/login")))
             elif route == "mfa":
