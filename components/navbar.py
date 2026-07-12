@@ -6,6 +6,12 @@ from theme import COLOR_PRIMARY, COLOR_TEXT, COLOR_TEXT_MUTED
 def build_navbar(page: ft.Page, user_role: str, on_logout):
     """Barre de navigation horizontale bleue"""
     
+    #  APRÈS (Fermeture propre sous Flet)
+    def navigate_mobile(r):
+        mobile_menu.open = False
+        page.update()
+        page.go(f"/{r}" if r != "dashboard" else "/")
+
     def get_nav_items():
         if user_role == "CLIENT":
             return [
@@ -47,7 +53,7 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             padding=ft.Padding(left=16, top=8, right=16, bottom=8),
             border_radius=8,
             bgcolor=ft.Colors.with_opacity(0.2, ft.Colors.WHITE) if is_active else ft.Colors.TRANSPARENT,
-            on_click=lambda e, r=item["route"]: page.go(f"/{r}" if r != "dashboard" else "/"),
+            on_click=lambda e, r=item["route"]: navigate_mobile(r),
             ink=True,
         )
     
@@ -118,10 +124,7 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                                 spacing=12,
                             ),
                             padding=16,
-                            on_click=lambda e, r=item["route"]: [
-                                mobile_menu.close(),
-                                page.go(f"/{r}" if r != "dashboard" else "/")
-                            ],
+                            on_click=lambda e, r=item["route"]: navigate_mobile(r),
                             ink=True,
                         )
                         for item in get_nav_items()
