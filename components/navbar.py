@@ -88,7 +88,7 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
     # Pour mobile, on affiche un menu burger
     def toggle_mobile_menu(e):
         if mobile_menu.open:
-            mobile_menu.close()
+            mobile_menu.open=False
         else:
             mobile_menu.open = True
         page.update()
