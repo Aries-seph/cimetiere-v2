@@ -1,7 +1,7 @@
 # pages/client_dashboard_page.py
 import flet as ft
 from components.navbar import build_navbar
-from components.data_fetcher import get_mes_reservations, get_caveaux_disponibles, get_mes_paiements, get_mes_exhumations
+from components.data_fetcher import get_mes_reservations, get_caveaux_disponibles
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
 STATUT_COLORS = {
@@ -16,32 +16,6 @@ STATUT_LABELS = {
     "REFUSEE": "Refusée",
 }
 
-STATUT_COLORS_EXHUMATION = {
-    "EN_ATTENTE": COLOR_ORANGE,
-    "APPROUVEE": COLOR_GREEN,
-    "REFUSEE": COLOR_RED,
-    "EFFECTUEE": "#6B7280",
-}
-
-STATUT_LABELS_EXHUMATION = {
-    "EN_ATTENTE": "En attente",
-    "APPROUVEE": "Approuvée",
-    "REFUSEE": "Refusée",
-    "EFFECTUEE": "Effectuée",
-}
-
-STATUT_COLORS_PAIEMENT = {
-    "EN_ATTENTE": COLOR_ORANGE,
-    "VALIDE": COLOR_GREEN,
-    "REFUSE": COLOR_RED,
-}
-
-STATUT_LABELS_PAIEMENT = {
-    "EN_ATTENTE": "En attente",
-    "VALIDE": "Validé",
-    "REFUSE": "Refusé",
-}
-
 
 def client_dashboard_page(page: ft.Page, on_logout):
     """Dashboard client."""
@@ -52,16 +26,12 @@ def client_dashboard_page(page: ft.Page, on_logout):
     
     reservations = get_mes_reservations() or []
     caveaux_dispo = get_caveaux_disponibles() or []
-    paiements = get_mes_paiements() or []
-    exhumations = get_mes_exhumations() or []
     
     nb_en_attente = sum(1 for r in reservations if r.get("statut") == "EN_ATTENTE") if isinstance(reservations, list) else 0
     nb_validees = sum(1 for r in reservations if r.get("statut") == "VALIDEE") if isinstance(reservations, list) else 0
     nb_dispo = len(caveaux_dispo) if isinstance(caveaux_dispo, list) else 0
-    nb_paiements = len(paiements) if isinstance(paiements, list) else 0
-    nb_exhumations = len(exhumations) if isinstance(exhumations, list) else 0
 
-    def stat_box(title, value, icon, color, subtitle=None):
+    def stat_box(title, value, icon, color):
         return ft.Container(
             content=ft.Column(
                 [
@@ -79,7 +49,6 @@ def client_dashboard_page(page: ft.Page, on_logout):
                     ft.Container(height=8),
                     ft.Text(str(value), size=22, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ft.Text(title, size=12, color=COLOR_TEXT_MUTED),
-                    ft.Text(subtitle, size=11, color=COLOR_TEXT_MUTED) if subtitle else ft.Container(),
                 ],
             ),
             bgcolor=COLOR_CARD,
@@ -90,45 +59,32 @@ def client_dashboard_page(page: ft.Page, on_logout):
         )
 
     stats_defs = [
-        ("Caveaux disponibles", nb_dispo, ft.Icons.GRID_VIEW_OUTLINED, COLOR_GREEN),
-        ("Réservations en attente", nb_en_attente, ft.Icons.HOURGLASS_EMPTY, COLOR_ORANGE),
-        ("Réservations validées", nb_validees, ft.Icons.CHECK_CIRCLE_OUTLINE, COLOR_PRIMARY),
-        ("Paiements effectués", nb_paiements, ft.Icons.PAYMENTS_OUTLINED, "#3B82F6"),
-        ("Demandes d'exhumation", nb_exhumations, ft.Icons.FOLDER_SPECIAL_OUTLINED, "#8B5CF6"),
+        ("Caveaux disponibles", nb_dispo, ft.Icons.LOCATION_ON, COLOR_GREEN),
+        ("Réservations en attente", nb_en_attente, ft.Icons.TIMER, COLOR_ORANGE),
+        ("Réservations validées", nb_validees, ft.Icons.VERIFIED, COLOR_PRIMARY),
     ]
     stat_boxes = [stat_box(t, v, i, c) for t, v, i, c in stats_defs]
-    
-    # Ajuster le layout pour 5 cartes
-    if is_mobile:
-        stats_section = ft.Column(stat_boxes, spacing=12)
-    else:
-        # 3 cartes par ligne puis 2 cartes
-        stats_section = ft.Column([
-            ft.Row(stat_boxes[:3], spacing=16, expand=True),
-            ft.Container(height=12),
-            ft.Row(stat_boxes[3:], spacing=16, expand=True),
-        ])
+    stats_section = ft.Column(stat_boxes, spacing=12) if is_mobile else ft.Row(stat_boxes, spacing=16)
 
-    # Derniers paiements
-    paiement_rows = []
-    if isinstance(paiements, list) and paiements:
-        for p in paiements[:3]:
-            statut = p.get("statut")
-            montant = float(p.get("montant", 0) or 0)
-            paiement_rows.append(
+    # Dernières réservations
+    derniere_rows = []
+    if isinstance(reservations, list) and reservations:
+        for r in reservations[:5]:
+            statut = r.get("statut")
+            derniere_rows.append(
                 ft.Container(
                     content=ft.Row(
                         [
                             ft.Column(
                                 [
-                                    ft.Text(p.get("reference", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                                    ft.Text(f"{montant:,.0f} FCFA", size=12, color=COLOR_TEXT_MUTED),
+                                    ft.Text(r.get("nom_defunt", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
+                                    ft.Text(f"Décès: {r.get('date_deces', '-')}", size=12, color=COLOR_TEXT_MUTED),
                                 ],
                                 spacing=2, expand=True,
                             ),
                             ft.Container(
-                                content=ft.Text(STATUT_LABELS_PAIEMENT.get(statut, statut), size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
-                                bgcolor=STATUT_COLORS_PAIEMENT.get(statut, "#6B7280"),
+                                content=ft.Text(STATUT_LABELS.get(statut, statut), size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+                                bgcolor=STATUT_COLORS.get(statut, "#6B7280"),
                                 padding=ft.Padding(left=12, top=4, right=12, bottom=4),
                                 border_radius=20,
                             ),
@@ -142,20 +98,20 @@ def client_dashboard_page(page: ft.Page, on_logout):
                 )
             )
     else:
-        paiement_rows.append(ft.Text("Aucun paiement effectué", size=13, color=COLOR_TEXT_MUTED))
+        derniere_rows.append(ft.Text("Vous n'avez pas encore de réservation", size=13, color=COLOR_TEXT_MUTED))
 
-    paiements_card = ft.Container(
+    reservations_card = ft.Container(
         content=ft.Column(
             [
                 ft.Row(
                     [
-                        ft.Text("Mes derniers paiements", size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                        ft.Text("Mes dernières réservations", size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                         ft.Container(expand=True),
-                        ft.TextButton("Voir tout", on_click=lambda e: page.go("/client_paiements")),
+                        ft.TextButton("Voir tout", on_click=lambda e: page.go("/client_reservations")),
                     ],
                 ),
                 ft.Container(height=10),
-                ft.Column(paiement_rows, spacing=10),
+                ft.Column(derniere_rows, spacing=10),
             ],
         ),
         bgcolor=COLOR_CARD,
@@ -165,65 +121,29 @@ def client_dashboard_page(page: ft.Page, on_logout):
         expand=True,
     )
 
-    # Dernières exhumations
-    exhumation_rows = []
-    if isinstance(exhumations, list) and exhumations:
-        for e in exhumations[:3]:
-            statut = e.get("statut")
-            exhumation_rows.append(
-                ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Column(
-                                [
-                                    ft.Text(e.get("nom_defunt", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                                    ft.Text(e.get("motif", "-")[:40] + ("..." if len(e.get("motif", "")) > 40 else ""), size=12, color=COLOR_TEXT_MUTED),
-                                ],
-                                spacing=2, expand=True,
-                            ),
-                            ft.Container(
-                                content=ft.Text(STATUT_LABELS_EXHUMATION.get(statut, statut), size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
-                                bgcolor=STATUT_COLORS_EXHUMATION.get(statut, "#6B7280"),
-                                padding=ft.Padding(left=12, top=4, right=12, bottom=4),
-                                border_radius=20,
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                    ),
-                    bgcolor=COLOR_BG,
-                    padding=14,
-                    border_radius=10,
-                    border=ft.Border.all(1, COLOR_BORDER),
-                )
-            )
-    else:
-        exhumation_rows.append(ft.Text("Aucune demande d'exhumation", size=13, color=COLOR_TEXT_MUTED))
-
-    exhumations_card = ft.Container(
+    cta_card = ft.Container(
         content=ft.Column(
             [
-                ft.Row(
-                    [
-                        ft.Text("Mes dernières exhumations", size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
-                        ft.Container(expand=True),
-                        ft.TextButton("Voir tout", on_click=lambda e: page.go("/client_exhumations")),
-                    ],
-                ),
+                ft.Icon(ft.Icons.ADD_LOCATION_ALT, size=36, color=ft.Colors.WHITE),
                 ft.Container(height=10),
-                ft.Column(exhumation_rows, spacing=10),
+                ft.Text("Réserver un caveau", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                ft.Text("Consultez les emplacements disponibles", size=12, color=ft.Colors.with_opacity(0.85, ft.Colors.WHITE)),
+                ft.Container(height=14),
+                ft.ElevatedButton("Commencer", bgcolor=ft.Colors.WHITE, color=COLOR_PRIMARY, on_click=lambda e: page.go("/client_reserver")),
             ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        bgcolor=COLOR_CARD,
-        padding=20,
+        bgcolor=COLOR_PRIMARY,
+        padding=24,
         border_radius=14,
-        border=ft.Border.all(1, COLOR_BORDER),
         expand=True,
+        alignment=ft.Alignment.CENTER,
     )
 
     bottom_section = (
-        ft.Column([paiements_card, exhumations_card], spacing=16)
+        ft.Column([reservations_card, cta_card], spacing=16)
         if is_mobile
-        else ft.Row([paiements_card, exhumations_card], spacing=16, expand=True)
+        else ft.Row([reservations_card, cta_card], spacing=16, expand=True)
     )
 
     content = ft.Container(
