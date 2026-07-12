@@ -2,9 +2,8 @@
 import flet as ft
 from theme import COLOR_PRIMARY, COLOR_TEXT, COLOR_TEXT_MUTED
 
-
 def build_navbar(page: ft.Page, user_role: str, on_logout):
-    """Barre de navigation horizontale bleue"""
+    """Barre de navigation adaptative Desktop / Mobile."""
     
     def get_nav_items():
         if user_role == "CLIENT":
@@ -62,7 +61,6 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                         bgcolor=ft.Colors.with_opacity(0.3, ft.Colors.WHITE),
                         radius=16,
                     ),
-                    ft.Text(user.get("email", ""), size=13, color=ft.Colors.WHITE),
                     ft.IconButton(
                         icon=ft.Icons.LOGOUT,
                         icon_color=ft.Colors.WHITE,
@@ -75,141 +73,89 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             )
         return ft.Container()
     
-    # Déterminer la route active
     route = page.route.replace("/", "") or "dashboard"
-    if route == "":
-        route = "dashboard"
+    nav_items = [build_nav_item(item, route) for item in get_nav_items()]
     
-    nav_items = [
-        build_nav_item(item, route)
-        for item in get_nav_items()
-    ]
-    
-    # ✅ Utiliser un Ref pour le drawer
-    drawer_ref = ft.Ref[ft.NavigationDrawer]()
-    
-    def toggle_mobile_menu(e):
-        if drawer_ref.current.open:
-            drawer_ref.current.open = False
-        else:
-            drawer_ref.current.open = True
+    # --- Gestion du menu mobile (NavigationDrawer) ---
+    def navigate_mobile(r):
+        mobile_menu.open = False
         page.update()
-    
-    # ✅ Créer le drawer UNIQUEMENT pour mobile
-    mobile_drawer = ft.NavigationDrawer(
-        ref=drawer_ref,
-        controls=ft.Column(
-            [
-                ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Text("CIMETIERE", size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                            ft.Text("Gestion", size=12, color=ft.Colors.with_opacity(0.7, ft.Colors.WHITE)),
-                        ],
-                        spacing=2,
-                    ),
-                    padding=20,
-                    bgcolor=COLOR_PRIMARY,
-                ),
-                ft.Column(
+        page.go(f"/{r}" if r != "dashboard" else "/")
+
+    mobile_menu = ft.NavigationDrawer(
+        controls=[
+            ft.Container(
+                content=ft.Column(
                     [
-                        ft.Container(
-                            content=ft.Row(
-                                [
-                                    ft.Icon(item["icon"], size=18, color=ft.Colors.WHITE),
-                                    ft.Text(item["label"], size=14, color=ft.Colors.WHITE),
-                                ],
-                                spacing=12,
-                            ),
-                            padding=16,
-                            on_click=lambda e, r=item["route"]: [
-                                drawer_ref.current.close(),
-                                page.go(f"/{r}" if r != "dashboard" else "/")
-                            ],
-                            ink=True,
-                        )
-                        for item in get_nav_items()
+                        ft.Text("CIMETIERE", size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                        ft.Text("Espace Client", size=12, color=ft.Colors.with_opacity(0.7, ft.Colors.WHITE)),
                     ],
                     spacing=2,
                 ),
-                ft.Container(expand=True),
-                ft.Divider(color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE)),
-                ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.Icons.LOGOUT, size=18, color=ft.Colors.WHITE),
-                            ft.Text("Déconnexion", size=14, color=ft.Colors.WHITE),
-                        ],
-                        spacing=12,
-                    ),
-                    padding=16,
-                    on_click=on_logout,
-                    ink=True,
-                ),
-                ft.Container(height=10),
-            ],
-            spacing=0,
-        ),
-        bgcolor=COLOR_PRIMARY,
+                padding=20,
+                bgcolor=COLOR_PRIMARY,
+            ),
+            ft.Column(
+                [
+                    ft.Container(
+                        content=ft.Row([ft.Icon(item["icon"], size=18, color=COLOR_PRIMARY), ft.Text(item["label"], size=14, color=COLOR_TEXT)], spacing=12),
+                        padding=16,
+                        on_click=lambda e, r=item["route"]: navigate_mobile(r),
+                        ink=True,
+                    )
+                    for item in get_nav_items()
+                ],
+                spacing=2,
+            ),
+        ],
+        bgcolor=ft.Colors.WHITE,
         width=280,
     )
     
-    # ✅ Ajouter le drawer UNIQUEMENT sur mobile
-    is_mobile = page.width < 768
-    if is_mobile:
-        page.overlay.append(mobile_drawer)
-    
-    if is_mobile:
-        # Version mobile avec menu burger
-        navbar = ft.Container(
-            content=ft.Row(
+    # Nettoyer et réassigner le drawer global de la page
+    page.drawer = mobile_menu
+
+    def toggle_mobile_menu(e):
+        mobile_menu.open = not mobile_menu.open
+        page.update()
+
+    # Conteneurs de Navbar (Desktop et Mobile)
+    navbar_content = ft.Container(bgcolor=COLOR_PRIMARY, border_radius=ft.BorderRadius(0, 0, 12, 12))
+
+    def update_navbar_layout():
+        """Met à jour dynamiquement la structure interne de la Navbar selon la largeur de l'écran."""
+        if page.width < 768:
+            navbar_content.content = ft.Row(
                 [
-                    ft.IconButton(
-                        icon=ft.Icons.MENU,
-                        icon_color=ft.Colors.WHITE,
-                        on_click=toggle_mobile_menu,
-                    ),
+                    ft.IconButton(icon=ft.Icons.MENU, icon_color=ft.Colors.WHITE, on_click=toggle_mobile_menu),
                     ft.Text("CIMETIERE", size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                     ft.Container(expand=True),
                     get_user_display(),
                 ],
                 spacing=8,
-            ),
-            bgcolor=COLOR_PRIMARY,
-            padding=ft.Padding(left=12, top=8, right=12, bottom=8),
-            border_radius=ft.BorderRadius(0, 0, 12, 12),
-            shadow=ft.BoxShadow(
-                spread_radius=1,
-                blur_radius=4,
-                color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
-            ),
-        )
-    else:
-        # Version desktop avec tous les items
-        navbar = ft.Container(
-            content=ft.Row(
+            )
+            navbar_content.padding = ft.Padding(left=12, top=8, right=12, bottom=8)
+        else:
+            mobile_menu.open = False  # Forcer la fermeture du menu si on repasse sur desktop
+            navbar_content.content = ft.Row(
                 [
-                    ft.Row(
-                        [
-                            ft.Icon(ft.Icons.LOCATION_CITY, size=26, color=ft.Colors.WHITE),
-                            ft.Text("CIMETIERE", size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                        ],
-                        spacing=8,
-                    ),
+                    ft.Row([ft.Icon(ft.Icons.LOCATION_CITY, size=26, color=ft.Colors.WHITE), ft.Text("CIMETIERE", size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)], spacing=8),
                     ft.Row(nav_items, spacing=4, scroll=ft.ScrollMode.AUTO),
                     ft.Container(expand=True),
                     get_user_display(),
                 ],
                 spacing=12,
-            ),
-            bgcolor=COLOR_PRIMARY,
-            padding=ft.Padding(left=20, top=8, right=20, bottom=8),
-            border_radius=ft.BorderRadius(0, 0, 12, 12),
-            shadow=ft.BoxShadow(
-                spread_radius=1,
-                blur_radius=4,
-                color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
-            ),
-        )
-    
-    return navbar, mobile_drawer
+            )
+            navbar_content.padding = ft.Padding(left=20, top=8, right=20, bottom=8)
+
+    # Premier calcul au chargement
+    update_navbar_layout()
+
+    # Écouter le redimensionnement de la fenêtre pour changer le layout en temps réel
+    def on_navbar_resize(e):
+        update_navbar_layout()
+        navbar_content.update()
+
+    page.on_resize = on_navbar_resize
+
+    return navbar_content, mobile_menu
