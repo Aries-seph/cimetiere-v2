@@ -77,9 +77,13 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
     nav_items = [build_nav_item(item, route) for item in get_nav_items()]
 
     # --- Gestion du menu mobile (NavigationDrawer) ---
+    # NavigationDrawer n'expose pas d'attribut .open lisible dans cette version de
+    # Flet -> on suit l'état d'ouverture nous-mêmes via drawer_state.
+    drawer_state = {"open": False}
+
     async def navigate_mobile(r):
-        # Ferme le drawer via l'API dédiée (page.close_drawer), pas juste .open = False
         await page.close_drawer()
+        drawer_state["open"] = False
         page.go(f"/{r}" if r != "dashboard" else "/")
 
     mobile_menu = ft.NavigationDrawer(
@@ -100,7 +104,6 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                     ft.Container(
                         content=ft.Row([ft.Icon(item["icon"], size=18, color=COLOR_PRIMARY), ft.Text(item["label"], size=14, color=COLOR_TEXT)], spacing=12),
                         padding=16,
-                        # on_click accepte directement un handler async dans Flet 0.85.x
                         on_click=(lambda r: (lambda e: page.run_task(navigate_mobile, r)))(item["route"]),
                         ink=True,
                     )
@@ -109,6 +112,9 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                 spacing=2,
             ),
         ],
+        # Se déclenche quand l'utilisateur ferme le drawer en swipant / en cliquant
+        # en dehors -> on resynchronise notre état local.
+        on_dismiss=lambda e: drawer_state.update(open=False),
         bgcolor=ft.Colors.WHITE,
         width=280,
     )
@@ -117,12 +123,12 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
     page.drawer = mobile_menu
 
     async def toggle_mobile_menu(e):
-        # Flet 0.85.x exige page.show_drawer()/page.close_drawer() (async)
-        # au lieu de mobile_menu.open = ... + page.update()
-        if mobile_menu.open:
+        if drawer_state["open"]:
             await page.close_drawer()
+            drawer_state["open"] = False
         else:
             await page.show_drawer()
+            drawer_state["open"] = True
 
     # Conteneurs de Navbar (Desktop et Mobile)
     navbar_content = ft.Container(bgcolor=COLOR_PRIMARY, border_radius=ft.BorderRadius(0, 0, 12, 12))
@@ -141,9 +147,9 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             )
             navbar_content.padding = ft.Padding(left=12, top=8, right=12, bottom=8)
         else:
-            if mobile_menu.open:
-                # Fermeture asynchrone propre si on repasse en desktop
+            if drawer_state["open"]:
                 page.run_task(page.close_drawer)
+                drawer_state["open"] = False
             navbar_content.content = ft.Row(
                 [
                     ft.Row([ft.Icon(ft.Icons.LOCATION_CITY, size=26, color=ft.Colors.WHITE), ft.Text("CIMETIERE", size=18, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)], spacing=8),
