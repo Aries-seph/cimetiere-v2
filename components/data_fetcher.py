@@ -3,6 +3,7 @@ import httpx
 from api_client import api_client, BASE_URL
 
 # ============ CAVEAUX ============
+
 def get_caveaux():
     try:
         response = httpx.get(
@@ -14,7 +15,21 @@ def get_caveaux():
     except Exception:
         return None
 
-
+def get_caveaux_disponibles():
+    """Récupère la liste des caveaux disponibles."""
+    try:
+        response = httpx.get(
+            f"{BASE_URL}/caveaux/",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        data = response.json()
+        if isinstance(data, list):
+            return [c for c in data if c.get("statut") == "DISPONIBLE"]
+        return []
+    except Exception:
+        return []
+    
 def get_blocs():
     try:
         response = httpx.get(
