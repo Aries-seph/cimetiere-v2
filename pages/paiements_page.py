@@ -31,9 +31,8 @@ def paiements_page(page: ft.Page, on_logout):
     
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
     
-    # État pour le tri
-    sort_option = ft.Ref[str]()
-    sort_option.current = "-created_at"  # Par défaut : plus récent d'abord
+    # Utiliser une variable simple - PAS de ft.Ref[str]
+    sort_option = "-created_at"
     
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
@@ -80,12 +79,10 @@ def paiements_page(page: ft.Page, on_logout):
         montant = float(p.get("montant", 0) or 0)
         canal = CANAL_LABELS.get(p.get("canal"), p.get("canal", ""))
         
-        # Ajout de la date de création pour l'affichage
         created_at = p.get("created_at", "")
         date_display = ""
         if created_at:
             try:
-                # Formatage de la date si présente
                 date_parts = created_at.split("T")
                 if len(date_parts) > 0:
                     date_display = date_parts[0]
@@ -115,8 +112,8 @@ def paiements_page(page: ft.Page, on_logout):
         )
 
     def refresh_list():
-        # Récupérer les paiements avec le tri actuel
-        paiements = get_all_paiements(sort_by=sort_option.current) or []
+        nonlocal sort_option
+        paiements = get_all_paiements(sort_by=sort_option) or []
         list_container.controls.clear()
         if not paiements or not isinstance(paiements, list):
             list_container.controls.append(
@@ -128,31 +125,21 @@ def paiements_page(page: ft.Page, on_logout):
         page.update()
 
     def change_sort(e):
-        # Inverser le tri
-        if sort_option.current == "-created_at":
-            sort_option.current = "created_at"
-        else:
-            sort_option.current = "-created_at"
-        refresh_list()
-
-    # Créer le bouton de tri avec icône dynamique
-    sort_icon = ft.Icon(ft.Icons.ARROW_DOWNWARD, color=COLOR_TEXT_MUTED, size=18)
-    sort_text = ft.Text("Plus récent d'abord", size=13, color=COLOR_TEXT_MUTED)
-    
-    def update_sort_display():
-        if sort_option.current == "-created_at":
-            sort_icon.name = ft.Icons.ARROW_DOWNWARD
-            sort_text.value = "Plus récent d'abord"
-        else:
+        nonlocal sort_option
+        if sort_option == "-created_at":
+            sort_option = "created_at"
             sort_icon.name = ft.Icons.ARROW_UPWARD
             sort_text.value = "Plus ancien d'abord"
+        else:
+            sort_option = "-created_at"
+            sort_icon.name = ft.Icons.ARROW_DOWNWARD
+            sort_text.value = "Plus récent d'abord"
         page.update()
-    
-    # Overrider change_sort pour mettre à jour l'affichage
-    original_change_sort = change_sort
-    def change_sort_with_update(e):
-        original_change_sort(e)
-        update_sort_display()
+        refresh_list()
+
+    # Créer le bouton de tri avec icône
+    sort_icon = ft.Icon(ft.Icons.ARROW_DOWNWARD, color=COLOR_TEXT_MUTED, size=18)
+    sort_text = ft.Text("Plus récent d'abord", size=13, color=COLOR_TEXT_MUTED)
     
     sort_button = ft.Container(
         content=ft.Row(
@@ -166,7 +153,7 @@ def paiements_page(page: ft.Page, on_logout):
         bgcolor=COLOR_CARD,
         border_radius=8,
         border=ft.Border.all(1, COLOR_BORDER),
-        on_click=change_sort_with_update,
+        on_click=change_sort,
         ink=True,
     )
 
