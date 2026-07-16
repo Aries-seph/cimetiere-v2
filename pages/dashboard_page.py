@@ -24,7 +24,7 @@ def dashboard_page(page: ft.Page, on_logout):
     
     is_mobile = page.width < 768
     
-    # Construction de la navbar
+    # Construction de la navbar UNIQUEMENT (pas de drawer)
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
     
     # ----- HEADER AVEC MÉTÉO -----
@@ -173,14 +173,12 @@ def dashboard_page(page: ft.Page, on_logout):
         return ft.Container(
             content=ft.Stack(
                 [
-                    # Anneau de fond
                     ft.Container(
                         width=140,
                         height=140,
                         border_radius=70,
                         border=ft.Border.all(8, ft.Colors.with_opacity(0.15, COLOR_TEXT_MUTED)),
                     ),
-                    # Anneau de progression
                     ft.Container(
                         width=140,
                         height=140,
@@ -191,7 +189,6 @@ def dashboard_page(page: ft.Page, on_logout):
                             alignment=ft.Alignment(0, 0),
                         ),
                     ),
-                    # Texte central
                     ft.Container(
                         content=ft.Column(
                             [
@@ -331,7 +328,7 @@ def dashboard_page(page: ft.Page, on_logout):
                     ],
                 ),
                 ft.Container(height=4),
-                ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.push_route("/concessions")),
+                ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.go("/concessions")),
             ],
             spacing=6,
         ),
@@ -503,7 +500,7 @@ def dashboard_page(page: ft.Page, on_logout):
         expand=True,
     ) if not is_mobile else ft.Column([echeances_card, repartition_rapide_card], spacing=16)
     
-    # Contenu principal
+    # Contenu principal - SUPPRESSION des bgcolor=COLOR_BG sur le conteneur externe pour éviter la div grise
     content = ft.Container(
         content=ft.Column(
             [
@@ -521,10 +518,11 @@ def dashboard_page(page: ft.Page, on_logout):
                 ft.Container(height=16),
             ],
             scroll=ft.ScrollMode.AUTO,
+            expand=True,
         ),
         padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
-        bgcolor=COLOR_BG,
+        # SUPPRESSION de bgcolor=COLOR_BG ici - c'était la cause de la div grise
     )
     
     return content
