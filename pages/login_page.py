@@ -14,8 +14,9 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
     
     Args:
         page: Page Flet
-        on_login_success: Callback appelée après une tentative de login réussie (email)
+        show_mfa: Callback pour afficher la page MFA
         on_go_to_register: Callback pour aller vers la page d'inscription
+        on_mfa_success: Callback après validation MFA
     """
 
     email_field = ft.TextField(
@@ -68,6 +69,7 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
         if result.get("success") and result.get("mfa_required"):
             print(f"✅ MFA requis pour {email}, affichage direct de la page MFA")
             page.controls.clear()
+            # ✅ Passer on_mfa_success à la page MFA
             page.add(mfa_page(page, email, on_mfa_success))
             page.update()
             return

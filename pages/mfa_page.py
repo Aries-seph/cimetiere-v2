@@ -8,7 +8,14 @@ from api_client import api_client
 
 
 def mfa_page(page: ft.Page, email: str, on_mfa_success):
-    """Page de vérification MFA."""
+    """
+    Page de vérification MFA.
+    
+    Args:
+        page: Page Flet
+        email: Email de l'utilisateur
+        on_mfa_success: Callback après validation MFA réussie
+    """
     
     code_field = ft.TextField(
         label="Code à 6 chiffres",
@@ -21,7 +28,6 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
         prefix_icon=ft.Icons.LOCK_CLOCK_OUTLINED,
         max_length=6,
         text_align=ft.TextAlign.CENTER,
-        hint_text="Entrez le code reçu par email",
     )
 
     error_text = ft.Text("", color=COLOR_RED, size=13, visible=False)
@@ -34,9 +40,9 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
 
         code = code_field.value
 
-        if not code or len(code) != 6:
+        if not code:
             loading.visible = False
-            error_text.value = "Veuillez entrer un code à 6 chiffres valide"
+            error_text.value = "Veuillez entrer le code"
             error_text.visible = True
             page.update()
             return
@@ -46,20 +52,12 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
 
         if result.get("success"):
             page.update()
+            # ✅ Appeler le callback après succès MFA
             await on_mfa_success()
         else:
-            error_text.value = result.get("message", "Code invalide ou expiré")
+            error_text.value = result.get("message", "Code invalide")
             error_text.visible = True
             page.update()
-            code_field.value = ""
-            page.update()
-
-    # Gérer la touche Entrée
-    def on_keyboard(e):
-        if e.key == "Enter":
-            page.run_task(handle_verify, e)
-
-    page.on_keyboard_event = on_keyboard
 
     verify_button = ft.ElevatedButton(
         content="Vérifier",
@@ -94,7 +92,7 @@ def mfa_page(page: ft.Page, email: str, on_mfa_success):
         padding=40,
         border_radius=16,
         border=ft.Border.all(1, COLOR_BORDER),
-        width=420,
+        width=400,
     )
 
     return ft.Container(

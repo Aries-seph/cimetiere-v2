@@ -122,7 +122,7 @@ async def main(page: ft.Page):
         global _pick_lat, _pick_lng, _pick_caveau_id, _preselect_caveau_id
 
         parsed = urlparse(page.route)
-        route = parsed.path.strip("/") or "dashboard"   #  on utilise le path, pas la route brute
+        route = parsed.path.strip("/") or "dashboard"
         params = parse_qs(parsed.query)
         params = {k: v[0] if v else None for k, v in params.items()}
 
@@ -133,7 +133,7 @@ async def main(page: ft.Page):
         _preselect_caveau_id = params.get("caveau_id")
         
         # Si ce n'est pas une page publique et qu'on n'est pas connecté
-        if route not in ["login", "register","mfa"]:
+        if route not in ["login", "register", "mfa"]:
             if not api_client.access_token:
                 page.go("/login")
                 return
@@ -153,12 +153,13 @@ async def main(page: ft.Page):
         page.controls.clear()
         
         try:
-            # main.py - Dans on_route_change
             if route == "login":
-                page.add(login_page(page, show_mfa, show_register, on_mfa_success))  # ← Ajouter on_mfa_success
+                # ✅ Passer les 4 arguments correctement
+                page.add(login_page(page, show_mfa, show_register, on_mfa_success))
             elif route == "register":
                 page.add(register_page(page, lambda: page.go("/login"), lambda: page.go("/login")))
             elif route == "mfa":
+                # ✅ Passer on_mfa_success à la page MFA
                 page.add(mfa_page(page, params.get("email", ""), on_mfa_success))
             elif route == "dashboard":
                 page.add(dashboard_page(page, on_logout))
@@ -208,6 +209,9 @@ async def main(page: ft.Page):
                 ))
         except Exception as e:
             # En cas d'erreur, afficher une page d'erreur
+            import traceback
+            print(f"❌ Erreur: {e}")
+            traceback.print_exc()
             page.controls.clear()
             page.add(ft.Container(
                 content=ft.Column([
@@ -242,4 +246,5 @@ async def main(page: ft.Page):
         page.go("/login")
 
 
-ft.run(main, view=ft.AppView.WEB_BROWSER, port=8551)
+# ✅ Remettre le port 8550
+ft.run(main, view=ft.AppView.WEB_BROWSER, port=8550)
