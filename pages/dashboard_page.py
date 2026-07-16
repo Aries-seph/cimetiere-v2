@@ -49,7 +49,6 @@ def dashboard_page(page: ft.Page, on_logout):
                     ],
                     spacing=4,
                 ),
-                ft.Container(expand=True),
                 ft.Container(
                     content=ft.Row(
                         [
