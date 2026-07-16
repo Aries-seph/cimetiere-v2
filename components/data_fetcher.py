@@ -258,7 +258,7 @@ def get_historique_paiements(reservation_id: int):
     except Exception:
         return None
     
-# components/data_fetcher.py (ajout du paramètre sort_by)
+
 def get_all_paiements(sort_by="-created_at"):
     """Récupère tous les paiements avec tri."""
     try:

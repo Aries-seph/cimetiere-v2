@@ -1,7 +1,7 @@
-# pages/client_paiements_page.py
+# pages/paiements_page.py
 import flet as ft
 from components.navbar import build_navbar
-from components.data_fetcher import get_mes_paiements, get_mes_reservations, create_paiement_client
+from components.data_fetcher import get_all_paiements, validate_paiement, reject_paiement
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
 STATUT_COLORS = {
@@ -24,12 +24,15 @@ CANAL_LABELS = {
 }
 
 
-def client_paiements_page(page: ft.Page, on_logout):
-    """Page des paiements du client."""
+def paiements_page(page: ft.Page, on_logout):
+    """Page de gestion des paiements."""
     
     is_mobile = page.width < 768
     
-    navbar, _ = build_navbar(page, "CLIENT", on_logout)
+    navbar, _ = build_navbar(page, "ADMIN", on_logout)
+    
+    # Utiliser une variable simple au lieu de Ref[str]
+    sort_option = "-created_at"  # Par défaut : plus récent d'abord
     
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
@@ -43,124 +46,62 @@ def client_paiements_page(page: ft.Page, on_logout):
             border_radius=20,
         )
 
-    def open_new_paiement_dialog():
-        reservations = get_mes_reservations() or []
-        reservations_validees = [r for r in reservations if isinstance(reservations, list) and r.get("statut") == "VALIDEE"]
+    def handle_validate(paiement_id):
+        result = validate_paiement(paiement_id)
+        if result.get("success"):
+            refresh_list()
 
-        if not reservations_validees:
-            info_dialog = ft.AlertDialog(
-                bgcolor=COLOR_CARD,
-                title=ft.Text("Aucune réservation disponible", color=COLOR_TEXT),
-                content=ft.Text("Vous devez avoir au moins une réservation validée pour effectuer un paiement.", color=COLOR_TEXT_MUTED),
-                actions=[ft.TextButton("Fermer", on_click=lambda e: close_dialog(info_dialog))],
+    def handle_reject(paiement_id):
+        result = reject_paiement(paiement_id)
+        if result.get("success"):
+            refresh_list()
+
+    def build_paiement_row(p):
+        actions = []
+        if p.get("statut") == "EN_ATTENTE":
+            actions.append(
+                ft.IconButton(
+                    icon=ft.Icons.CHECK_CIRCLE_OUTLINE,
+                    icon_color=COLOR_GREEN,
+                    tooltip="Valider",
+                    on_click=lambda e, pid=p["id"]: handle_validate(pid),
+                )
             )
-            page.overlay.append(info_dialog)
-            info_dialog.open = True
-            page.update()
-            return
+            actions.append(
+                ft.IconButton(
+                    icon=ft.Icons.CANCEL_OUTLINED,
+                    icon_color=COLOR_RED,
+                    tooltip="Refuser",
+                    on_click=lambda e, pid=p["id"]: handle_reject(pid),
+                )
+            )
 
-        reservation_dropdown = ft.Dropdown(
-            label="Réservation",
-            width=320,
-            bgcolor=COLOR_BG,
-            color=COLOR_TEXT,
-            border_color=COLOR_BORDER,
-            options=[
-                ft.dropdown.Option(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
-                for r in reservations_validees
-            ],
-        )
-        montant_field = ft.TextField(
-            label="Montant (FCFA)",
-            width=320,
-            bgcolor=COLOR_BG,
-            color=COLOR_TEXT,
-            border_color=COLOR_BORDER,
-            keyboard_type=ft.KeyboardType.NUMBER,
-        )
-        canal_dropdown = ft.Dropdown(
-            label="Canal de paiement",
-            width=320,
-            bgcolor=COLOR_BG,
-            color=COLOR_TEXT,
-            border_color=COLOR_BORDER,
-            options=[
-                ft.dropdown.Option(key="MOBILE_MONEY", text="Mobile Money"),
-                ft.dropdown.Option(key="AIRTEL_MONEY", text="Airtel Money"),
-                ft.dropdown.Option(key="ESPECES", text="Espèces"),
-                ft.dropdown.Option(key="VIREMENT", text="Virement"),
-            ],
-        )
-        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
-        success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False)
-
-        def handle_submit(e):
-            if not reservation_dropdown.value or not montant_field.value or not canal_dropdown.value:
-                error_text.value = "Veuillez remplir tous les champs"
-                error_text.visible = True
-                page.update()
-                return
-            try:
-                payload = {
-                    "reservation_id": int(reservation_dropdown.value),
-                    "montant": float(montant_field.value),
-                    "canal": canal_dropdown.value,
-                }
-                result = create_paiement_client(payload)
-                if result.get("success"):
-                    success_text.value = f"Paiement enregistré. Référence : {result.get('reference', '-')}"
-                    success_text.visible = True
-                    error_text.visible = False
-                    page.update()
-                    refresh_list()
-                else:
-                    error_text.value = result.get("message", "Erreur lors de l'envoi")
-                    error_text.visible = True
-                    page.update()
-            except ValueError:
-                error_text.value = "Montant invalide"
-                error_text.visible = True
-                page.update()
-
-        def handle_cancel(e):
-            dialog.open = False
-            page.update()
-
-        dialog = ft.AlertDialog(
-            bgcolor=COLOR_CARD,
-            title=ft.Text("Nouveau paiement", color=COLOR_TEXT),
-            content=ft.Column(
-                [reservation_dropdown, montant_field, canal_dropdown, error_text, success_text],
-                spacing=12, tight=True, width=340, scroll=ft.ScrollMode.AUTO,
-            ),
-            actions=[
-                ft.TextButton("Fermer", on_click=handle_cancel),
-                ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_submit),
-            ],
-        )
-        page.overlay.append(dialog)
-        dialog.open = True
-        page.update()
-
-    def close_dialog(dialog):
-        dialog.open = False
-        page.update()
-
-    def build_row(p):
         montant = float(p.get("montant", 0) or 0)
-        canal = CANAL_LABELS.get(p.get("canal"), p.get("canal", "-"))
+        canal = CANAL_LABELS.get(p.get("canal"), p.get("canal", ""))
+        
+        created_at = p.get("created_at", "")
+        date_display = ""
+        if created_at:
+            try:
+                date_parts = created_at.split("T")
+                if len(date_parts) > 0:
+                    date_display = date_parts[0]
+            except:
+                pass
+
         return ft.Container(
             content=ft.Row(
                 [
                     ft.Column(
                         [
                             ft.Text(p.get("reference", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"{montant:,.0f} FCFA • {canal}", size=12, color=COLOR_TEXT_MUTED),
+                            ft.Text(f"{montant:,.0f} FCFA • {canal} • {date_display if date_display else ''}", size=12, color=COLOR_TEXT_MUTED),
                         ],
                         spacing=2,
                         expand=True,
                     ),
                     status_badge(p.get("statut")),
+                    ft.Row(actions, spacing=0),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
@@ -171,16 +112,50 @@ def client_paiements_page(page: ft.Page, on_logout):
         )
 
     def refresh_list():
-        paiements = get_mes_paiements() or []
+        nonlocal sort_option
+        paiements = get_all_paiements(sort_by=sort_option) or []
         list_container.controls.clear()
         if not paiements or not isinstance(paiements, list):
             list_container.controls.append(
-                ft.Text("Vous n'avez effectué aucun paiement", color=COLOR_TEXT_MUTED, size=14)
+                ft.Text("Aucun paiement enregistré", color=COLOR_TEXT_MUTED, size=14)
             )
         else:
             for p in paiements:
-                list_container.controls.append(build_row(p))
+                list_container.controls.append(build_paiement_row(p))
         page.update()
+
+    def change_sort(e):
+        nonlocal sort_option
+        if sort_option == "-created_at":
+            sort_option = "created_at"
+            sort_icon.name = ft.Icons.ARROW_UPWARD
+            sort_text.value = "Plus ancien d'abord"
+        else:
+            sort_option = "-created_at"
+            sort_icon.name = ft.Icons.ARROW_DOWNWARD
+            sort_text.value = "Plus récent d'abord"
+        page.update()
+        refresh_list()
+
+    # Créer le bouton de tri avec icône
+    sort_icon = ft.Icon(ft.Icons.ARROW_DOWNWARD, color=COLOR_TEXT_MUTED, size=18)
+    sort_text = ft.Text("Plus récent d'abord", size=13, color=COLOR_TEXT_MUTED)
+    
+    sort_button = ft.Container(
+        content=ft.Row(
+            [
+                sort_icon,
+                sort_text,
+            ],
+            spacing=6,
+        ),
+        padding=ft.Padding(left=12, top=6, right=12, bottom=6),
+        bgcolor=COLOR_CARD,
+        border_radius=8,
+        border=ft.Border.all(1, COLOR_BORDER),
+        on_click=change_sort,
+        ink=True,
+    )
 
     refresh_list()
 
@@ -191,15 +166,9 @@ def client_paiements_page(page: ft.Page, on_logout):
                 ft.Container(height=20),
                 ft.Row(
                     [
-                        ft.Text("Mes paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                        ft.Text("Gestion des paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                         ft.Container(expand=True),
-                        ft.ElevatedButton(
-                            "Nouveau paiement",
-                            icon=ft.Icons.ADD,
-                            bgcolor=COLOR_PRIMARY,
-                            color=ft.Colors.WHITE,
-                            on_click=lambda e: open_new_paiement_dialog(),
-                        ),
+                        sort_button,
                     ],
                 ),
                 ft.Container(height=20),
