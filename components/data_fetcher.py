@@ -111,13 +111,18 @@ def create_section(data: dict):
             headers=api_client.get_headers(),
             timeout=30.0
         )
-        return response.json()
-    except httpx.ConnectError as e:
-        print(f"🔴 ERREUR DE CONNEXION HTTPX : {e}")  # <--- Ajoute ça pour voir le vrai problème
-        return {"success": False, "message": "Impossible de se connecter au serveur"}
+        if response.status_code in [200, 201]:
+            try:
+                return response.json()
+            except Exception as json_err:
+                # Si ce n'est pas du JSON, on affiche le texte reçu (ex: Erreur 500, Bad Gateway, etc.)
+                print(f"🔴 Le serveur n'a pas renvoyé de JSON valide : {json_err}")
+                print(f"🔴 Contenu reçu : {response.text}")
+                return {"success": False, "message": f"Erreur serveur (HTML reçu) : {response.text[:100]}"}
+        else:
+            return {"success": False, "message": f"Erreur {response.status_code} : {response.text[:200]}"}
     except Exception as e:
-        print(f"🔴 EXCEPTION INATTENDUE FRONTEND : {e}")  # <--- Ajoute ça
-        return {"success": False, "message": f"Erreur système : {str(e)}"}
+        print(f"infos {e}")
 
 
 def delete_section(section_id: int):
