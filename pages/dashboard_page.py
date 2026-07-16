@@ -73,8 +73,8 @@ def dashboard_page(page: ft.Page, on_logout):
             spacing=20,
         ),
         gradient=ft.LinearGradient(
-            begin=ft.alignment.top_left,
-            end=ft.alignment.bottom_right,
+            begin=ft.Alignment.TOP_LEFT,
+            end=ft.Alignment.BOTTOM_RIGHT,
             colors=[COLOR_PRIMARY, COLOR_PRIMARY_LIGHT],
         ),
         padding=ft.Padding(left=24, top=20, right=24, bottom=20),
