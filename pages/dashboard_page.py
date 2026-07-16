@@ -30,7 +30,6 @@ def dashboard_page(page: ft.Page, on_logout):
     # ----- HEADER AVEC MÉTÉO -----
     current_hour = datetime.now().strftime("%H:%M")
     current_date = datetime.now().strftime("%d %B %Y")
-    # Température symbolique
     temp = random.randint(22, 32)
     
     header_card = ft.Container(
@@ -73,8 +72,8 @@ def dashboard_page(page: ft.Page, on_logout):
             spacing=20,
         ),
         gradient=ft.LinearGradient(
-            begin=ft.Alignment.TOP_LEFT,
-            end=ft.Alignment.BOTTOM_RIGHT,
+            begin=ft.alignment.top_left,
+            end=ft.alignment.bottom_right,
             colors=[COLOR_PRIMARY, COLOR_PRIMARY_LIGHT],
         ),
         padding=ft.Padding(left=24, top=20, right=24, bottom=20),
@@ -163,10 +162,8 @@ def dashboard_page(page: ft.Page, on_logout):
     
     # ----- SECTION GRAPHIQUE RADIAL (remplace le donut) -----
     def build_radial_gauge():
-        # Créer un indicateur radial personnalisé
         percentage = min(taux_occupation, 100)
         
-        # Couleur selon le pourcentage
         if percentage < 50:
             gauge_color = COLOR_GREEN
         elif percentage < 75:
@@ -174,7 +171,6 @@ def dashboard_page(page: ft.Page, on_logout):
         else:
             gauge_color = COLOR_RED
         
-        # Anneau radial fait maison avec des containers
         return ft.Container(
             content=ft.Stack(
                 [
@@ -185,14 +181,14 @@ def dashboard_page(page: ft.Page, on_logout):
                         border_radius=70,
                         border=ft.Border.all(8, ft.Colors.with_opacity(0.15, COLOR_TEXT_MUTED)),
                     ),
-                    # Anneau de progression (simulé avec un container rotatif)
+                    # Anneau de progression
                     ft.Container(
                         width=140,
                         height=140,
                         border_radius=70,
                         border=ft.Border.all(8, gauge_color),
                         rotate=ft.Rotate(
-                            angle=percentage / 100 * 3.6 - 1.8,  # -180 à +180 degrés
+                            angle=percentage / 100 * 3.6 - 1.8,
                             alignment=ft.Alignment(0, 0),
                         ),
                     ),
@@ -216,7 +212,7 @@ def dashboard_page(page: ft.Page, on_logout):
             alignment=ft.Alignment.CENTER,
         )
     
-    # ----- GRAPHIQUE D'ÉVOLUTION À BARRES HORIZONTALES -----
+    # ----- GRAPHIQUE D'ÉVOLUTION À BARRES HORIZONTALES (SANS ANIMATION) -----
     def build_horizontal_bar_chart(data):
         if not data:
             data = [{"jour": "-", "montant": 0} for _ in range(7)]
@@ -239,11 +235,10 @@ def dashboard_page(page: ft.Page, on_logout):
                             ft.Column(
                                 [
                                     ft.Container(
-                                        width=max(2, pct * 2),  # Largeur proportionnelle
+                                        width=max(2, pct * 2),
                                         height=28,
                                         bgcolor=color,
                                         border_radius=ft.BorderRadius(4, 4, 4, 4),
-                                        animate=ft.animation.Animation(600, ft.AnimationCurve.EASE_OUT),
                                     ),
                                 ],
                                 expand=True,
@@ -298,7 +293,6 @@ def dashboard_page(page: ft.Page, on_logout):
         return ft.Column(items, spacing=12)
     
     # ----- NOUVELLES CARTES -----
-    # Carte: Prochaines échéances
     echeances_card = ft.Container(
         content=ft.Column(
             [
@@ -343,7 +337,7 @@ def dashboard_page(page: ft.Page, on_logout):
                     ],
                 ),
                 ft.Container(height=4),
-                ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.go("/concessions")),
+                ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.push_route("/concessions")),
             ],
             spacing=6,
         ),
@@ -354,7 +348,6 @@ def dashboard_page(page: ft.Page, on_logout):
         expand=True,
     )
     
-    # Carte: Répartition rapide
     repartition_stats = ft.Column(
         [
             ft.Row(
@@ -416,8 +409,6 @@ def dashboard_page(page: ft.Page, on_logout):
     )
     
     # ----- ASSEMBLAGE FINAL -----
-    
-    # Section graphique - Gauche: Radial Gauge, Droite: Activité
     charts_section = ft.Row(
         [
             ft.Container(
@@ -484,7 +475,6 @@ def dashboard_page(page: ft.Page, on_logout):
         spacing=16,
     )
     
-    # Graphique d'évolution
     evolution_section = ft.Container(
         content=ft.Column(
             [
@@ -513,7 +503,6 @@ def dashboard_page(page: ft.Page, on_logout):
         border=ft.Border.all(1, COLOR_BORDER),
     )
     
-    # Bottom section: Échéances + Répartition rapide
     bottom_section = ft.Row(
         [echeances_card, repartition_rapide_card],
         spacing=16,
