@@ -106,7 +106,7 @@ def create_section(data: dict):
     """Crée une nouvelle section."""
     try:
         response = httpx.post(
-            f"{BASE_URL}/caveaux/sections/",
+            f"{BASE_URL}/caveaux/sections",
             json=data,
             headers=api_client.get_headers(),
             timeout=30.0
@@ -115,7 +115,6 @@ def create_section(data: dict):
             try:
                 return response.json()
             except Exception as json_err:
-                # Si ce n'est pas du JSON, on affiche le texte reçu (ex: Erreur 500, Bad Gateway, etc.)
                 print(f"🔴 Le serveur n'a pas renvoyé de JSON valide : {json_err}")
                 print(f"🔴 Contenu reçu : {response.text}")
                 return {"success": False, "message": f"Erreur serveur (HTML reçu) : {response.text[:100]}"}
