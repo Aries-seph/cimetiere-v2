@@ -294,6 +294,10 @@ def dashboard_page(page: ft.Page, on_logout):
         return ft.Column(items, spacing=12)
 
     # ----- NOUVELLES CARTES -----
+    async def _go_concessions():
+        """push_route() est une coroutine sur cette version de Flet -> doit être awaitée."""
+        await page.push_route("/concessions")
+
     echeances_card = ft.Container(
         content=ft.Column(
             [
@@ -335,7 +339,7 @@ def dashboard_page(page: ft.Page, on_logout):
                     ],
                 ),
                 ft.Container(height=4),
-                ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.push_route("/concessions")),
+                ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.run_task(_go_concessions)),
             ],
             spacing=6,
         ),

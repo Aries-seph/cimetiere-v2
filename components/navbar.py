@@ -48,10 +48,15 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             selected_index = idx
             break
 
+    async def _navigate(target: str):
+        """push_route() est une coroutine sur cette version de Flet -> doit être awaitée."""
+        await page.push_route(target)
+
     def go_to(route_name: str):
-        """Navigation centralisée: push_route() est la méthode recommandée sur cette version de Flet (page.go() est dépréciée)."""
+        """Navigation centralisée: lance push_route() via page.run_task car c'est une coroutine
+        (un simple page.push_route(...) sans await/task ne fait RIEN, silencieusement)."""
         target = "/" if route_name == "dashboard" else f"/{route_name}"
-        page.push_route(target)
+        page.run_task(_navigate, target)
 
     def build_nav_item(item):
         is_active = item["route"] == route
