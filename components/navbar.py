@@ -120,15 +120,18 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
 
     # --- Menu mobile avec NavigationDrawer ---
     def toggle_mobile_menu(e):
-        mobile_menu.open = not mobile_menu.open
-        page.update()
+        """page.show_drawer() est une coroutine -> on la lance via page.run_task."""
+        page.run_task(page.show_drawer)
+
+    async def _close_drawer_and_navigate(route_name: str):
+        await page.close_drawer()
+        target = "/" if route_name == "dashboard" else f"/{route_name}"
+        await page.push_route(target)
 
     # Gère le clic sur les onglets du tiroir de navigation
     def on_drawer_change(e):
         selected_route = items_list[e.control.selected_index]["route"]
-        mobile_menu.open = False
-        page.update()
-        go_to(selected_route)
+        page.run_task(_close_drawer_and_navigate, selected_route)
 
     mobile_menu = ft.NavigationDrawer(
         selected_index=selected_index,
@@ -169,13 +172,11 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
         ],
     )
 
-    # IMPORTANT: un nouveau NavigationDrawer est créé à CHAQUE appel de build_navbar
-    # (donc à chaque navigation). Sans nettoyage, les anciens tiroirs (parfois restés
-    # open=True) s'accumulent indéfiniment dans page.overlay et peuvent se réafficher
-    # par-dessus les pages suivantes, y compris en vue desktop.
-    # On retire donc tout ancien NavigationDrawer avant d'ajouter le nouveau.
-    page.overlay[:] = [c for c in page.overlay if not isinstance(c, ft.NavigationDrawer)]
-    page.overlay.append(mobile_menu)
+    # API Flet 0.85.x: un NavigationDrawer se rattache à la page via page.drawer
+    # (et s'ouvre/se ferme avec page.show_drawer()/page.close_drawer()), pas via
+    # page.overlay.append(...) + attribut .open, qui est l'ancienne API pré-0.80
+    # et affichait le tiroir comme un panneau statique toujours visible.
+    page.drawer = mobile_menu
 
     is_mobile = page.width < 768
 
