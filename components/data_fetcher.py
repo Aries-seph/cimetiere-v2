@@ -1,20 +1,146 @@
 # components/data_fetcher.py
 import httpx
 from api_client import api_client, BASE_URL
+import logging
 
-# ============ CAVEAUX ============
+# Configurer le logging pour voir les erreurs
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-def get_caveaux():
+
+# ============ SECTIONS ============
+def get_sections():
+    """Récupère la liste de toutes les sections."""
     try:
+        url = f"{BASE_URL}/caveaux/sections"
+        headers = api_client.get_headers()
+        
+        logger.debug(f"GET Sections - URL: {url}")
+        logger.debug(f"Headers: {headers}")
+        
         response = httpx.get(
-            f"{BASE_URL}/caveaux/",
-            headers=api_client.get_headers(),
+            url,
+            headers=headers,
             timeout=30.0
         )
-        return response.json()
-    except Exception:
+        
+        logger.debug(f"Response status: {response.status_code}")
+        logger.debug(f"Response data: {response.text[:200]}...")
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            logger.error(f"Erreur {response.status_code}: {response.text}")
+            return None
+    except httpx.ConnectError as e:
+        logger.error(f"Erreur de connexion: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Erreur inattendue: {e}")
         return None
 
+
+def create_section(data: dict):
+    """Crée une nouvelle section."""
+    try:
+        url = f"{BASE_URL}/caveaux/sections"
+        headers = api_client.get_headers()
+        
+        logger.debug(f"POST Section - URL: {url}")
+        logger.debug(f"Data: {data}")
+        
+        response = httpx.post(
+            url,
+            json=data,
+            headers=headers,
+            timeout=30.0
+        )
+        
+        logger.debug(f"Response status: {response.status_code}")
+        logger.debug(f"Response data: {response.text}")
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"success": False, "message": f"Erreur {response.status_code}: {response.text}"}
+    except httpx.ConnectError as e:
+        logger.error(f"Erreur de connexion: {e}")
+        return {"success": False, "message": "Impossible de contacter le serveur. Vérifiez que le backend est en cours d'exécution."}
+    except Exception as e:
+        logger.error(f"Erreur inattendue: {e}")
+        return {"success": False, "message": str(e)}
+
+
+def delete_section(section_id: int):
+    """Supprime une section."""
+    try:
+        url = f"{BASE_URL}/caveaux/sections/{section_id}"
+        headers = api_client.get_headers()
+        
+        response = httpx.delete(
+            url,
+            headers=headers,
+            timeout=30.0
+        )
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"success": False, "message": f"Erreur {response.status_code}: {response.text}"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+
+# ============ BLOCS ============
+def create_bloc(data: dict):
+    """Crée un nouveau bloc."""
+    try:
+        url = f"{BASE_URL}/caveaux/blocs"
+        headers = api_client.get_headers()
+        
+        logger.debug(f"POST Bloc - URL: {url}")
+        logger.debug(f"Data: {data}")
+        
+        response = httpx.post(
+            url,
+            json=data,
+            headers=headers,
+            timeout=30.0
+        )
+        
+        logger.debug(f"Response status: {response.status_code}")
+        logger.debug(f"Response data: {response.text}")
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"success": False, "message": f"Erreur {response.status_code}: {response.text}"}
+    except httpx.ConnectError as e:
+        logger.error(f"Erreur de connexion: {e}")
+        return {"success": False, "message": "Impossible de contacter le serveur. Vérifiez que le backend est en cours d'exécution."}
+    except Exception as e:
+        logger.error(f"Erreur inattendue: {e}")
+        return {"success": False, "message": str(e)}
+
+
+def delete_bloc(bloc_id: int):
+    """Supprime un bloc."""
+    try:
+        url = f"{BASE_URL}/caveaux/blocs/{bloc_id}"
+        headers = api_client.get_headers()
+        
+        response = httpx.delete(
+            url,
+            headers=headers,
+            timeout=30.0
+        )
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"success": False, "message": f"Erreur {response.status_code}: {response.text}"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 def get_caveaux_disponibles():
     """Récupère la liste des caveaux disponibles."""
     try:
@@ -30,119 +156,6 @@ def get_caveaux_disponibles():
     except Exception:
         return []
     
-def get_blocs():
-    try:
-        response = httpx.get(
-            f"{BASE_URL}/caveaux/blocs",
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return None
-
-
-def create_caveau(data: dict):
-    try:
-        response = httpx.post(
-            f"{BASE_URL}/caveaux/",
-            json=data,
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return {"success": False, "message": "Erreur de connexion"}
-
-
-def update_caveau(caveau_id: int, data: dict):
-    try:
-        response = httpx.patch(
-            f"{BASE_URL}/caveaux/{caveau_id}",
-            json=data,
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return {"success": False, "message": "Erreur de connexion"}
-
-
-def delete_caveau(caveau_id: int):
-    try:
-        response = httpx.delete(
-            f"{BASE_URL}/caveaux/{caveau_id}",
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return {"success": False, "message": "Erreur de connexion"}
-
-
-# ============ SECTIONS ============
-def get_sections():
-    try:
-        response = httpx.get(
-            f"{BASE_URL}/caveaux/sections",
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return None
-
-
-def create_section(data: dict):
-    try:
-        response = httpx.post(
-            f"{BASE_URL}/caveaux/sections",
-            json=data,
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return {"success": False, "message": "Erreur de connexion"}
-
-
-def delete_section(section_id: int):
-    try:
-        response = httpx.delete(
-            f"{BASE_URL}/caveaux/sections/{section_id}",
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return {"success": False, "message": "Erreur de connexion"}
-
-
-# ============ BLOCS ============
-def create_bloc(data: dict):
-    try:
-        response = httpx.post(
-            f"{BASE_URL}/caveaux/blocs",
-            json=data,
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return {"success": False, "message": "Erreur de connexion"}
-
-
-def delete_bloc(bloc_id: int):
-    try:
-        response = httpx.delete(
-            f"{BASE_URL}/caveaux/blocs/{bloc_id}",
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        return response.json()
-    except Exception:
-        return {"success": False, "message": "Erreur de connexion"}
-
 
 # ============ RÉSERVATIONS ============
 def get_all_reservations():
