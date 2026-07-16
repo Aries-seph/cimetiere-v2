@@ -84,25 +84,18 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                 "description": description_field.value or ""
             })
             
-            # CORRECTION : Vérifier si le résultat contient une erreur explicite 
-            # plutôt que de chercher un champ "success" qui n'existe peut-être pas
-            if isinstance(result, dict) and result.get("success") is False:
-                error_text.value = result.get("message", "Erreur de connexion")
-                error_text.visible = True
-                page.update()
-            elif result:  # Si le backend a renvoyé l'objet créé (la requête a réussi)
+            if result and result.get("success"):
                 dialog.open = False
                 page.update()
                 refresh_blocs_sections()
-                
                 page.snack_bar = ft.SnackBar(
                     content=ft.Text("Section créée avec succès"), 
-                    bgcolor=COLOR_PRIMARY  # ou COLOR_GREEN
+                    bgcolor=COLOR_GREEN,
                 )
                 page.snack_bar.open = True
                 page.update()
             else:
-                error_text.value = "Une erreur inconnue est survenue"
+                error_text.value = result.get("message", "Erreur de connexion") if result else "Erreur inconnue"
                 error_text.visible = True
                 page.update()
 
@@ -125,19 +118,27 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
 
     def open_bloc_dialog():
         """Dialogue pour créer un nouveau bloc."""
-        # Vérifier que sections_list est une liste de dictionnaires
+        # Vérifier que sections_list est une liste
         section_options = []
         if sections_list and isinstance(sections_list, list):
             for s in sections_list:
                 if isinstance(s, dict):
                     section_options.append(
-                        ft.dropdown.Option(key=str(s.get("id", "")), text=s.get("nom", ""))
+                        ft.dropdown.Option(key=str(s.get("id", "")), text=s.get("nom", "Sans nom"))
                     )
                 else:
                     # Si c'est un objet, accéder aux attributs
-                    section_options.append(
-                        ft.dropdown.Option(key=str(s.id), text=s.nom)
-                    )
+                    try:
+                        section_options.append(
+                            ft.dropdown.Option(key=str(s.id), text=s.nom)
+                        )
+                    except:
+                        pass
+        
+        if not section_options:
+            section_options.append(
+                ft.dropdown.Option(key="", text="Aucune section disponible - Créez-en une d'abord")
+            )
         
         section_dropdown = ft.Dropdown(
             label="Section",
@@ -173,7 +174,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                 "nom": nom_field.value
             })
             
-            if result.get("success"):
+            if result and result.get("success"):
                 dialog.open = False
                 page.update()
                 refresh_blocs_sections()
@@ -184,7 +185,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                 page.snack_bar.open = True
                 page.update()
             else:
-                error_text.value = result.get("message", "Erreur")
+                error_text.value = result.get("message", "Erreur") if result else "Erreur inconnue"
                 error_text.visible = True
                 page.update()
 
@@ -220,22 +221,29 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                 if isinstance(b, dict):
                     section_nom = b.get("section__nom", "")
                     bloc_nom = b.get("nom", "")
-                    bloc_options.append(
-                        ft.dropdown.Option(
-                            key=str(b.get("id", "")),
-                            text=f"{section_nom} - {bloc_nom}" if section_nom else bloc_nom
+                    bloc_id = b.get("id")
+                    if bloc_id:
+                        text = f"{section_nom} - {bloc_nom}" if section_nom else bloc_nom
+                        bloc_options.append(
+                            ft.dropdown.Option(key=str(bloc_id), text=text)
                         )
-                    )
                 else:
-                    # Si c'est un objet
-                    section_nom = getattr(b, "section__nom", "")
-                    bloc_nom = getattr(b, "nom", "")
-                    bloc_options.append(
-                        ft.dropdown.Option(
-                            key=str(b.id),
-                            text=f"{section_nom} - {bloc_nom}" if section_nom else bloc_nom
+                    try:
+                        section_nom = getattr(b, "section__nom", "")
+                        bloc_nom = getattr(b, "nom", "")
+                        bloc_options.append(
+                            ft.dropdown.Option(
+                                key=str(b.id),
+                                text=f"{section_nom} - {bloc_nom}" if section_nom else bloc_nom
+                            )
                         )
-                    )
+                    except:
+                        pass
+
+        if not bloc_options:
+            bloc_options.append(
+                ft.dropdown.Option(key="", text="Aucun bloc disponible - Créez-en un d'abord")
+            )
 
         bloc_dropdown = ft.Dropdown(
             label="Bloc",
@@ -298,9 +306,10 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
 
         async def handle_pick_location(e):
             token = api_client.access_token or ""
-            url = f"http://cimetiere-backend-v2-production.up.railway.app:8000/carte/admin-pick/?token={token}"
-            if is_edit:
-                url += f"&caveau_id={caveau['id']}"
+            # ✅ CORRECTION : URL sans le port 8000
+            url = f"https://cimetiere-backend-v2-production.up.railway.app/carte/admin-pick/?token={token}"
+            if is_edit and caveau:
+                url += f"&caveau_id={caveau.get('id')}"
             await page.launch_url(url)
 
         pick_button = ft.Button(
@@ -340,16 +349,16 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                     payload["bloc_id"] = int(bloc_dropdown.value)
                     result = create_caveau(payload)
 
-                if result.get("success"):
+                if result and result.get("success"):
                     dialog.open = False
                     page.update()
                     refresh_list()
                 else:
-                    error_text.value = result.get("message", "Erreur")
+                    error_text.value = result.get("message", "Erreur") if result else "Erreur inconnue"
                     error_text.visible = True
                     page.update()
-            except (ValueError, TypeError):
-                error_text.value = "Veuillez vérifier les valeurs saisies"
+            except (ValueError, TypeError) as e:
+                error_text.value = f"Veuillez vérifier les valeurs saisies: {str(e)}"
                 error_text.visible = True
                 page.update()
 
@@ -380,7 +389,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             result = delete_caveau(caveau_id)
             confirm_dialog.open = False
             page.update()
-            if result.get("success"):
+            if result and result.get("success"):
                 refresh_list()
 
         def handle_cancel(e):
@@ -402,6 +411,16 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
 
     # ============ BUILDERS ============
     def build_caveau_row(caveau):
+        # Vérifier que caveau est un dictionnaire
+        if not isinstance(caveau, dict):
+            return ft.Container(
+                content=ft.Text("Erreur: données invalides", color=COLOR_RED),
+                bgcolor=COLOR_CARD,
+                padding=16,
+                border_radius=10,
+                border=ft.Border.all(1, COLOR_BORDER),
+            )
+        
         return ft.Container(
             content=ft.Row(
                 [
@@ -442,7 +461,12 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
 
     def refresh_list():
         nonlocal caveaux_list
-        caveaux_list = get_caveaux() or []
+        caveaux_data = get_caveaux()
+        if isinstance(caveaux_data, list):
+            caveaux_list = caveaux_data
+        else:
+            caveaux_list = []
+        
         list_container.controls.clear()
         if not caveaux_list:
             list_container.controls.append(
@@ -466,7 +490,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                     if pick_caveau_id:
                         try:
                             pcid = int(pick_caveau_id)
-                            match = next((c for c in caveaux_list if c["id"] == pcid), None)
+                            match = next((c for c in caveaux_list if isinstance(c, dict) and c.get("id") == pcid), None)
                             if match:
                                 open_form_dialog(match, prefill_lat=lat, prefill_lng=lng)
                                 return
