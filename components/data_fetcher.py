@@ -4,7 +4,6 @@ from api_client import api_client, BASE_URL
 
 # ============ CAVEAUX ============
 def get_caveaux():
-    """Récupère la liste de tous les caveaux."""
     try:
         response = httpx.get(
             f"{BASE_URL}/caveaux/",
@@ -13,27 +12,10 @@ def get_caveaux():
         )
         return response.json()
     except Exception:
-        return []
-
-
-def get_caveaux_disponibles():
-    """Récupère la liste des caveaux disponibles."""
-    try:
-        response = httpx.get(
-            f"{BASE_URL}/caveaux/",
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        data = response.json()
-        if isinstance(data, list):
-            return [c for c in data if c.get("statut") == "DISPONIBLE"]
-        return []
-    except Exception:
-        return []
+        return None
 
 
 def get_blocs():
-    """Récupère la liste des blocs avec leurs sections."""
     try:
         response = httpx.get(
             f"{BASE_URL}/caveaux/blocs",
@@ -42,11 +24,10 @@ def get_blocs():
         )
         return response.json()
     except Exception:
-        return []
+        return None
 
 
 def create_caveau(data: dict):
-    """Crée un nouveau caveau."""
     try:
         response = httpx.post(
             f"{BASE_URL}/caveaux/",
@@ -55,12 +36,11 @@ def create_caveau(data: dict):
             timeout=30.0
         )
         return response.json()
-    except Exception as e:
-        return {"success": False, "message": f"Erreur: {str(e)}"}
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
 
 
 def update_caveau(caveau_id: int, data: dict):
-    """Met à jour un caveau existant."""
     try:
         response = httpx.patch(
             f"{BASE_URL}/caveaux/{caveau_id}",
@@ -69,12 +49,11 @@ def update_caveau(caveau_id: int, data: dict):
             timeout=30.0
         )
         return response.json()
-    except Exception as e:
-        return {"success": False, "message": f"Erreur: {str(e)}"}
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
 
 
 def delete_caveau(caveau_id: int):
-    """Supprime un caveau."""
     try:
         response = httpx.delete(
             f"{BASE_URL}/caveaux/{caveau_id}",
@@ -82,8 +61,72 @@ def delete_caveau(caveau_id: int):
             timeout=30.0
         )
         return response.json()
-    except Exception as e:
-        return {"success": False, "message": f"Erreur: {str(e)}"}
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
+
+
+# ============ SECTIONS ============
+def get_sections():
+    try:
+        response = httpx.get(
+            f"{BASE_URL}/caveaux/sections",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return None
+
+
+def create_section(data: dict):
+    try:
+        response = httpx.post(
+            f"{BASE_URL}/caveaux/sections",
+            json=data,
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
+
+
+def delete_section(section_id: int):
+    try:
+        response = httpx.delete(
+            f"{BASE_URL}/caveaux/sections/{section_id}",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
+
+
+# ============ BLOCS ============
+def create_bloc(data: dict):
+    try:
+        response = httpx.post(
+            f"{BASE_URL}/caveaux/blocs",
+            json=data,
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
+
+
+def delete_bloc(bloc_id: int):
+    try:
+        response = httpx.delete(
+            f"{BASE_URL}/caveaux/blocs/{bloc_id}",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
 
 
 # ============ RÉSERVATIONS ============

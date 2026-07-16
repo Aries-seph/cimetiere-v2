@@ -1,7 +1,12 @@
 # pages/caveaux_page.py
 import flet as ft
 from components.navbar import build_navbar
-from components.data_fetcher import get_caveaux, get_blocs, create_caveau, update_caveau, delete_caveau
+from components.data_fetcher import (
+    get_caveaux, get_blocs, get_sections,
+    create_caveau, update_caveau, delete_caveau,
+    create_section, delete_section,
+    create_bloc, delete_bloc
+)
 from api_client import api_client
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
@@ -30,10 +35,12 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
     
     caveaux_list = get_caveaux() or []
     blocs_list = get_blocs() or []
+    sections_list = get_sections() or []
     
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
     pending_pick_processed = False
 
+    # ============ STATUS BADGE ============
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
@@ -44,8 +51,149 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             border_radius=20,
         )
 
+    # ============ DIALOGUES ============
+    def open_section_dialog():
+        """Dialogue pour créer une nouvelle section."""
+        nom_field = ft.TextField(
+            label="Nom de la section",
+            width=300,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
+        )
+        description_field = ft.TextField(
+            label="Description (optionnel)",
+            width=300,
+            multiline=True,
+            min_lines=2,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
+        )
+        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
+
+        def handle_save(e):
+            if not nom_field.value:
+                error_text.value = "Veuillez entrer un nom"
+                error_text.visible = True
+                page.update()
+                return
+            
+            result = create_section({
+                "nom": nom_field.value,
+                "description": description_field.value or ""
+            })
+            
+            if result.get("success"):
+                dialog.open = False
+                page.update()
+                refresh_blocs_sections()
+                page.snack_bar = ft.SnackBar(
+                    content=ft.Text("Section créée avec succès"),
+                    bgcolor=COLOR_GREEN,
+                )
+                page.snack_bar.open = True
+                page.update()
+            else:
+                error_text.value = result.get("message", "Erreur")
+                error_text.visible = True
+                page.update()
+
+        def handle_cancel(e):
+            dialog.open = False
+            page.update()
+
+        dialog = ft.AlertDialog(
+            bgcolor=COLOR_CARD,
+            title=ft.Text("Nouvelle section", color=COLOR_TEXT),
+            content=ft.Column([nom_field, description_field, error_text], spacing=12, tight=True, width=320),
+            actions=[
+                ft.TextButton("Annuler", on_click=handle_cancel),
+                ft.ElevatedButton("Créer", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_save),
+            ],
+        )
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+
+    def open_bloc_dialog():
+        """Dialogue pour créer un nouveau bloc."""
+        section_dropdown = ft.Dropdown(
+            label="Section",
+            width=300,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
+            options=[
+                ft.dropdown.Option(key=str(s["id"]), text=s.get("nom", ""))
+                for s in (sections_list or [])
+            ],
+        )
+        nom_field = ft.TextField(
+            label="Nom du bloc",
+            width=300,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
+        )
+        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
+
+        def handle_save(e):
+            if not section_dropdown.value:
+                error_text.value = "Veuillez sélectionner une section"
+                error_text.visible = True
+                page.update()
+                return
+            if not nom_field.value:
+                error_text.value = "Veuillez entrer un nom"
+                error_text.visible = True
+                page.update()
+                return
+            
+            result = create_bloc({
+                "section_id": int(section_dropdown.value),
+                "nom": nom_field.value
+            })
+            
+            if result.get("success"):
+                dialog.open = False
+                page.update()
+                refresh_blocs_sections()
+                page.snack_bar = ft.SnackBar(
+                    content=ft.Text("Bloc créé avec succès"),
+                    bgcolor=COLOR_GREEN,
+                )
+                page.snack_bar.open = True
+                page.update()
+            else:
+                error_text.value = result.get("message", "Erreur")
+                error_text.visible = True
+                page.update()
+
+        def handle_cancel(e):
+            dialog.open = False
+            page.update()
+
+        dialog = ft.AlertDialog(
+            bgcolor=COLOR_CARD,
+            title=ft.Text("Nouveau bloc", color=COLOR_TEXT),
+            content=ft.Column([section_dropdown, nom_field, error_text], spacing=12, tight=True, width=320),
+            actions=[
+                ft.TextButton("Annuler", on_click=handle_cancel),
+                ft.ElevatedButton("Créer", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_save),
+            ],
+        )
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+
     def open_form_dialog(caveau=None, prefill_lat=None, prefill_lng=None):
+        """Dialogue pour créer/modifier un caveau."""
         is_edit = caveau is not None
+
+        # Rafraîchir la liste des blocs
+        nonlocal blocs_list
+        blocs_list = get_blocs() or []
 
         bloc_dropdown = ft.Dropdown(
             label="Bloc",
@@ -116,11 +264,14 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                 url += f"&caveau_id={caveau['id']}"
             await page.launch_url(url)
 
-        pick_button = ft.ElevatedButton(
-            content="Choisir sur la carte",
+        pick_button = ft.Button(
+            content=ft.Row([ft.Icon(ft.Icons.MAP_OUTLINED), ft.Text("Choisir sur la carte")], spacing=8),
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
-            icon=ft.Icons.MAP_OUTLINED,
+            style=ft.ButtonStyle(
+                shape=ft.RoundedRectangleBorder(radius=8),
+                side=ft.BorderSide(1, COLOR_BORDER),
+            ),
             width=300,
             on_click=handle_pick_location,
         )
@@ -177,7 +328,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             content=ft.Column(fields + [error_text], spacing=12, tight=True, width=320),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
-                ft.ElevatedButton("Enregistrer", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_save),
+                ft.Button("Enregistrer", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_save),
             ],
         )
 
@@ -203,13 +354,14 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             content=ft.Text("Cette action est irréversible. Continuer ?", color=COLOR_TEXT_MUTED),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
-                ft.ElevatedButton("Supprimer", bgcolor=COLOR_RED, color=ft.Colors.WHITE, on_click=handle_confirm),
+                ft.Button("Supprimer", bgcolor=COLOR_RED, color=ft.Colors.WHITE, on_click=handle_confirm),
             ],
         )
         page.overlay.append(confirm_dialog)
         confirm_dialog.open = True
         page.update()
 
+    # ============ BUILDERS ============
     def build_caveau_row(caveau):
         return ft.Container(
             content=ft.Row(
@@ -242,6 +394,13 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
+    # ============ REFRESH ============
+    def refresh_blocs_sections():
+        nonlocal blocs_list, sections_list
+        blocs_list = get_blocs() or []
+        sections_list = get_sections() or []
+        page.update()
+
     def refresh_list():
         nonlocal caveaux_list
         caveaux_list = get_caveaux() or []
@@ -261,7 +420,6 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             return
         if pick_lat and pick_lng:
             pending_pick_processed = True
-            # Attendre un court instant pour que la page soit chargée
             def open_form_with_coords():
                 try:
                     lat = float(pick_lat)
@@ -278,15 +436,50 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                     open_form_dialog(prefill_lat=lat, prefill_lng=lng)
                 except (ValueError, TypeError):
                     pass
-            # Utiliser un timer pour ouvrir le dialogue après le rendu
             page.after_update = open_form_with_coords
 
     refresh_list()
-    
-    # Vérifier les coordonnées en attente
     check_pending_pick()
 
-    # Contenu principal
+    # ============ HEADER AVEC BOUTONS ============
+    header_buttons = ft.Row(
+        [
+            ft.Button(
+                "Nouvelle section",
+                icon=ft.Icons.FOLDER_OUTLINED,
+                bgcolor=COLOR_BG,
+                color=COLOR_TEXT,
+                style=ft.ButtonStyle(
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                    side=ft.BorderSide(1, COLOR_BORDER),
+                ),
+                on_click=lambda e: open_section_dialog(),
+            ),
+            ft.Button(
+                "Nouveau bloc",
+                icon=ft.Icons.VIEW_COLUMN_OUTLINED,
+                bgcolor=COLOR_BG,
+                color=COLOR_TEXT,
+                style=ft.ButtonStyle(
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                    side=ft.BorderSide(1, COLOR_BORDER),
+                ),
+                on_click=lambda e: open_bloc_dialog(),
+            ),
+            ft.Button(
+                "Nouveau caveau",
+                icon=ft.Icons.ADD,
+                bgcolor=COLOR_PRIMARY,
+                color=ft.Colors.WHITE,
+                style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                on_click=lambda e: open_form_dialog(),
+            ),
+        ],
+        spacing=8,
+        wrap=True,
+    )
+
+    # ============ CONTENU PRINCIPAL ============
     content = ft.Container(
         content=ft.Column(
             [
@@ -296,12 +489,13 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                     [
                         ft.Text("Gestion des caveaux", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                         ft.Container(expand=True),
-                        ft.ElevatedButton(
-                            "Nouveau caveau",
-                            icon=ft.Icons.ADD,
-                            bgcolor=COLOR_PRIMARY,
-                            color=ft.Colors.WHITE,
-                            on_click=lambda e: open_form_dialog(),
+                        header_buttons if not is_mobile else ft.Column(
+                            [
+                                ft.Button("Nouvelle section", icon=ft.Icons.FOLDER_OUTLINED, bgcolor=COLOR_BG, color=COLOR_TEXT, on_click=lambda e: open_section_dialog()),
+                                ft.Button("Nouveau bloc", icon=ft.Icons.VIEW_COLUMN_OUTLINED, bgcolor=COLOR_BG, color=COLOR_TEXT, on_click=lambda e: open_bloc_dialog()),
+                                ft.Button("Nouveau caveau", icon=ft.Icons.ADD, bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=lambda e: open_form_dialog()),
+                            ],
+                            spacing=8,
                         ),
                     ],
                 ),
