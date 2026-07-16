@@ -5,20 +5,11 @@ from theme import (
     COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_BORDER, COLOR_RED
 )
 from api_client import api_client
-from pages.mfa_page import mfa_page 
 
 
-def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
-    """
-    Page de connexion avec MFA.
+def login_page(page: ft.Page, show_mfa, show_register, on_mfa_success):
+    """Page de connexion avec 4 paramètres"""
     
-    Args:
-        page: Page Flet
-        show_mfa: Callback pour afficher la page MFA
-        on_go_to_register: Callback pour aller vers la page d'inscription
-        on_mfa_success: Callback après validation MFA
-    """
-
     email_field = ft.TextField(
         label="Email",
         width=350,
@@ -46,8 +37,7 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
     error_text = ft.Text("", color=COLOR_RED, size=13, visible=False)
     loading = ft.ProgressRing(width=20, height=20, stroke_width=2, visible=False, color=COLOR_PRIMARY)
 
-    def handle_login(e):
-        """Gère la tentative de connexion."""
+    async def handle_login(e):
         error_text.visible = False
         loading.visible = True
         page.update()
@@ -65,28 +55,13 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
         result = api_client.login(email, password)
         loading.visible = False
 
-        # ✅ Si MFA est requis, afficher DIRECTEMENT la page MFA
         if result.get("success") and result.get("mfa_required"):
-            print(f"✅ MFA requis pour {email}, affichage direct de la page MFA")
-            page.controls.clear()
-            # ✅ Passer on_mfa_success à la page MFA
-            page.add(mfa_page(page, email, on_mfa_success))
-            page.update()
-            return
-        elif result.get("success"):
             page.update()
             show_mfa(email)
         else:
             error_text.value = result.get("message", "Erreur de connexion")
             error_text.visible = True
             page.update()
-
-    # Gérer la touche Entrée
-    def on_keyboard(e):
-        if e.key == "Enter":
-            handle_login(e)
-
-    page.on_keyboard_event = on_keyboard
 
     login_button = ft.ElevatedButton(
         content="Se connecter",
@@ -118,7 +93,7 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
                 ft.Container(height=5),
                 ft.TextButton(
                     content="Pas encore de compte ? Inscrivez-vous",
-                    on_click=lambda e: on_go_to_register(),
+                    on_click=lambda e: show_register(),
                 ),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -128,7 +103,6 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
         padding=40,
         border_radius=16,
         border=ft.Border.all(1, COLOR_BORDER),
-        width=400,
     )
 
     return ft.Container(
@@ -136,5 +110,4 @@ def login_page(page: ft.Page, show_mfa, on_go_to_register, on_mfa_success):
         alignment=ft.Alignment.CENTER,
         expand=True,
         bgcolor=COLOR_BG,
-        padding=20,
     )
