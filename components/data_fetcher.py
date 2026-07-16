@@ -1,6 +1,87 @@
 # components/data_fetcher.py
 import httpx
 from api_client import api_client, BASE_URL
+
+
+
+# ============ CAVEAUX ============
+
+def get_caveaux():
+    try:
+        response = httpx.get(
+            f"{BASE_URL}/caveaux/",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return None
+
+def get_caveaux_disponibles():
+    """Récupère la liste des caveaux disponibles."""
+    try:
+        response = httpx.get(
+            f"{BASE_URL}/caveaux/",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        data = response.json()
+        if isinstance(data, list):
+            return [c for c in data if c.get("statut") == "DISPONIBLE"]
+        return []
+    except Exception:
+        return []
+    
+def get_blocs():
+    try:
+        response = httpx.get(
+            f"{BASE_URL}/caveaux/blocs",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return None
+
+
+def create_caveau(data: dict):
+    try:
+        response = httpx.post(
+            f"{BASE_URL}/caveaux/",
+            json=data,
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
+
+
+def update_caveau(caveau_id: int, data: dict):
+    try:
+        response = httpx.patch(
+            f"{BASE_URL}/caveaux/{caveau_id}",
+            json=data,
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
+
+
+def delete_caveau(caveau_id: int):
+    try:
+        response = httpx.delete(
+            f"{BASE_URL}/caveaux/{caveau_id}",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return {"success": False, "message": "Erreur de connexion"}
+
+
 import logging
 
 # Configurer le logging pour voir les erreurs
@@ -141,21 +222,7 @@ def delete_bloc(bloc_id: int):
             return {"success": False, "message": f"Erreur {response.status_code}: {response.text}"}
     except Exception as e:
         return {"success": False, "message": str(e)}
-def get_caveaux_disponibles():
-    """Récupère la liste des caveaux disponibles."""
-    try:
-        response = httpx.get(
-            f"{BASE_URL}/caveaux/",
-            headers=api_client.get_headers(),
-            timeout=30.0
-        )
-        data = response.json()
-        if isinstance(data, list):
-            return [c for c in data if c.get("statut") == "DISPONIBLE"]
-        return []
-    except Exception:
-        return []
-    
+
 
 # ============ RÉSERVATIONS ============
 def get_all_reservations():
