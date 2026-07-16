@@ -106,7 +106,7 @@ def create_section(data: dict):
     """Crée une nouvelle section."""
     try:
         response = httpx.post(
-            f"{BASE_URL}/caveaux/sections",
+            f"{BASE_URL}/caveaux/sections/",
             json=data,
             headers=api_client.get_headers(),
             timeout=30.0
