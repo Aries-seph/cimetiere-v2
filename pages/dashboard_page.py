@@ -335,8 +335,7 @@ def dashboard_page(page: ft.Page, on_logout):
                     ],
                 ),
                 ft.Container(height=4),
-                # push_route n'existe pas sur ft.Page -> remplacé par page.go()
-                ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.go("/concessions")),
+                ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.push_route("/concessions")),
             ],
             spacing=6,
         ),

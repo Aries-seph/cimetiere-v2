@@ -49,9 +49,9 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             break
 
     def go_to(route_name: str):
-        """Navigation centralisée: utilise page.go() (page.push_route n'existe pas)."""
+        """Navigation centralisée: push_route() est la méthode recommandée sur cette version de Flet (page.go() est dépréciée)."""
         target = "/" if route_name == "dashboard" else f"/{route_name}"
-        page.go(target)
+        page.push_route(target)
 
     def build_nav_item(item):
         is_active = item["route"] == route
@@ -126,7 +126,6 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
         go_to(selected_route)
 
     mobile_menu = ft.NavigationDrawer(
-        open=False,
         selected_index=selected_index,
         on_change=on_drawer_change,
         controls=[
