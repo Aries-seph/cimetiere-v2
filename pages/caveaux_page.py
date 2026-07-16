@@ -78,24 +78,31 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                 error_text.visible = True
                 page.update()
                 return
-            
+                
             result = create_section({
-                "nom": nom_field.value,
+                "nom": nom_field.value, 
                 "description": description_field.value or ""
             })
             
-            if result.get("success"):
+            # CORRECTION : Vérifier si le résultat contient une erreur explicite 
+            # plutôt que de chercher un champ "success" qui n'existe peut-être pas
+            if isinstance(result, dict) and result.get("success") is False:
+                error_text.value = result.get("message", "Erreur de connexion")
+                error_text.visible = True
+                page.update()
+            elif result:  # Si le backend a renvoyé l'objet créé (la requête a réussi)
                 dialog.open = False
                 page.update()
                 refresh_blocs_sections()
+                
                 page.snack_bar = ft.SnackBar(
-                    content=ft.Text("Section créée avec succès"),
-                    bgcolor=COLOR_GREEN,
+                    content=ft.Text("Section créée avec succès"), 
+                    bgcolor=COLOR_PRIMARY  # ou COLOR_GREEN
                 )
                 page.snack_bar.open = True
                 page.update()
             else:
-                error_text.value = result.get("message", "Erreur")
+                error_text.value = "Une erreur inconnue est survenue"
                 error_text.visible = True
                 page.update()
 
