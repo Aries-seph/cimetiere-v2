@@ -109,7 +109,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             content=ft.Column([nom_field, description_field, error_text], spacing=12, tight=True, width=320),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
-                ft.ElevatedButton("Créer", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_save),
+                ft.Button("Créer", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_save),
             ],
         )
         page.overlay.append(dialog)
@@ -118,16 +118,27 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
 
     def open_bloc_dialog():
         """Dialogue pour créer un nouveau bloc."""
+        # Vérifier que sections_list est une liste de dictionnaires
+        section_options = []
+        if sections_list and isinstance(sections_list, list):
+            for s in sections_list:
+                if isinstance(s, dict):
+                    section_options.append(
+                        ft.dropdown.Option(key=str(s.get("id", "")), text=s.get("nom", ""))
+                    )
+                else:
+                    # Si c'est un objet, accéder aux attributs
+                    section_options.append(
+                        ft.dropdown.Option(key=str(s.id), text=s.nom)
+                    )
+        
         section_dropdown = ft.Dropdown(
             label="Section",
             width=300,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
-            options=[
-                ft.dropdown.Option(key=str(s["id"]), text=s.get("nom", ""))
-                for s in (sections_list or [])
-            ],
+            options=section_options,
         )
         nom_field = ft.TextField(
             label="Nom du bloc",
@@ -180,7 +191,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             content=ft.Column([section_dropdown, nom_field, error_text], spacing=12, tight=True, width=320),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
-                ft.ElevatedButton("Créer", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_save),
+                ft.Button("Créer", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_save),
             ],
         )
         page.overlay.append(dialog)
@@ -195,16 +206,37 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
         nonlocal blocs_list
         blocs_list = get_blocs() or []
 
+        # Construction des options pour le dropdown des blocs
+        bloc_options = []
+        if blocs_list and isinstance(blocs_list, list):
+            for b in blocs_list:
+                if isinstance(b, dict):
+                    section_nom = b.get("section__nom", "")
+                    bloc_nom = b.get("nom", "")
+                    bloc_options.append(
+                        ft.dropdown.Option(
+                            key=str(b.get("id", "")),
+                            text=f"{section_nom} - {bloc_nom}" if section_nom else bloc_nom
+                        )
+                    )
+                else:
+                    # Si c'est un objet
+                    section_nom = getattr(b, "section__nom", "")
+                    bloc_nom = getattr(b, "nom", "")
+                    bloc_options.append(
+                        ft.dropdown.Option(
+                            key=str(b.id),
+                            text=f"{section_nom} - {bloc_nom}" if section_nom else bloc_nom
+                        )
+                    )
+
         bloc_dropdown = ft.Dropdown(
             label="Bloc",
             width=300,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
-            options=[
-                ft.dropdown.Option(key=str(b["id"]), text=f"{b.get('section__nom', '')} - {b.get('nom', '')}")
-                for b in (blocs_list or [])
-            ],
+            options=bloc_options,
             value=str(caveau.get("bloc_id")) if is_edit and caveau.get("bloc_id") else None,
         )
 
