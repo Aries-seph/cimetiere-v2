@@ -40,6 +40,6 @@ def build_stat_card(title: str, value: str, icon, icon_bgcolor: str, subtitle: s
         padding=ft.Padding(left=16, top=12, right=16, bottom=12),
         border_radius=10,
         border=ft.Border.all(1, COLOR_BORDER),
-        expand=True,
-        
+        # expand=True retiré
+        height=100,  # Hauteur fixe pour uniformiser
     )

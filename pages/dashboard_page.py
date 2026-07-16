@@ -35,9 +35,11 @@ def dashboard_page(page: ft.Page, on_logout):
     ]
     
     cards = [build_stat_card(t, v, i, c, subtitle=s) for (t, v, i, c, s) in card_defs]
+    
+    # IMPORTANT: Ne pas mettre expand=True sur les cartes pour éviter l'étirement
     stats_row = ft.Row(cards, spacing=16, wrap=True) if not is_mobile else ft.Column(cards, spacing=12)
     
-    # Graphiques
+    # Graphiques - Fixer une hauteur maximale
     evolution_card = ft.Container(
         content=ft.Column(
             [
@@ -50,7 +52,7 @@ def dashboard_page(page: ft.Page, on_logout):
         padding=20,
         border_radius=14,
         border=ft.Border.all(1, COLOR_BORDER),
-        expand=True,
+        height=320,  # Fixer une hauteur pour éviter l'étirement
     )
     
     # Répartition
@@ -95,7 +97,7 @@ def dashboard_page(page: ft.Page, on_logout):
         padding=20,
         border_radius=14,
         border=ft.Border.all(1, COLOR_BORDER),
-        expand=True,
+        height=260,  # Fixer une hauteur
     )
     
     # Résumé activité
@@ -119,12 +121,17 @@ def dashboard_page(page: ft.Page, on_logout):
         padding=20,
         border_radius=14,
         border=ft.Border.all(1, COLOR_BORDER),
-        expand=True,
+        height=260,  # Même hauteur que repartition_card
     )
     
-    bottom_row = ft.Row([repartition_card, resume_card], spacing=16, expand=True) if not is_mobile else ft.Column([repartition_card, resume_card], spacing=16)
+    # Row avec hauteur fixée
+    bottom_row = ft.Row(
+        [repartition_card, resume_card], 
+        spacing=16, 
+        height=280,  # Hauteur fixe pour la ligne
+    ) if not is_mobile else ft.Column([repartition_card, resume_card], spacing=16)
     
-    # Contenu principal
+    # Contenu principal - retirer expand=True du Column
     content = ft.Container(
         content=ft.Column(
             [
@@ -138,10 +145,10 @@ def dashboard_page(page: ft.Page, on_logout):
                 ft.Container(height=20),
             ],
             scroll=ft.ScrollMode.AUTO,
-            expand=True,
+            # expand=True retiré ici
         ),
         padding=ft.Padding(left=20, top=0, right=20, bottom=20),
-        expand=True,
+        expand=True,  # Gardé seulement sur le Container principal
         bgcolor=COLOR_BG,
     )
     
