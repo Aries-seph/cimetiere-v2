@@ -229,10 +229,19 @@ async def main(page: ft.Page):
     page.on_route_change = on_route_change
 
     # --- Gestion du redimensionnement ---
+    # page.on_resize ne recalculait jamais is_mobile -> la navbar restait figée
+    # dans la disposition calculée au premier chargement (desktop si la fenêtre
+    # était large au départ), même en réduisant la fenêtre ensuite.
+    # On reconstruit la page courante uniquement quand on franchit le seuil 768px,
+    # pour éviter de tout reconstruire à chaque pixel pendant un drag de resize.
+    _resize_state = {"is_mobile": page.width < 768 if page.width else False}
+
     def on_resize(e):
-        # Forcer le re-rendu si nécessaire
-        pass
-    
+        is_mobile_now = page.width < 768
+        if is_mobile_now != _resize_state["is_mobile"]:
+            _resize_state["is_mobile"] = is_mobile_now
+            page.run_task(on_route_change, None)
+
     page.on_resize = on_resize
 
     # --- Initialisation ---
