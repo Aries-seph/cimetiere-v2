@@ -1,7 +1,6 @@
 # main.py
 import flet as ft
 from urllib.parse import urlparse, parse_qs
-from flet import SharedPreferences
 
 from pages.login_page import login_page
 from pages.mfa_page import mfa_page
@@ -48,45 +47,39 @@ async def main(page: ft.Page):
     page.padding = 0
     page.theme_mode = ft.ThemeMode.LIGHT
     
-    # Initialiser SharedPreferences
-    pref = SharedPreferences()
-    
     # --- Gestion de session ---
     async def persist_session():
-        await pref.set(TOKEN_KEY, api_client.access_token or "")
-        await pref.set(REFRESH_KEY, api_client.refresh_token or "")
+        await page.shared_preferences.set(TOKEN_KEY, api_client.access_token or "")
+        await page.shared_preferences.set(REFRESH_KEY, api_client.refresh_token or "")
         if api_client.user:
-            await pref.set(ROLE_KEY, api_client.user.get("role", ""))
-            await pref.set(EMAIL_KEY, api_client.user.get("email", ""))
+            await page.shared_preferences.set(ROLE_KEY, api_client.user.get("role", ""))
+            await page.shared_preferences.set(EMAIL_KEY, api_client.user.get("email", ""))
 
     async def clear_session():
         for k in [TOKEN_KEY, REFRESH_KEY, ROLE_KEY, EMAIL_KEY]:
-            if await pref.contains_key(k):
-                await pref.remove(k)
+            if await page.shared_preferences.contains_key(k):
+                await page.shared_preferences.remove(k)
 
     async def restore_session():
-        token = await pref.get(TOKEN_KEY)
+        token = await page.shared_preferences.get(TOKEN_KEY)
         if not token:
             return False
+        api_client.access_token = token
+        api_client.refresh_token = await page.shared_preferences.get(REFRESH_KEY)
         
-        # Vérifier que le token est valide en interrogeant /me
         try:
-            api_client.access_token = token
-            api_client.refresh_token = await pref.get(REFRESH_KEY)
-            
             me = api_client.get_me()
             if me and "detail" not in me:
                 api_client.user = {
-                    "role": await pref.get(ROLE_KEY),
-                    "email": await pref.get(EMAIL_KEY),
+                    "role": await page.shared_preferences.get(ROLE_KEY),
+                    "email": await page.shared_preferences.get(EMAIL_KEY),
                 }
                 return True
-            else:
-                await clear_session()
-                return False
         except Exception:
-            await clear_session()
-            return False
+            pass
+        
+        await clear_session()
+        return False
 
     # --- Navigation ---
     async def on_logout():
@@ -94,15 +87,13 @@ async def main(page: ft.Page):
         api_client.access_token = None
         api_client.refresh_token = None
         api_client.user = None
-        # ✅ Utiliser push_route au lieu de go
-        await page.push_route("/login")
-        page.update()
+        page.go("/login")
     
     def show_mfa(email):
-        page.push_route(f"/mfa?email={email}")
+        page.go(f"/mfa?email={email}")
 
     def show_register():
-        page.push_route("/register")
+        page.go("/register")
 
     async def on_mfa_success():
         await persist_session()
@@ -116,16 +107,15 @@ async def main(page: ft.Page):
             pick_data = None
         
         if role == "CLIENT":
-            await page.push_route("/client_dashboard")
+            page.go("/client_dashboard")
         else:
             if pick_data and pick_data.get("has_pick"):
                 params = f"?pick_lat={pick_data['latitude']}&pick_lng={pick_data['longitude']}"
                 if pick_data.get("caveau_id"):
                     params += f"&pick_caveau_id={pick_data['caveau_id']}"
-                await page.push_route(f"/caveaux{params}")
+                page.go(f"/caveaux{params}")
             else:
-                await page.push_route("/dashboard")
-        page.update()
+                page.go("/dashboard")
 
     # --- Route change handler ---
     async def on_route_change(e):
@@ -142,47 +132,45 @@ async def main(page: ft.Page):
         _pick_caveau_id = params.get("pick_caveau_id")
         _preselect_caveau_id = params.get("caveau_id")
         
-        print(f"📍 Route: {route}, params: {params}")
-        print(f"🔑 Token présent: {bool(api_client.access_token)}")
-        
         # Si ce n'est pas une page publique et qu'on n'est pas connecté
         if route not in ["login", "register", "mfa"]:
             if not api_client.access_token:
-                print("❌ Pas de token, redirection vers login")
-                await page.push_route("/login")
-                page.update()
+                page.go("/login")
                 return
         
         # Si on est sur login ou register et déjà connecté
         if route in ["login", "register"] and api_client.access_token:
             role = api_client.user.get("role") if api_client.user else "CLIENT"
-            await page.push_route("/dashboard" if role != "CLIENT" else "/client_dashboard")
-            page.update()
+            page.go("/dashboard" if role != "CLIENT" else "/client_dashboard")
             return
         
         # Si route mfa sans email
         if route == "mfa" and not params.get("email"):
-            await page.push_route("/login")
-            page.update()
+            page.go("/login")
             return
         
-        # Charger la page
+        # Charger la page avec les paramètres appropriés
         page.controls.clear()
         
         try:
-            # Pages d'authentification
             if route == "login":
+                # ✅ Passer les 4 arguments correctement
                 page.add(login_page(page, show_mfa, show_register, on_mfa_success))
             elif route == "register":
-                page.add(register_page(page, lambda: page.push_route("/login"), lambda: page.push_route("/login")))
+                page.add(register_page(page, lambda: page.go("/login"), lambda: page.go("/login")))
             elif route == "mfa":
+                # ✅ Passer on_mfa_success à la page MFA
                 page.add(mfa_page(page, params.get("email", ""), on_mfa_success))
-            
-            # Pages administrateur
             elif route == "dashboard":
                 page.add(dashboard_page(page, on_logout))
             elif route == "caveaux":
-                page.add(caveaux_page(page, on_logout, pick_lat=_pick_lat, pick_lng=_pick_lng, pick_caveau_id=_pick_caveau_id))
+                page.add(caveaux_page(
+                    page, 
+                    on_logout, 
+                    pick_lat=_pick_lat, 
+                    pick_lng=_pick_lng, 
+                    pick_caveau_id=_pick_caveau_id
+                ))
             elif route == "reservations":
                 page.add(reservations_page(page, on_logout))
             elif route == "paiements":
@@ -195,12 +183,14 @@ async def main(page: ft.Page):
                 page.add(rapports_page(page, on_logout))
             elif route == "users":
                 page.add(users_page(page, on_logout))
-            
-            # Pages client
             elif route == "client_dashboard":
                 page.add(client_dashboard_page(page, on_logout))
             elif route == "client_reserver":
-                page.add(client_reserver_page(page, on_logout, preselect_caveau_id=_preselect_caveau_id))
+                page.add(client_reserver_page(
+                    page, 
+                    on_logout, 
+                    preselect_caveau_id=_preselect_caveau_id
+                ))
             elif route == "client_reservations":
                 page.add(client_reservations_page(page, on_logout))
             elif route == "client_paiements":
@@ -218,6 +208,7 @@ async def main(page: ft.Page):
                     bgcolor=COLOR_BG
                 ))
         except Exception as e:
+            # En cas d'erreur, afficher une page d'erreur
             import traceback
             print(f"❌ Erreur: {e}")
             traceback.print_exc()
@@ -226,7 +217,7 @@ async def main(page: ft.Page):
                 content=ft.Column([
                     ft.Text("Erreur lors du chargement de la page", size=20, color="#EF4444"),
                     ft.Text(str(e), size=14, color="#6B7280"),
-                    ft.TextButton("Retour à l'accueil", on_click=lambda e: page.push_route("/dashboard"))
+                    ft.ElevatedButton("Retour à l'accueil", on_click=lambda e: page.go("/dashboard"))
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 expand=True,
                 alignment=ft.Alignment.CENTER,
@@ -239,6 +230,7 @@ async def main(page: ft.Page):
 
     # --- Gestion du redimensionnement ---
     def on_resize(e):
+        # Forcer le re-rendu si nécessaire
         pass
     
     page.on_resize = on_resize
@@ -249,14 +241,10 @@ async def main(page: ft.Page):
     if session_ok:
         role = api_client.user.get("role") if api_client.user else "CLIENT"
         default_route = "/dashboard" if role != "CLIENT" else "/client_dashboard"
-        print(f"✅ Session restaurée, redirection vers {default_route}")
-        await page.push_route(default_route)
+        page.go(default_route)
     else:
-        print("❌ Pas de session valide, redirection vers login")
-        await page.push_route("/login")
-    
-    page.update()
+        page.go("/login")
 
 
-# ✅ Revenir au port 8550 pour la compatibilité
+# ✅ Remettre le port 8550
 ft.run(main, view=ft.AppView.WEB_BROWSER, port=8551)
