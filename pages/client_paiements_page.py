@@ -31,8 +31,8 @@ def client_paiements_page(page: ft.Page, on_logout):
     
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
     
-    # Utiliser une variable simple au lieu de Ref[str]
-    sort_option = "-created_at"  # Par défaut : plus récent d'abord
+    # Au lieu de sort_option.current = "-created_at"
+    sort_option = "-created_at"
     
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
