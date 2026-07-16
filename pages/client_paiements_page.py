@@ -24,7 +24,7 @@ CANAL_LABELS = {
 }
 
 
-def paiements_page(page: ft.Page, on_logout):
+def client_paiements_page(page: ft.Page, on_logout):
     """Page de gestion des paiements."""
     
     is_mobile = page.width < 768
