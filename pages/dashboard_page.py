@@ -9,29 +9,29 @@ import random
 
 def dashboard_page(page: ft.Page, on_logout):
     """Page Dashboard pour administrateur - Version 2.0"""
-    
+
     stats = get_dashboard_stats() or {}
     if not isinstance(stats, dict) or stats.get("success") is False:
         stats = {}
-    
+
     caveaux_stats = stats.get("caveaux", {})
     finances_stats = stats.get("finances", {})
     evolution_data = get_evolution_7_jours() or []
     occupation_blocs = get_occupation_par_bloc() or []
-    
+
     if not isinstance(evolution_data, list):
         evolution_data = []
-    
+
     is_mobile = page.width < 768
-    
-    # Construction de la navbar UNIQUEMENT (pas de drawer)
+
+    # Construction de la navbar
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
-    
+
     # ----- HEADER AVEC MÉTÉO -----
     current_hour = datetime.now().strftime("%H:%M")
     current_date = datetime.now().strftime("%d %B %Y")
     temp = random.randint(22, 32)
-    
+
     header_card = ft.Container(
         content=ft.Row(
             [
@@ -83,13 +83,13 @@ def dashboard_page(page: ft.Page, on_logout):
             color=ft.Colors.with_opacity(0.2, COLOR_PRIMARY),
         ),
     )
-    
+
     # ----- KPI CARDS AVEC BARRES DE PROGRESSION -----
     total_caveaux = caveaux_stats.get("total", 0)
     disponibles = caveaux_stats.get("disponibles", 0)
     occupes = caveaux_stats.get("occupes", 0)
     taux_occupation = float(caveaux_stats.get("taux_occupation", "0%").replace("%", "")) if caveaux_stats.get("taux_occupation") else 0
-    
+
     def build_kpi_card(title, value, icon, color, progress=None, progress_label=None):
         content_items = [
             ft.Row(
@@ -113,7 +113,7 @@ def dashboard_page(page: ft.Page, on_logout):
                 spacing=10,
             ),
         ]
-        
+
         if progress is not None:
             content_items.append(
                 ft.Column(
@@ -130,7 +130,7 @@ def dashboard_page(page: ft.Page, on_logout):
                     spacing=2,
                 )
             )
-        
+
         return ft.Container(
             content=ft.Column(content_items, spacing=6),
             bgcolor=COLOR_CARD,
@@ -139,7 +139,12 @@ def dashboard_page(page: ft.Page, on_logout):
             border=ft.Border.all(1, COLOR_BORDER),
             expand=True,
         )
-    
+
+    # NOTE: Row(wrap=True) + enfants expand=True est une combinaison invalide en
+    # Flet/Flutter (Wrap ne supporte pas les enfants Expanded) -> ça provoquait le
+    # bloc gris affiché juste après la carte météo. On a simplement retiré wrap=True :
+    # sur desktop les 4 cartes tiennent sur une seule ligne, et la version mobile
+    # ci-dessous gère déjà le passage en colonnes.
     kpi_cards = ft.Row(
         [
             build_kpi_card("Caveaux", total_caveaux, ft.Icons.GRID_VIEW_ROUNDED, COLOR_PRIMARY),
@@ -148,7 +153,6 @@ def dashboard_page(page: ft.Page, on_logout):
             build_kpi_card("Taux occup.", f"{taux_occupation:.1f}%", ft.Icons.SPEED, COLOR_ORANGE, progress=taux_occupation),
         ],
         spacing=12,
-        wrap=True,
     ) if not is_mobile else ft.Column(
         [
             ft.Row([build_kpi_card("Caveaux", total_caveaux, ft.Icons.GRID_VIEW_ROUNDED, COLOR_PRIMARY),
@@ -158,27 +162,29 @@ def dashboard_page(page: ft.Page, on_logout):
         ],
         spacing=12,
     )
-    
+
     # ----- SECTION GRAPHIQUE RADIAL (remplace le donut) -----
     def build_radial_gauge():
         percentage = min(taux_occupation, 100)
-        
+
         if percentage < 50:
             gauge_color = COLOR_GREEN
         elif percentage < 75:
             gauge_color = COLOR_ORANGE
         else:
             gauge_color = COLOR_RED
-        
+
         return ft.Container(
             content=ft.Stack(
                 [
+                    # Anneau de fond
                     ft.Container(
                         width=140,
                         height=140,
                         border_radius=70,
                         border=ft.Border.all(8, ft.Colors.with_opacity(0.15, COLOR_TEXT_MUTED)),
                     ),
+                    # Anneau de progression
                     ft.Container(
                         width=140,
                         height=140,
@@ -189,6 +195,7 @@ def dashboard_page(page: ft.Page, on_logout):
                             alignment=ft.Alignment(0, 0),
                         ),
                     ),
+                    # Texte central
                     ft.Container(
                         content=ft.Column(
                             [
@@ -207,21 +214,21 @@ def dashboard_page(page: ft.Page, on_logout):
             ),
             alignment=ft.Alignment.CENTER,
         )
-    
+
     def build_horizontal_bar_chart(data):
         if not data:
             data = [{"jour": "-", "montant": 0} for _ in range(7)]
-        
+
         max_val = max([item.get("montant", 0) for item in data], default=1)
-        
+
         bars = []
         colors = [COLOR_PRIMARY, COLOR_PRIMARY_LIGHT, "#60A5FA", "#93C5FD", "#BFDBFE", "#DBEAFE", "#EFF6FF"]
-        
+
         for i, item in enumerate(data):
             val = item.get("montant", 0)
             pct = (val / max_val * 100) if max_val > 0 else 0
             color = colors[i % len(colors)]
-            
+
             bars.append(
                 ft.Container(
                     content=ft.Row(
@@ -246,9 +253,9 @@ def dashboard_page(page: ft.Page, on_logout):
                     padding=ft.Padding(left=0, top=2, right=0, bottom=2),
                 )
             )
-        
+
         return ft.Column(bars, spacing=4)
-    
+
     # ----- SECTION ACTIVITÉ EN TEMPS RÉEL -----
     def build_activity_timeline():
         activities = [
@@ -257,7 +264,7 @@ def dashboard_page(page: ft.Page, on_logout):
             {"icon": ft.Icons.FOLDER_SPECIAL, "color": COLOR_ORANGE, "text": "Demande d'exhumation #EXH-004", "time": "Il y a 32min"},
             {"icon": ft.Icons.ASSIGNMENT, "color": "#8B5CF6", "text": "Concession renouvelée - C03", "time": "Il y a 1h"},
         ]
-        
+
         items = []
         for act in activities:
             items.append(
@@ -283,9 +290,9 @@ def dashboard_page(page: ft.Page, on_logout):
                     spacing=10,
                 )
             )
-        
+
         return ft.Column(items, spacing=12)
-    
+
     # ----- NOUVELLES CARTES -----
     echeances_card = ft.Container(
         content=ft.Column(
@@ -328,6 +335,7 @@ def dashboard_page(page: ft.Page, on_logout):
                     ],
                 ),
                 ft.Container(height=4),
+                # push_route n'existe pas sur ft.Page -> remplacé par page.go()
                 ft.TextButton("Voir toutes les échéances", on_click=lambda e: page.go("/concessions")),
             ],
             spacing=6,
@@ -338,7 +346,7 @@ def dashboard_page(page: ft.Page, on_logout):
         border=ft.Border.all(1, COLOR_BORDER),
         expand=True,
     )
-    
+
     repartition_stats = ft.Column(
         [
             ft.Row(
@@ -376,7 +384,7 @@ def dashboard_page(page: ft.Page, on_logout):
         ],
         spacing=8,
     )
-    
+
     repartition_rapide_card = ft.Container(
         content=ft.Column(
             [
@@ -398,7 +406,7 @@ def dashboard_page(page: ft.Page, on_logout):
         border=ft.Border.all(1, COLOR_BORDER),
         expand=True,
     )
-    
+
     # ----- ASSEMBLAGE FINAL -----
     charts_section = ft.Row(
         [
@@ -465,7 +473,7 @@ def dashboard_page(page: ft.Page, on_logout):
         ],
         spacing=16,
     )
-    
+
     evolution_section = ft.Container(
         content=ft.Column(
             [
@@ -493,14 +501,14 @@ def dashboard_page(page: ft.Page, on_logout):
         border_radius=12,
         border=ft.Border.all(1, COLOR_BORDER),
     )
-    
+
     bottom_section = ft.Row(
         [echeances_card, repartition_rapide_card],
         spacing=16,
         expand=True,
     ) if not is_mobile else ft.Column([echeances_card, repartition_rapide_card], spacing=16)
-    
-    # Contenu principal - SUPPRESSION des bgcolor=COLOR_BG sur le conteneur externe pour éviter la div grise
+
+    # Contenu principal
     content = ft.Container(
         content=ft.Column(
             [
@@ -518,11 +526,10 @@ def dashboard_page(page: ft.Page, on_logout):
                 ft.Container(height=16),
             ],
             scroll=ft.ScrollMode.AUTO,
-            expand=True,
         ),
         padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
-        # SUPPRESSION de bgcolor=COLOR_BG ici - c'était la cause de la div grise
+        bgcolor=COLOR_BG,
     )
-    
+
     return content

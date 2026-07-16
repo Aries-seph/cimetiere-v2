@@ -5,12 +5,12 @@ from theme import COLOR_PRIMARY, COLOR_TEXT, COLOR_TEXT_MUTED
 
 def build_navbar(page: ft.Page, user_role: str, on_logout):
     """Barre de navigation horizontale bleue"""
-    
+
     # Vérifier que page est valide
     if not page:
         print("❌ Page non valide dans build_navbar")
         return ft.Container(), None
-    
+
     def get_nav_items():
         if user_role == "CLIENT":
             return [
@@ -33,20 +33,25 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                 {"label": "Rapports", "icon": ft.Icons.BAR_CHART_OUTLINED, "route": "rapports"},
                 {"label": "Utilisateurs", "icon": ft.Icons.PEOPLE_OUTLINE, "route": "users"},
             ]
-    
+
     # Déterminer la route active
     route = page.route.replace("/", "")
     if route == "":
         route = "client_dashboard" if user_role == "CLIENT" else "dashboard"
-    
+
     items_list = get_nav_items()
-    
+
     # Trouver l'index de l'élément actif pour le tiroir de navigation
     selected_index = 0
     for idx, item in enumerate(items_list):
         if item["route"] == route:
             selected_index = idx
             break
+
+    def go_to(route_name: str):
+        """Navigation centralisée: utilise page.go() (page.push_route n'existe pas)."""
+        target = "/" if route_name == "dashboard" else f"/{route_name}"
+        page.go(target)
 
     def build_nav_item(item):
         is_active = item["route"] == route
@@ -66,10 +71,10 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             padding=ft.Padding(left=16, top=8, right=16, bottom=8),
             border_radius=8,
             bgcolor=ft.Colors.with_opacity(0.2, ft.Colors.WHITE) if is_active else ft.Colors.TRANSPARENT,
-            on_click=lambda e, r=item["route"]: page.push_route(f"/{r}" if r != "dashboard" else "/"),
+            on_click=lambda e, r=item["route"]: go_to(r),
             ink=True,
         )
-    
+
     def get_user_display():
         from api_client import api_client
         user = api_client.user
@@ -105,25 +110,23 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                 tooltip="Déconnexion",
             ),
         ], spacing=10)
-    
+
     nav_items = [build_nav_item(item) for item in items_list]
-    
+
     # --- Menu mobile avec NavigationDrawer ---
     def toggle_mobile_menu(e):
-        if mobile_menu.open:
-            mobile_menu.open = False
-        else:
-            mobile_menu.open = True
+        mobile_menu.open = not mobile_menu.open
         page.update()
-    
+
     # Gère le clic sur les onglets du tiroir de navigation
     def on_drawer_change(e):
         selected_route = items_list[e.control.selected_index]["route"]
         mobile_menu.open = False
         page.update()
-        page.push_route(f"/{selected_route}" if selected_route != "dashboard" else "/")
+        go_to(selected_route)
 
     mobile_menu = ft.NavigationDrawer(
+        open=False,
         selected_index=selected_index,
         on_change=on_drawer_change,
         controls=[
@@ -139,7 +142,6 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                 bgcolor=COLOR_PRIMARY,
             ),
             ft.Container(height=10),
-            # Remplacement des containers par des destinations standards
             *[
                 ft.NavigationDrawerDestination(
                     icon=item["icon"],
@@ -162,16 +164,20 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             ),
         ],
     )
-    
-    # Ajouter le tiroir de navigation à la page s'il n'est pas présent
-    if mobile_menu not in page.overlay:
-        page.overlay.append(mobile_menu)
-    
+
+    # IMPORTANT: un nouveau NavigationDrawer est créé à CHAQUE appel de build_navbar
+    # (donc à chaque navigation). Sans nettoyage, les anciens tiroirs (parfois restés
+    # open=True) s'accumulent indéfiniment dans page.overlay et peuvent se réafficher
+    # par-dessus les pages suivantes, y compris en vue desktop.
+    # On retire donc tout ancien NavigationDrawer avant d'ajouter le nouveau.
+    page.overlay[:] = [c for c in page.overlay if not isinstance(c, ft.NavigationDrawer)]
+    page.overlay.append(mobile_menu)
+
     is_mobile = page.width < 768
-    
+
     # Affichage de l'utilisateur
     user_display = get_user_display()
-    
+
     if is_mobile:
         navbar = ft.Container(
             content=ft.Row(
@@ -222,5 +228,5 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
                 color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
             ),
         )
-    
+
     return navbar, mobile_menu
