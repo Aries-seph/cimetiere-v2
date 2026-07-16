@@ -31,6 +31,10 @@ def paiements_page(page: ft.Page, on_logout):
     
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
     
+    # État pour le tri
+    sort_option = ft.Ref[str]()
+    sort_option.current = "-created_at"  # Par défaut : plus récent d'abord
+    
     list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
     def status_badge(statut):
@@ -75,6 +79,18 @@ def paiements_page(page: ft.Page, on_logout):
 
         montant = float(p.get("montant", 0) or 0)
         canal = CANAL_LABELS.get(p.get("canal"), p.get("canal", ""))
+        
+        # Ajout de la date de création pour l'affichage
+        created_at = p.get("created_at", "")
+        date_display = ""
+        if created_at:
+            try:
+                # Formatage de la date si présente
+                date_parts = created_at.split("T")
+                if len(date_parts) > 0:
+                    date_display = date_parts[0]
+            except:
+                pass
 
         return ft.Container(
             content=ft.Row(
@@ -82,7 +98,7 @@ def paiements_page(page: ft.Page, on_logout):
                     ft.Column(
                         [
                             ft.Text(p.get("reference", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"{montant:,.0f} FCFA • {canal}", size=12, color=COLOR_TEXT_MUTED),
+                            ft.Text(f"{montant:,.0f} FCFA • {canal} • {date_display if date_display else ''}", size=12, color=COLOR_TEXT_MUTED),
                         ],
                         spacing=2,
                         expand=True,
@@ -99,7 +115,8 @@ def paiements_page(page: ft.Page, on_logout):
         )
 
     def refresh_list():
-        paiements = get_all_paiements() or []
+        # Récupérer les paiements avec le tri actuel
+        paiements = get_all_paiements(sort_by=sort_option.current) or []
         list_container.controls.clear()
         if not paiements or not isinstance(paiements, list):
             list_container.controls.append(
@@ -109,6 +126,49 @@ def paiements_page(page: ft.Page, on_logout):
             for p in paiements:
                 list_container.controls.append(build_paiement_row(p))
         page.update()
+
+    def change_sort(e):
+        # Inverser le tri
+        if sort_option.current == "-created_at":
+            sort_option.current = "created_at"
+        else:
+            sort_option.current = "-created_at"
+        refresh_list()
+
+    # Créer le bouton de tri avec icône dynamique
+    sort_icon = ft.Icon(ft.Icons.ARROW_DOWNWARD, color=COLOR_TEXT_MUTED, size=18)
+    sort_text = ft.Text("Plus récent d'abord", size=13, color=COLOR_TEXT_MUTED)
+    
+    def update_sort_display():
+        if sort_option.current == "-created_at":
+            sort_icon.name = ft.Icons.ARROW_DOWNWARD
+            sort_text.value = "Plus récent d'abord"
+        else:
+            sort_icon.name = ft.Icons.ARROW_UPWARD
+            sort_text.value = "Plus ancien d'abord"
+        page.update()
+    
+    # Overrider change_sort pour mettre à jour l'affichage
+    original_change_sort = change_sort
+    def change_sort_with_update(e):
+        original_change_sort(e)
+        update_sort_display()
+    
+    sort_button = ft.Container(
+        content=ft.Row(
+            [
+                sort_icon,
+                sort_text,
+            ],
+            spacing=6,
+        ),
+        padding=ft.Padding(left=12, top=6, right=12, bottom=6),
+        bgcolor=COLOR_CARD,
+        border_radius=8,
+        border=ft.Border.all(1, COLOR_BORDER),
+        on_click=change_sort_with_update,
+        ink=True,
+    )
 
     refresh_list()
 
@@ -120,6 +180,8 @@ def paiements_page(page: ft.Page, on_logout):
                 ft.Row(
                     [
                         ft.Text("Gestion des paiements", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                        ft.Container(expand=True),
+                        sort_button,
                     ],
                 ),
                 ft.Container(height=20),

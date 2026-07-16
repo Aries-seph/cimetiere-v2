@@ -257,6 +257,19 @@ def get_historique_paiements(reservation_id: int):
         return response.json()
     except Exception:
         return None
+    
+# components/data_fetcher.py (ajout du paramètre sort_by)
+def get_all_paiements(sort_by="-created_at"):
+    """Récupère tous les paiements avec tri."""
+    try:
+        response = httpx.get(
+            f"{BASE_URL}/finances/admin?sort={sort_by}",
+            headers=api_client.get_headers(),
+            timeout=30.0
+        )
+        return response.json()
+    except Exception:
+        return None
 
 
 # ============ CONCESSIONS ============
