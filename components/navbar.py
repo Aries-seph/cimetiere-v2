@@ -107,8 +107,8 @@ def build_navbar(page: ft.Page, user_role: str, on_logout):
             mobile_menu.open = True
         page.update()
     
-    mobile_menu = ft.Drawer(
-        content=ft.Column(
+    mobile_menu = ft.NavigationDrawer(
+        controls=ft.Column(
             [
                 ft.Container(
                     content=ft.Column(
