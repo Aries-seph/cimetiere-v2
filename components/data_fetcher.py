@@ -112,8 +112,12 @@ def create_section(data: dict):
             timeout=30.0
         )
         return response.json()
-    except Exception:
-        return {"success": False, "message": "Erreur de connexion"}
+    except httpx.ConnectError as e:
+        print(f"🔴 ERREUR DE CONNEXION HTTPX : {e}")  # <--- Ajoute ça pour voir le vrai problème
+        return {"success": False, "message": "Impossible de se connecter au serveur"}
+    except Exception as e:
+        print(f"🔴 EXCEPTION INATTENDUE FRONTEND : {e}")  # <--- Ajoute ça
+        return {"success": False, "message": f"Erreur système : {str(e)}"}
 
 
 def delete_section(section_id: int):
