@@ -169,48 +169,14 @@ def rapports_page(page: ft.Page, on_logout):
         expand=True,
     )
 
-    # --- Bloc d'export (inchangé) ---
-    export_card = ft.Container(
-        content=ft.Column(
-            [
-                ft.Text("Exporter les registres", size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
-                ft.Container(height=14),
-                ft.Row(
-                    [
-                        ft.ElevatedButton(
-                            "Exporter en CSV",
-                            icon=ft.Icons.DESCRIPTION_OUTLINED,
-                            bgcolor=COLOR_PRIMARY,
-                            color=ft.Colors.WHITE,
-                            on_click=lambda e: handle_export("csv", "csv"),
-                        ),
-                        ft.ElevatedButton(
-                            "Exporter en Excel",
-                            icon=ft.Icons.TABLE_CHART_OUTLINED,
-                            bgcolor=COLOR_GREEN,
-                            color=ft.Colors.WHITE,
-                            on_click=lambda e: handle_export("excel", "xlsx"),
-                        ),
-                    ],
-                    spacing=12,
-                ),
-                ft.Container(height=8),
-                export_status,
-            ],
-        ),
-        bgcolor=COLOR_CARD,
-        padding=20,
-        border_radius=14,
-        border=ft.Border.all(1, COLOR_BORDER),
-    )
-
-    # Agencement en ligne ou en colonne selon la largeur de l'écran
+    # Agencement des tableaux en fonction de la taille d'écran
     bottom_section = (
         ft.Column([occupation_card, revenus_card], spacing=16)
         if is_mobile
         else ft.Row([occupation_card, revenus_card], spacing=16, expand=True)
     )
 
+    # Structure principale
     content = ft.Container(
         content=ft.Column(
             [
@@ -221,8 +187,30 @@ def rapports_page(page: ft.Page, on_logout):
                         ft.Text("Rapports et analyses", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                 ),
-                ft.Container(height=20),
-                export_card,
+                ft.Container(height=10),
+                
+                # Zone Export épurée : juste les 2 boutons et le statut, sans aucune div/container enveloppant
+                ft.Row(
+                    [
+                        ft.ElevatedButton(
+                            "CSV",
+                            icon=ft.Icons.SIM_CARD_DOWNLOAD_OUTLINED,
+                            bgcolor="#1F2937",  # Teinte sombre stylisée
+                            color=ft.Colors.WHITE,
+                            on_click=lambda e: handle_export("csv", "csv"),
+                        ),
+                        ft.ElevatedButton(
+                            "Excel",
+                            icon=ft.Icons.DOWNLOAD_FOR_OFFLINE_OUTLINED,
+                            bgcolor=COLOR_PRIMARY,  # Teinte primaire active
+                            color=ft.Colors.WHITE,
+                            on_click=lambda e: handle_export("excel", "xlsx"),
+                        ),
+                    ],
+                    spacing=12,
+                ),
+                export_status,
+                
                 ft.Container(height=20),
                 bottom_section,
                 ft.Container(height=20),
