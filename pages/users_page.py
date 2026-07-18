@@ -145,8 +145,20 @@ def users_page(page: ft.Page, on_logout):
         )
 
     def refresh_list():
-        users = get_all_users() or []
+        # 1. Récupérer la réponse (qui est un dictionnaire)
+        result = get_all_users()
         list_container.controls.clear()
+        
+        # 2. Vérifier si la réponse est valide et extraire la liste
+        if result and result.get("success"):
+            users = result.get("users", [])
+        else:
+            users = []
+            # Optionnel : afficher le message d'erreur de l'API s'il y en a un
+            error_msg = result.get("message", "Erreur lors de la récupération") if result else "Pas de réponse du serveur"
+            print(f"🔴 Erreur API : {error_msg}")
+
+        # 3. Remplir le conteneur Flet
         if not users or not isinstance(users, list):
             list_container.controls.append(
                 ft.Text("Aucun utilisateur trouvé", color=COLOR_TEXT_MUTED, size=14)
@@ -154,6 +166,7 @@ def users_page(page: ft.Page, on_logout):
         else:
             for u in users:
                 list_container.controls.append(build_user_row(u))
+        
         page.update()
 
     refresh_list()
