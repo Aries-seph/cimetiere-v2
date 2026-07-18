@@ -23,21 +23,22 @@ STATUT_LABELS = {
 
 
 def exhumations_page(page: ft.Page, on_logout):
-    """Page de gestion des exhumations."""
+    """Page de gestion des exhumations avec affichage sous forme de tableau et recherche modernisée."""
     
     is_mobile = page.width < 768
     
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
     
-    list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    # Conteneur principal scrollable pour le tableau
+    table_container = ft.Container(expand=True)
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
+            padding=ft.Padding(left=10, top=2, right=10, bottom=2),
             border_radius=20,
         )
 
@@ -145,6 +146,7 @@ def exhumations_page(page: ft.Page, on_logout):
         page.update()
 
     def handle_search(e):
+        search_error.visible = False
         if not search_field.value:
             return
         try:
@@ -155,86 +157,113 @@ def exhumations_page(page: ft.Page, on_logout):
             search_error.visible = True
             page.update()
 
+    # --- INPUT ET BOUTON DE RECHERCHE VISUELLEMENT MIS À JOUR ---
     search_field = ft.TextField(
-        label="Rechercher par ID de demande",
-        width=280,
-        bgcolor=COLOR_BG,
+        hint_text="ID de la demande...",
+        prefix_icon=ft.Icons.SEARCH_ROUNDED,
+        width=240,
+        height=40,
+        content_padding=ft.Padding(10, 0, 10, 0),
+        bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
+        border_radius=8,
         border_color=COLOR_BORDER,
         keyboard_type=ft.KeyboardType.NUMBER,
+        on_submit=handle_search
     )
+    
     search_error = ft.Text("", color=COLOR_RED, size=12, visible=False)
-    search_button = ft.ElevatedButton(
+    
+    search_button = ft.Button(
         "Rechercher",
-        icon=ft.Icons.SEARCH,
-        bgcolor=COLOR_PRIMARY,
+        icon=ft.Icons.ARROW_FORWARD_ROUNDED,
+        bgcolor="#1F2937", # Bouton au ton sobre/neutre moderne
         color=ft.Colors.WHITE,
+        height=40,
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=8),
+        ),
         on_click=handle_search,
     )
 
-    def build_exhumation_row(ex):
-        actions = []
-        statut = ex.get("statut")
-
-        if statut == "EN_ATTENTE":
-            actions.append(
-                ft.IconButton(
-                    icon=ft.Icons.CHECK_CIRCLE_OUTLINE,
-                    icon_color=COLOR_GREEN,
-                    tooltip="Approuver",
-                    on_click=lambda e, eid=ex["id"]: open_approuver_dialog(eid),
-                )
-            )
-            actions.append(
-                ft.IconButton(
-                    icon=ft.Icons.CANCEL_OUTLINED,
-                    icon_color=COLOR_RED,
-                    tooltip="Refuser",
-                    on_click=lambda e, eid=ex["id"]: handle_refuser(eid),
-                )
-            )
-        elif statut == "APPROUVEE":
-            actions.append(
-                ft.IconButton(
-                    icon=ft.Icons.TASK_ALT,
-                    icon_color=COLOR_PRIMARY,
-                    tooltip="Marquer comme effectuée",
-                    on_click=lambda e, eid=ex["id"]: handle_effectuee(eid),
-                )
-            )
-
-        return ft.Container(
-            content=ft.Row(
-                [
-                    ft.Column(
-                        [
-                            ft.Text(ex.get("nom_defunt", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"Caveau ID: {ex.get('caveau_id', '-')} • Motif: {ex.get('motif', '-')}", size=12, color=COLOR_TEXT_MUTED),
-                        ],
-                        spacing=2,
-                        expand=True,
-                    ),
-                    status_badge(statut),
-                    ft.Row(actions, spacing=0),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
-            bgcolor=COLOR_CARD,
-            padding=16,
-            border_radius=10,
-            border=ft.Border.all(1, COLOR_BORDER),
-        )
-
     def refresh_list():
         exhumations = get_all_exhumations() or []
-        list_container.controls.clear()
+        table_container.content = None
+        
         if not exhumations or not isinstance(exhumations, list):
-            list_container.controls.append(
-                ft.Text("Aucune demande d'exhumation enregistrée", color=COLOR_TEXT_MUTED, size=14)
-            )
+            table_container.content = ft.Text("Aucune demande d'exhumation enregistrée", color=COLOR_TEXT_MUTED, size=14)
         else:
+            columns = [
+                ft.DataColumn(ft.Text("Défunt", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Détails (Caveau / Motif)", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Statut", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Actions", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ]
+            
+            rows = []
             for ex in exhumations:
-                list_container.controls.append(build_exhumation_row(ex))
+                if not isinstance(ex, dict):
+                    continue
+                
+                statut = ex.get("statut")
+                actions_buttons = []
+
+                if statut == "EN_ATTENTE":
+                    actions_buttons.append(
+                        ft.IconButton(
+                            icon=ft.Icons.CHECK_CIRCLE_OUTLINE,
+                            icon_color=COLOR_GREEN,
+                            icon_size=20,
+                            tooltip="Approuver",
+                            on_click=lambda e, eid=ex["id"]: open_approuver_dialog(eid),
+                        )
+                    )
+                    actions_buttons.append(
+                        ft.IconButton(
+                            icon=ft.Icons.CANCEL_OUTLINED,
+                            icon_color=COLOR_RED,
+                            icon_size=20,
+                            tooltip="Refuser",
+                            on_click=lambda e, eid=ex["id"]: handle_refuser(eid),
+                        )
+                    )
+                elif statut == "APPROUVEE":
+                    actions_buttons.append(
+                        ft.IconButton(
+                            icon=ft.Icons.TASK_ALT,
+                            icon_color=COLOR_PRIMARY,
+                            icon_size=20,
+                            tooltip="Marquer comme effectuée",
+                            on_click=lambda e, eid=ex["id"]: handle_effectuee(eid),
+                        )
+                    )
+
+                rows.append(
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(ex.get("nom_defunt", "-"), color=COLOR_TEXT, weight=ft.FontWeight.W_500)),
+                            ft.DataCell(ft.Text(f"Caveau #{ex.get('caveau_id', '-')} • {ex.get('motif', '-')}", color=COLOR_TEXT_MUTED)),
+                            ft.DataCell(status_badge(statut)),
+                            ft.DataCell(
+                                ft.Row(actions_buttons, spacing=2, tight=True) if actions_buttons else ft.Text("-", color=COLOR_TEXT_MUTED)
+                            ),
+                        ]
+                    )
+                )
+
+            table_container.content = ft.Row(
+                [
+                    ft.DataTable(
+                        columns=columns,
+                        rows=rows,
+                        divider_thickness=1,
+                        horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
+                        heading_row_height=45,
+                        data_row_min_height=48,
+                    )
+                ],
+                scroll=ft.ScrollMode.AUTO,
+            )
         page.update()
 
     refresh_list()
@@ -250,10 +279,13 @@ def exhumations_page(page: ft.Page, on_logout):
                     ],
                 ),
                 ft.Container(height=10),
-                ft.Row([search_field, search_button], spacing=10),
+                
+                # Barre de recherche réarrangée
+                ft.Row([search_field, search_button], spacing=10, vertical_alignment=ft.CrossAxisAlignment.CENTER),
                 search_error,
-                ft.Container(height=10),
-                list_container,
+                
+                ft.Container(height=15),
+                table_container,
                 ft.Container(height=20),
             ],
             expand=True,
