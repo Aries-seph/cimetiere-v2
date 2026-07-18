@@ -37,7 +37,8 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
     blocs_list = get_blocs() or []
     sections_list = get_sections() or []
     
-    list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    # Conteneur principal scrollable pour le tableau
+    table_container = ft.Container(expand=True)
     pending_pick_processed = False
 
     # ============ STATUS BADGE ============
@@ -45,9 +46,9 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
+            padding=ft.Padding(left=10, top=2, right=10, bottom=2),
             border_radius=20,
         )
 
@@ -118,7 +119,6 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
 
     def open_bloc_dialog():
         """Dialogue pour créer un nouveau bloc."""
-        # Vérifier que sections_list est une liste
         section_options = []
         if sections_list and isinstance(sections_list, list):
             for s in sections_list:
@@ -127,7 +127,6 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                         ft.dropdown.Option(key=str(s.get("id", "")), text=s.get("nom", "Sans nom"))
                     )
                 else:
-                    # Si c'est un objet, accéder aux attributs
                     try:
                         section_options.append(
                             ft.dropdown.Option(key=str(s.id), text=s.nom)
@@ -210,11 +209,9 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
         """Dialogue pour créer/modifier un caveau."""
         is_edit = caveau is not None
 
-        # Rafraîchir la liste des blocs
         nonlocal blocs_list
         blocs_list = get_blocs() or []
 
-        # Construction des options pour le dropdown des blocs
         bloc_options = []
         if blocs_list and isinstance(blocs_list, list):
             for b in blocs_list:
@@ -306,7 +303,6 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
 
         async def handle_pick_location(e):
             token = api_client.access_token or ""
-            # ✅ CORRECTION : URL sans le port 8000
             url = f"https://cimetiere-backend-v2-production.up.railway.app/carte/admin-pick/?token={token}"
             if is_edit and caveau:
                 url += f"&caveau_id={caveau.get('id')}"
@@ -409,50 +405,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
         confirm_dialog.open = True
         page.update()
 
-    # ============ BUILDERS ============
-    def build_caveau_row(caveau):
-        # Vérifier que caveau est un dictionnaire
-        if not isinstance(caveau, dict):
-            return ft.Container(
-                content=ft.Text("Erreur: données invalides", color=COLOR_RED),
-                bgcolor=COLOR_CARD,
-                padding=16,
-                border_radius=10,
-                border=ft.Border.all(1, COLOR_BORDER),
-            )
-        
-        return ft.Container(
-            content=ft.Row(
-                [
-                    ft.Column(
-                        [
-                            ft.Text(caveau.get("reference", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"{caveau.get('longueur', 0)}m x {caveau.get('largeur', 0)}m", size=12, color=COLOR_TEXT_MUTED),
-                        ],
-                        spacing=2,
-                        expand=True,
-                    ),
-                    status_badge(caveau.get("statut")),
-                    ft.IconButton(
-                        icon=ft.Icons.EDIT_OUTLINED,
-                        icon_color=COLOR_TEXT_MUTED,
-                        on_click=lambda e, c=caveau: open_form_dialog(c),
-                    ),
-                    ft.IconButton(
-                        icon=ft.Icons.DELETE_OUTLINE,
-                        icon_color=COLOR_RED,
-                        on_click=lambda e, cid=caveau.get("id"): confirm_delete(cid),
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
-            bgcolor=COLOR_CARD,
-            padding=16,
-            border_radius=10,
-            border=ft.Border.all(1, COLOR_BORDER),
-        )
-
-    # ============ REFRESH ============
+    # ============ REFRESH & GRID BUILDER ============
     def refresh_blocs_sections():
         nonlocal blocs_list, sections_list
         blocs_list = get_blocs() or []
@@ -467,14 +420,68 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
         else:
             caveaux_list = []
         
-        list_container.controls.clear()
+        table_container.content = None
+        
         if not caveaux_list:
-            list_container.controls.append(
-                ft.Text("Aucun caveau enregistré", color=COLOR_TEXT_MUTED, size=14)
-            )
+            table_container.content = ft.Text("Aucun caveau enregistré", color=COLOR_TEXT_MUTED, size=14)
         else:
+            # Construction de la structure en Tableau (DataTable)
+            columns = [
+                ft.DataColumn(ft.Text("Référence", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Dimensions", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Statut", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Actions", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ]
+            
+            rows = []
             for c in caveaux_list:
-                list_container.controls.append(build_caveau_row(c))
+                if not isinstance(c, dict):
+                    continue
+                
+                rows.append(
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(c.get("reference", "-"), color=COLOR_TEXT, weight=ft.FontWeight.W_500)),
+                            ft.DataCell(ft.Text(f"{c.get('longueur', 0)}m x {c.get('largeur', 0)}m", color=COLOR_TEXT_MUTED)),
+                            ft.DataCell(status_badge(c.get("statut"))),
+                            ft.DataCell(
+                                ft.Row(
+                                    [
+                                        ft.IconButton(
+                                            icon=ft.Icons.EDIT_OUTLINED,
+                                            icon_color=COLOR_TEXT_MUTED,
+                                            icon_size=18,
+                                            on_click=lambda e, curr=c: open_form_dialog(curr),
+                                        ),
+                                        ft.IconButton(
+                                            icon=ft.Icons.DELETE_OUTLINE,
+                                            icon_color=COLOR_RED,
+                                            icon_size=18,
+                                            on_click=lambda e, cid=c.get("id"): confirm_delete(cid),
+                                        ),
+                                    ],
+                                    spacing=4,
+                                    tight=True,
+                                )
+                            ),
+                        ]
+                    )
+                )
+            
+            # Encapsulation dans un conteneur horizontalement scrollable pour mobile
+            table_container.content = ft.Row(
+                [
+                    ft.DataTable(
+                        columns=columns,
+                        rows=rows,
+                        divider_thickness=1,
+                        horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
+                        heading_row_height=45,
+                        data_row_min_height=48,
+                    )
+                ],
+                scroll=ft.ScrollMode.AUTO,
+            )
         page.update()
 
     def check_pending_pick():
@@ -563,7 +570,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                     ],
                 ),
                 ft.Container(height=20),
-                list_container,
+                table_container,
                 ft.Container(height=20),
             ],
             expand=True,
