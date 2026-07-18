@@ -23,21 +23,22 @@ TYPE_LABELS = {
 
 
 def concessions_page(page: ft.Page, on_logout):
-    """Page de gestion des concessions."""
+    """Page de gestion des concessions sous forme de tableau."""
     
     is_mobile = page.width < 768
     
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
     
-    list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    # Conteneur principal pour accueillir la table
+    table_container = ft.Container(expand=True)
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
+            padding=ft.Padding(left=10, top=2, right=10, bottom=2),
             border_radius=20,
         )
 
@@ -178,64 +179,95 @@ def concessions_page(page: ft.Page, on_logout):
         dialog.open = True
         page.update()
 
-    def build_concession_row(c):
-        actions = []
-        if c.get("statut") == "ACTIVE":
-            if c.get("type_concession") == "TEMPORAIRE":
-                actions.append(
-                    ft.IconButton(
-                        icon=ft.Icons.AUTORENEW,
-                        icon_color=COLOR_PRIMARY,
-                        tooltip="Renouveler",
-                        on_click=lambda e, cid=c["id"]: open_renouveler_dialog(cid),
-                    )
-                )
-            actions.append(
-                ft.IconButton(
-                    icon=ft.Icons.CANCEL_OUTLINED,
-                    icon_color=COLOR_RED,
-                    tooltip="Résilier",
-                    on_click=lambda e, cid=c["id"]: handle_resilier(cid),
-                )
-            )
-
-        date_fin = c.get("date_fin") or "Perpétuelle"
-
-        return ft.Container(
-            content=ft.Row(
-                [
-                    ft.Column(
-                        [
-                            ft.Text(f"Caveau ID: {c.get('caveau_id', '-')}", size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"{TYPE_LABELS.get(c.get('type_concession', ''), '')} • Fin: {date_fin}", size=12, color=COLOR_TEXT_MUTED),
-                        ],
-                        spacing=2,
-                        expand=True,
-                    ),
-                    status_badge(c.get("statut")),
-                    ft.Row(actions, spacing=0),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
-            bgcolor=COLOR_CARD,
-            padding=16,
-            border_radius=10,
-            border=ft.Border.all(1, COLOR_BORDER),
-        )
-
     def refresh_list():
         concessions = get_all_concessions() or []
-        list_container.controls.clear()
+        table_container.content = None
+        
         if not concessions or not isinstance(concessions, list):
-            list_container.controls.append(
-                ft.Text("Aucune concession enregistrée", color=COLOR_TEXT_MUTED, size=14)
-            )
+            table_container.content = ft.Text("Aucune concession enregistrée", color=COLOR_TEXT_MUTED, size=14)
         else:
+            columns = [
+                ft.DataColumn(ft.Text("Caveau", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Type", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Échéance / Fin", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Statut", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Actions", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ]
+            
+            rows = []
             for c in concessions:
-                list_container.controls.append(build_concession_row(c))
+                if not isinstance(c, dict):
+                    continue
+                    
+                statut = c.get("statut")
+                actions = []
+                
+                if statut == "ACTIVE":
+                    if c.get("type_concession") == "TEMPORAIRE":
+                        actions.append(
+                            ft.IconButton(
+                                icon=ft.Icons.AUTORENEW,
+                                icon_color=COLOR_PRIMARY,
+                                icon_size=20,
+                                tooltip="Renouveler",
+                                on_click=lambda e, cid=c["id"]: open_renouveler_dialog(cid),
+                            )
+                        )
+                    actions.append(
+                        ft.IconButton(
+                            icon=ft.Icons.CANCEL_OUTLINED,
+                            icon_color=COLOR_RED,
+                            icon_size=20,
+                            tooltip="Résilier",
+                            on_click=lambda e, cid=c["id"]: handle_resilier(cid),
+                        )
+                    )
+
+                date_fin = c.get("date_fin") or "Perpétuelle"
+
+                rows.append(
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(f"Caveau #{c.get('caveau_id', '-')}", color=COLOR_TEXT, weight=ft.FontWeight.W_500)),
+                            ft.DataCell(ft.Text(TYPE_LABELS.get(c.get('type_concession', ''), '-'), color=COLOR_TEXT)),
+                            ft.DataCell(ft.Text(date_fin, color=COLOR_TEXT_MUTED)),
+                            ft.DataCell(status_badge(statut)),
+                            ft.DataCell(
+                                ft.Row(actions, spacing=2, tight=True) if actions else ft.Text("-", color=COLOR_TEXT_MUTED)
+                            ),
+                        ]
+                    )
+                )
+
+            table_container.content = ft.Row(
+                [
+                    ft.DataTable(
+                        columns=columns,
+                        rows=rows,
+                        divider_thickness=1,
+                        horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
+                        heading_row_height=45,
+                        data_row_min_height=48,
+                    )
+                ],
+                scroll=ft.ScrollMode.AUTO,
+            )
         page.update()
 
     refresh_list()
+
+    # --- STYLE DU BOUTON D'AJOUT MIS À JOUR (MODERNE ET COMPACT) ---
+    add_button = ft.Button(
+        "Nouvelle concession",
+        icon=ft.Icons.ADD_ROUNDED,
+        bgcolor="#1F2937", # Teinte neutre et pro
+        color=ft.Colors.WHITE,
+        height=40,
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=8),
+        ),
+        on_click=lambda e: open_create_dialog(),
+    )
 
     content = ft.Container(
         content=ft.Column(
@@ -246,17 +278,12 @@ def concessions_page(page: ft.Page, on_logout):
                     [
                         ft.Text("Gestion des concessions", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                         ft.Container(expand=True),
-                        ft.ElevatedButton(
-                            "Nouvelle concession",
-                            icon=ft.Icons.ADD,
-                            bgcolor=COLOR_PRIMARY,
-                            color=ft.Colors.WHITE,
-                            on_click=lambda e: open_create_dialog(),
-                        ),
+                        add_button,
                     ],
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER
                 ),
-                ft.Container(height=20),
-                list_container,
+                ft.Container(height=15),
+                table_container,
                 ft.Container(height=20),
             ],
             expand=True,

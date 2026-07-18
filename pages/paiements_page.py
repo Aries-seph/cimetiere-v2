@@ -25,24 +25,24 @@ CANAL_LABELS = {
 
 
 def paiements_page(page: ft.Page, on_logout):
-    """Page de gestion des paiements."""
+    """Page de gestion des paiements sous forme de tableau."""
     
     is_mobile = page.width < 768
     
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
     
-    # Utiliser une variable simple - PAS de ft.Ref[str]
     sort_option = "-created_at"
     
-    list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    # Conteneur principal pour accueillir la table
+    table_container = ft.Container(expand=True)
 
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
+            padding=ft.Padding(left=10, top=2, right=10, bottom=2),
             border_radius=20,
         )
 
@@ -56,72 +56,90 @@ def paiements_page(page: ft.Page, on_logout):
         if result.get("success"):
             refresh_list()
 
-    def build_paiement_row(p):
-        actions = []
-        if p.get("statut") == "EN_ATTENTE":
-            actions.append(
-                ft.IconButton(
-                    icon=ft.Icons.CHECK_CIRCLE_OUTLINE,
-                    icon_color=COLOR_GREEN,
-                    tooltip="Valider",
-                    on_click=lambda e, pid=p["id"]: handle_validate(pid),
-                )
-            )
-            actions.append(
-                ft.IconButton(
-                    icon=ft.Icons.CANCEL_OUTLINED,
-                    icon_color=COLOR_RED,
-                    tooltip="Refuser",
-                    on_click=lambda e, pid=p["id"]: handle_reject(pid),
-                )
-            )
-
-        montant = float(p.get("montant", 0) or 0)
-        canal = CANAL_LABELS.get(p.get("canal"), p.get("canal", ""))
-        
-        created_at = p.get("created_at", "")
-        date_display = ""
-        if created_at:
-            try:
-                date_parts = created_at.split("T")
-                if len(date_parts) > 0:
-                    date_display = date_parts[0]
-            except:
-                pass
-
-        return ft.Container(
-            content=ft.Row(
-                [
-                    ft.Column(
-                        [
-                            ft.Text(p.get("reference", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"{montant:,.0f} FCFA • {canal} • {date_display if date_display else ''}", size=12, color=COLOR_TEXT_MUTED),
-                        ],
-                        spacing=2,
-                        expand=True,
-                    ),
-                    status_badge(p.get("statut")),
-                    ft.Row(actions, spacing=0),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
-            bgcolor=COLOR_CARD,
-            padding=16,
-            border_radius=10,
-            border=ft.Border.all(1, COLOR_BORDER),
-        )
-
     def refresh_list():
         nonlocal sort_option
         paiements = get_all_paiements(sort_by=sort_option) or []
-        list_container.controls.clear()
+        table_container.content = None
+        
         if not paiements or not isinstance(paiements, list):
-            list_container.controls.append(
-                ft.Text("Aucun paiement enregistré", color=COLOR_TEXT_MUTED, size=14)
-            )
+            table_container.content = ft.Text("Aucun paiement enregistré", color=COLOR_TEXT_MUTED, size=14)
         else:
+            columns = [
+                ft.DataColumn(ft.Text("Référence", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Montant", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Méthode & Date", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Statut", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Actions", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ]
+            
+            rows = []
             for p in paiements:
-                list_container.controls.append(build_paiement_row(p))
+                if not isinstance(p, dict):
+                    continue
+                    
+                statut = p.get("statut")
+                actions = []
+                
+                if statut == "EN_ATTENTE":
+                    actions.append(
+                        ft.IconButton(
+                            icon=ft.Icons.CHECK_CIRCLE_OUTLINE,
+                            icon_color=COLOR_GREEN,
+                            icon_size=20,
+                            tooltip="Valider",
+                            on_click=lambda e, pid=p["id"]: handle_validate(pid),
+                        )
+                    )
+                    actions.append(
+                        ft.IconButton(
+                            icon=ft.Icons.CANCEL_OUTLINED,
+                            icon_color=COLOR_RED,
+                            icon_size=20,
+                            tooltip="Refuser",
+                            on_click=lambda e, pid=p["id"]: handle_reject(pid),
+                        )
+                    )
+
+                montant = float(p.get("montant", 0) or 0)
+                canal = CANAL_LABELS.get(p.get("canal"), p.get("canal", ""))
+                
+                created_at = p.get("created_at", "")
+                date_display = ""
+                if created_at:
+                    try:
+                        date_parts = created_at.split("T")
+                        if len(date_parts) > 0:
+                            date_display = date_parts[0]
+                    except:
+                        pass
+
+                rows.append(
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(p.get("reference", "-"), color=COLOR_TEXT, weight=ft.FontWeight.W_500)),
+                            ft.DataCell(ft.Text(f"{montant:,.0f} FCFA", color=COLOR_TEXT)),
+                            ft.DataCell(ft.Text(f"{canal} • {date_display}", color=COLOR_TEXT_MUTED)),
+                            ft.DataCell(status_badge(statut)),
+                            ft.DataCell(
+                                ft.Row(actions, spacing=2, tight=True) if actions else ft.Text("-", color=COLOR_TEXT_MUTED)
+                            ),
+                        ]
+                    )
+                )
+
+            table_container.content = ft.Row(
+                [
+                    ft.DataTable(
+                        columns=columns,
+                        rows=rows,
+                        divider_thickness=1,
+                        horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
+                        heading_row_height=45,
+                        data_row_min_height=48,
+                    )
+                ],
+                scroll=ft.ScrollMode.AUTO,
+            )
         page.update()
 
     def change_sort(e):
@@ -137,18 +155,11 @@ def paiements_page(page: ft.Page, on_logout):
         page.update()
         refresh_list()
 
-    # Créer le bouton de tri avec icône
     sort_icon = ft.Icon(ft.Icons.ARROW_DOWNWARD, color=COLOR_TEXT_MUTED, size=18)
     sort_text = ft.Text("Plus récent d'abord", size=13, color=COLOR_TEXT_MUTED)
     
     sort_button = ft.Container(
-        content=ft.Row(
-            [
-                sort_icon,
-                sort_text,
-            ],
-            spacing=6,
-        ),
+        content=ft.Row([sort_icon, sort_text], spacing=6),
         padding=ft.Padding(left=12, top=6, right=12, bottom=6),
         bgcolor=COLOR_CARD,
         border_radius=8,
@@ -170,9 +181,10 @@ def paiements_page(page: ft.Page, on_logout):
                         ft.Container(expand=True),
                         sort_button,
                     ],
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER
                 ),
-                ft.Container(height=20),
-                list_container,
+                ft.Container(height=15),
+                table_container,
                 ft.Container(height=20),
             ],
             expand=True,
