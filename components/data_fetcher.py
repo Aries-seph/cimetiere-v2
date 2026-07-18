@@ -574,15 +574,23 @@ def download_export(export_type: str):
 def get_all_users():
     """Récupère tous les utilisateurs."""
     try:
+        url = f"{BASE_URL}/users/"
+        print(f"🔵 get_all_users - URL: {url}")
+        print(f"🔵 get_all_users - Headers: {api_client.get_headers()}")
+        
         response = httpx.get(
-            f"{BASE_URL}/users/",
+            url,
             headers=api_client.get_headers(),
             timeout=30.0
         )
+        
+        print(f"🔵 get_all_users - Status: {response.status_code}")
+        print(f"🔵 get_all_users - Response: {response.text[:500]}")
+        
         return response.json()
-    except Exception:
-        return []
-
+    except Exception as e:
+        print(f"🔴 get_all_users - Erreur: {e}")
+        return {"success": False, "message": str(e)}
 
 def update_user_role(user_id: int, role: str):
     """Met à jour le rôle d'un utilisateur."""
