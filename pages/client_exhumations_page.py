@@ -21,24 +21,30 @@ STATUT_LABELS = {
 
 
 def client_exhumations_page(page: ft.Page, on_logout):
-    """Page des exhumations du client."""
+    """Page des exhumations du client avec tableau et barre de recherche."""
     
     is_mobile = page.width < 768
     
     navbar, _ = build_navbar(page, "CLIENT", on_logout)
     
-    list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    # Conteneur principal scrollable pour le tableau des exhumations
+    table_container = ft.Container(expand=True)
+    
+    # Stockage local de la liste brute pour le filtrage
+    all_exhumations = []
 
+    # ============ STATUS BADGE ============
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
+            padding=ft.Padding(left=10, top=2, right=10, bottom=2),
             border_radius=20,
         )
 
+    # ============ DIALOGUES ============
     def open_create_dialog():
         caveau_id_field = ft.TextField(
             label="ID du caveau",
@@ -118,7 +124,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
 
                 result = create_exhumation_client(payload)
                 if result.get("success"):
-                    success_text.value = "Votre demande a été soumise et est en attente de validation."
+                    success_text.value = "Votre demande a été soumise avec succès."
                     success_text.visible = True
                     error_text.visible = False
                     page.update()
@@ -152,42 +158,92 @@ def client_exhumations_page(page: ft.Page, on_logout):
         dialog.open = True
         page.update()
 
-    def build_row(ex):
-        return ft.Container(
-            content=ft.Row(
-                [
-                    ft.Column(
-                        [
-                            ft.Text(ex.get("nom_defunt", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"Caveau ID: {ex.get('caveau_id', '-')} • Motif: {ex.get('motif', '-')}", size=12, color=COLOR_TEXT_MUTED),
-                        ],
-                        spacing=2,
-                        expand=True,
-                    ),
-                    status_badge(ex.get("statut")),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
-            bgcolor=COLOR_CARD,
-            padding=16,
-            border_radius=10,
-            border=ft.Border.all(1, COLOR_BORDER),
-        )
-
-    def refresh_list():
-        exhumations = get_mes_exhumations() or []
-        list_container.controls.clear()
-        if not exhumations or not isinstance(exhumations, list):
-            list_container.controls.append(
-                ft.Text("Vous n'avez aucune demande d'exhumation", color=COLOR_TEXT_MUTED, size=14)
-            )
+    # ============ REFRESH & GENERATION DU TABLEAU ============
+    def render_table(exhumations_to_show):
+        if not exhumations_to_show:
+            table_container.content = ft.Text("Aucune demande d'exhumation correspondante", color=COLOR_TEXT_MUTED, size=14)
         else:
-            for ex in exhumations:
-                list_container.controls.append(build_row(ex))
+            columns = [
+                ft.DataColumn(ft.Text("Défunt", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Caveau ID", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Motif", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+                ft.DataColumn(ft.Text("Statut", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ]
+            
+            rows = []
+            for ex in exhumations_to_show:
+                if not isinstance(ex, dict):
+                    continue
+                rows.append(
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(ex.get("nom_defunt", "-"), color=COLOR_TEXT, weight=ft.FontWeight.W_500)),
+                            ft.DataCell(ft.Text(str(ex.get("caveau_id", "-")), color=COLOR_TEXT_MUTED)),
+                            ft.DataCell(ft.Text(ex.get("motif", "-"), color=COLOR_TEXT_MUTED)),
+                            ft.DataCell(status_badge(ex.get("statut"))),
+                        ]
+                    )
+                )
+                
+            table_container.content = ft.Row(
+                [
+                    ft.DataTable(
+                        columns=columns,
+                        rows=rows,
+                        divider_thickness=1,
+                        horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
+                        heading_row_height=45,
+                        data_row_min_height=48,
+                    )
+                ],
+                scroll=ft.ScrollMode.AUTO,
+            )
         page.update()
 
+    def refresh_list():
+        nonlocal all_exhumations
+        all_exhumations = get_mes_exhumations() or []
+        if not isinstance(all_exhumations, list):
+            all_exhumations = []
+        render_table(all_exhumations)
+
+    # ============ COMPOSANTS DE RECHERCHE FILTRANTE ============
+    search_input = ft.TextField(
+        hint_text="Rechercher un défunt...",
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        focused_border_color=COLOR_PRIMARY,
+        content_padding=ft.Padding(12, 8, 12, 8),
+        hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
+        border_radius=8,
+        expand=True,
+    )
+
+    def perform_search(e):
+        query = search_input.value.strip().lower()
+        if not query:
+            render_table(all_exhumations)
+        else:
+            filtered = [
+                ex for ex in all_exhumations 
+                if query in str(ex.get("nom_defunt", "")).lower() or query in str(ex.get("motif", "")).lower()
+            ]
+            render_table(filtered)
+
+    search_button = ft.ElevatedButton(
+        text="Rechercher",
+        icon=ft.Icons.SEARCH_ROUNDED,
+        bgcolor="#1F2937",  # Teinte dark élégante pour différencier le bouton d'action principale
+        color=ft.Colors.WHITE,
+        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+        on_click=perform_search,
+    )
+
+    # Lancement initial des données
     refresh_list()
 
+    # ============ STRUCTURE PRINCIPALE ============
     content = ft.Container(
         content=ft.Column(
             [
@@ -202,12 +258,24 @@ def client_exhumations_page(page: ft.Page, on_logout):
                             icon=ft.Icons.ADD,
                             bgcolor=COLOR_PRIMARY,
                             color=ft.Colors.WHITE,
+                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
                             on_click=lambda e: open_create_dialog(),
                         ),
                     ],
                 ),
-                ft.Container(height=20),
-                list_container,
+                ft.Container(height=15),
+                
+                # Barre de recherche stylisée et isolée
+                ft.Row(
+                    [
+                        search_input,
+                        search_button
+                    ],
+                    spacing=10,
+                ),
+                
+                ft.Container(height=15),
+                table_container,
                 ft.Container(height=20),
             ],
             expand=True,
