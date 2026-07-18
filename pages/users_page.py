@@ -20,10 +20,12 @@ ROLE_COLORS = {
 
 
 def users_page(page: ft.Page, on_logout):
-    """Page de gestion des utilisateurs."""
+    """Page de gestion des utilisateurs avec affichage sous forme de tableau HTML/Flet."""
     
     is_mobile = page.width < 768
-    list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    
+    # Remplacement du conteneur vertical par une DataTable stylisée enveloppée dans un Row pour le scroll horizontal si besoin
+    table_container = ft.ListView(expand=True, spacing=10)
     
     # Navbar
     navbar, _ = build_navbar(page, "ADMIN", on_logout)
@@ -34,6 +36,14 @@ def users_page(page: ft.Page, on_logout):
         return ft.Container(
             content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
             bgcolor=color,
+            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
+            border_radius=20,
+        )
+
+    def status_badge(is_active):
+        return ft.Container(
+            content=ft.Text("Actif" if is_active else "Inactif", size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            bgcolor=COLOR_GREEN if is_active else COLOR_RED,
             padding=ft.Padding(left=12, top=4, right=12, bottom=4),
             border_radius=20,
         )
@@ -102,70 +112,91 @@ def users_page(page: ft.Page, on_logout):
             error_dialog.open = True
             page.update()
 
-    def build_user_row(user_data):
-        is_active = user_data.get("is_active", True)
-        
+    def build_data_table(users_list):
+        """Génère le composant DataTable avec les utilisateurs."""
+        columns = [
+            ft.DataColumn(ft.Text("Utilisateur", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Email", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Rôle", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Statut", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Actions", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+        ]
+
+        rows = []
+        for u in users_list:
+            is_active = u.get("is_active", True)
+            rows.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(u.get("username", "-"), color=COLOR_TEXT, weight=ft.FontWeight.W_500)),
+                        ft.DataCell(ft.Text(u.get("email", "-"), color=COLOR_TEXT_MUTED)),
+                        ft.DataCell(role_badge(u.get("role"))),
+                        ft.DataCell(status_badge(is_active)),
+                        ft.DataCell(
+                            ft.Row(
+                                [
+                                    ft.IconButton(
+                                        icon=ft.Icons.MANAGE_ACCOUNTS_OUTLINED,
+                                        icon_color=COLOR_TEXT_MUTED,
+                                        icon_size=18,
+                                        tooltip="Modifier le rôle",
+                                        on_click=lambda e, user_data=u: open_change_role_dialog(user_data),
+                                    ),
+                                    ft.IconButton(
+                                        icon=ft.Icons.BLOCK if is_active else ft.Icons.CHECK_CIRCLE_OUTLINE,
+                                        icon_color=COLOR_RED if is_active else COLOR_GREEN,
+                                        icon_size=18,
+                                        tooltip="Désactiver" if is_active else "Activer",
+                                        on_click=lambda e, uid=u["id"]: handle_toggle_active(uid),
+                                    ),
+                                ],
+                                spacing=0,
+                                tight=True,
+                            )
+                        ),
+                    ]
+                )
+            )
+
         return ft.Container(
-            content=ft.Row(
-                [
-                    ft.Column(
-                        [
-                            ft.Text(user_data.get("username", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(user_data.get("email", "-"), size=12, color=COLOR_TEXT_MUTED),
-                        ],
-                        spacing=2,
-                        expand=True,
-                    ),
-                    role_badge(user_data.get("role")),
-                    ft.Container(
-                        content=ft.Text("Actif" if is_active else "Inactif", size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
-                        bgcolor=COLOR_GREEN if is_active else COLOR_RED,
-                        padding=ft.Padding(left=12, top=4, right=12, bottom=4),
-                        border_radius=20,
-                    ),
-                    ft.IconButton(
-                        icon=ft.Icons.MANAGE_ACCOUNTS_OUTLINED,
-                        icon_color=COLOR_TEXT_MUTED,
-                        tooltip="Modifier le rôle",
-                        on_click=lambda e, u=user_data: open_change_role_dialog(u),
-                    ),
-                    ft.IconButton(
-                        icon=ft.Icons.BLOCK if is_active else ft.Icons.CHECK_CIRCLE_OUTLINE,
-                        icon_color=COLOR_RED if is_active else COLOR_GREEN,
-                        tooltip="Désactiver" if is_active else "Activer",
-                        on_click=lambda e, uid=user_data["id"]: handle_toggle_active(uid),
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
+            content=ft.Row([
+                ft.DataTable(
+                    columns=columns,
+                    rows=rows,
+                    heading_row_color=COLOR_CARD,
+                    divider_thickness=1,
+                    horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
+                    heading_row_height=50,
+                    data_row_min_height=55,
+                    data_row_max_height=65,
+                )
+            ], scroll=ft.ScrollMode.AUTO), # Permet le défilement horizontal sur petits écrans
             bgcolor=COLOR_CARD,
-            padding=16,
-            border_radius=10,
             border=ft.Border.all(1, COLOR_BORDER),
+            border_radius=8,
+            padding=10,
         )
 
     def refresh_list():
         # 1. Récupérer la réponse (qui est un dictionnaire)
         result = get_all_users()
-        list_container.controls.clear()
+        table_container.controls.clear()
         
         # 2. Vérifier si la réponse est valide et extraire la liste
         if result and result.get("success"):
             users = result.get("users", [])
         else:
             users = []
-            # Optionnel : afficher le message d'erreur de l'API s'il y en a un
             error_msg = result.get("message", "Erreur lors de la récupération") if result else "Pas de réponse du serveur"
             print(f"🔴 Erreur API : {error_msg}")
 
-        # 3. Remplir le conteneur Flet
+        # 3. Remplir le conteneur avec le tableau complet ou le texte vide
         if not users or not isinstance(users, list):
-            list_container.controls.append(
+            table_container.controls.append(
                 ft.Text("Aucun utilisateur trouvé", color=COLOR_TEXT_MUTED, size=14)
             )
         else:
-            for u in users:
-                list_container.controls.append(build_user_row(u))
+            table_container.controls.append(build_data_table(users))
         
         page.update()
 
@@ -184,11 +215,10 @@ def users_page(page: ft.Page, on_logout):
                     ],
                 ),
                 ft.Container(height=20),
-                list_container,
+                table_container,
                 ft.Container(height=20),
             ],
             expand=True,
-            scroll=ft.ScrollMode.AUTO,
         ),
         padding=ft.Padding(left=20, top=0, right=20, bottom=20),
         expand=True,
