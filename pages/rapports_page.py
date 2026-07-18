@@ -16,7 +16,7 @@ CANAL_LABELS = {
 
 
 def rapports_page(page: ft.Page, on_logout):
-    """Page des rapports et exports."""
+    """Page des rapports et exports avec affichage sous forme de tableaux."""
     
     is_mobile = page.width < 768
     
@@ -57,33 +57,55 @@ def rapports_page(page: ft.Page, on_logout):
             export_status.visible = True
             page.update()
 
-    occupation_rows = []
+    # --- Reconstruction du bloc "Occupation" sous forme de Tableau ---
     if occupation_data and isinstance(occupation_data, list):
+        occ_columns = [
+            ft.DataColumn(ft.Text("Section / Bloc", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Ratio", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Taux", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+        ]
+        
+        occ_rows = []
         for item in occupation_data:
-            occupation_rows.append(
-                ft.Row(
-                    [
-                        ft.Text(f"{item.get('section', '-')} - {item.get('bloc', '-')}", size=13, color=COLOR_TEXT, expand=True),
-                        ft.Text(f"{item.get('occupes', 0)}/{item.get('total_caveaux', 0)}", size=13, color=COLOR_TEXT_MUTED),
-                        ft.Container(
-                            content=ft.Text(item.get("taux_occupation", "0%"), size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
-                            bgcolor=COLOR_PRIMARY,
-                            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
-                            border_radius=20,
+            occ_rows.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(f"{item.get('section', '-')} - {item.get('bloc', '-')}", color=COLOR_TEXT, weight=ft.FontWeight.W_500)),
+                        ft.DataCell(ft.Text(f"{item.get('occupes', 0)}/{item.get('total_caveaux', 0)}", color=COLOR_TEXT_MUTED)),
+                        ft.DataCell(
+                            ft.Container(
+                                content=ft.Text(item.get("taux_occupation", "0%"), size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+                                bgcolor=COLOR_PRIMARY,
+                                padding=ft.Padding(left=10, top=2, right=10, bottom=2),
+                                border_radius=20,
+                            )
                         ),
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    ]
                 )
             )
+        
+        occupation_table = ft.Container(
+            content=ft.Row([
+                ft.DataTable(
+                    columns=occ_columns,
+                    rows=occ_rows,
+                    divider_thickness=1,
+                    horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
+                    heading_row_height=45,
+                    data_row_min_height=45,
+                )
+            ], scroll=ft.ScrollMode.AUTO),
+            expand=True,
+        )
     else:
-        occupation_rows.append(ft.Text("Aucune donnée disponible", size=13, color=COLOR_TEXT_MUTED))
+        occupation_table = ft.Text("Aucune donnée disponible", size=13, color=COLOR_TEXT_MUTED)
 
     occupation_card = ft.Container(
         content=ft.Column(
             [
                 ft.Text("Occupation par bloc", size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
-                ft.Container(height=14),
-                ft.Column(occupation_rows, spacing=12),
+                ft.Container(height=10),
+                occupation_table,
             ],
         ),
         bgcolor=COLOR_CARD,
@@ -93,31 +115,51 @@ def rapports_page(page: ft.Page, on_logout):
         expand=True,
     )
 
-    revenus_rows = []
+    # --- Reconstruction du bloc "Revenus" sous forme de Tableau ---
     if revenus_data and isinstance(revenus_data, list):
+        rev_columns = [
+            ft.DataColumn(ft.Text("Canal", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Volume", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+            ft.DataColumn(ft.Text("Total", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
+        ]
+        
+        rev_rows = []
         for item in revenus_data:
             canal = CANAL_LABELS.get(item.get("canal"), item.get("canal", "-"))
             total = float(item.get("total", 0) or 0)
             nombre = item.get("nombre", 0)
-            revenus_rows.append(
-                ft.Row(
-                    [
-                        ft.Text(canal, size=13, color=COLOR_TEXT, expand=True),
-                        ft.Text(f"{nombre} paiement(s)", size=12, color=COLOR_TEXT_MUTED),
-                        ft.Text(f"{total:,.0f} FCFA", size=13, color=COLOR_GREEN, weight=ft.FontWeight.W_500),
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            rev_rows.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(canal, color=COLOR_TEXT, weight=ft.FontWeight.W_500)),
+                        ft.DataCell(ft.Text(f"{nombre} paiement(s)", color=COLOR_TEXT_MUTED)),
+                        ft.DataCell(ft.Text(f"{total:,.0f} FCFA", color=COLOR_GREEN, weight=ft.FontWeight.BOLD)),
+                    ]
                 )
             )
+            
+        revenus_table = ft.Container(
+            content=ft.Row([
+                ft.DataTable(
+                    columns=rev_columns,
+                    rows=rev_rows,
+                    divider_thickness=1,
+                    horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
+                    heading_row_height=45,
+                    data_row_min_height=45,
+                )
+            ], scroll=ft.ScrollMode.AUTO),
+            expand=True,
+        )
     else:
-        revenus_rows.append(ft.Text("Aucune donnée disponible", size=13, color=COLOR_TEXT_MUTED))
+        revenus_table = ft.Text("Aucune donnée disponible", size=13, color=COLOR_TEXT_MUTED)
 
     revenus_card = ft.Container(
         content=ft.Column(
             [
                 ft.Text("Revenus par canal de paiement", size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
-                ft.Container(height=14),
-                ft.Column(revenus_rows, spacing=12),
+                ft.Container(height=10),
+                revenus_table,
             ],
         ),
         bgcolor=COLOR_CARD,
@@ -127,6 +169,7 @@ def rapports_page(page: ft.Page, on_logout):
         expand=True,
     )
 
+    # --- Bloc d'export (inchangé) ---
     export_card = ft.Container(
         content=ft.Column(
             [
@@ -161,6 +204,7 @@ def rapports_page(page: ft.Page, on_logout):
         border=ft.Border.all(1, COLOR_BORDER),
     )
 
+    # Agencement en ligne ou en colonne selon la largeur de l'écran
     bottom_section = (
         ft.Column([occupation_card, revenus_card], spacing=16)
         if is_mobile
