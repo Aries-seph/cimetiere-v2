@@ -557,16 +557,25 @@ def get_revenus_par_canal():
         return []
 
 
+# components/data_fetcher.py
+
 def download_export(export_type: str):
-    """Télécharge un export (csv ou excel)."""
+    """Télécharge un export (csv ou excel) et retourne la réponse complète."""
     try:
         response = httpx.get(
             f"{BASE_URL}/dashboard/export-{export_type}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=30.0,
+            follow_redirects=True
         )
-        return response.content
-    except Exception:
+        # Retourner la réponse complète avec le contenu et le type
+        return {
+            "content": response.content,
+            "content_type": response.headers.get("content-type", ""),
+            "status_code": response.status_code
+        }
+    except Exception as e:
+        print(f"Erreur export: {e}")
         return None
 
 

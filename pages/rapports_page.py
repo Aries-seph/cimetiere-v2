@@ -3,6 +3,7 @@ import flet as ft
 import os
 import subprocess
 import sys
+import base64
 from components.navbar import build_navbar
 from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal, download_export
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_BORDER
@@ -16,7 +17,7 @@ CANAL_LABELS = {
 
 
 def rapports_page(page: ft.Page, on_logout):
-    """Page des rapports et exports avec affichage sous forme de tableaux."""
+    """Page des rapports et exports."""
     
     is_mobile = page.width < 768
     
@@ -27,17 +28,6 @@ def rapports_page(page: ft.Page, on_logout):
 
     export_status = ft.Text("", size=12, color=COLOR_GREEN, visible=False)
 
-    def open_file_location(filepath):
-        try:
-            if sys.platform == "win32":
-                subprocess.run(["explorer", "/select,", filepath])
-            elif sys.platform == "darwin":
-                subprocess.run(["open", "-R", filepath])
-            else:
-                subprocess.run(["xdg-open", os.path.dirname(filepath)])
-        except Exception:
-            pass
-
     def handle_export(export_type, extension):
         """Télécharge le fichier via le navigateur."""
         result = download_export(export_type)
@@ -46,25 +36,38 @@ def rapports_page(page: ft.Page, on_logout):
             content = result.get("content")
             content_type = result.get("content_type", "")
             
-            # Convertir en base64 pour data URI
+            # Créer un fichier temporaire dans le conteneur
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{extension}") as tmp_file:
+                tmp_file.write(content)
+                tmp_path = tmp_file.name
+            
+            # Ouvrir le fichier dans le navigateur pour téléchargement
+            # Flet permet de télécharger des fichiers via page.launch_url avec data URI
             import base64
             b64_content = base64.b64encode(content).decode('utf-8')
             data_uri = f"data:{content_type};base64,{b64_content}"
             
-            # Ouvrir dans le navigateur (déclenche le téléchargement)
+            # Ouvrir dans un nouvel onglet pour téléchargement
             page.launch_url(data_uri)
             
             export_status.value = f"Fichier {extension.upper()} téléchargé"
             export_status.color = COLOR_GREEN
             export_status.visible = True
             page.update()
+            
+            # Nettoyer le fichier temporaire
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
         else:
             export_status.value = "Erreur lors de l'export"
             export_status.color = "#EF4444"
             export_status.visible = True
             page.update()
 
-    # --- Reconstruction du bloc "Occupation" sous forme de Tableau ---
+    # --- Occupation Table ---
     if occupation_data and isinstance(occupation_data, list):
         occ_columns = [
             ft.DataColumn(ft.Text("Section / Bloc", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
@@ -122,7 +125,7 @@ def rapports_page(page: ft.Page, on_logout):
         expand=True,
     )
 
-    # --- Reconstruction du bloc "Revenus" sous forme de Tableau ---
+    # --- Revenus Table ---
     if revenus_data and isinstance(revenus_data, list):
         rev_columns = [
             ft.DataColumn(ft.Text("Canal", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
@@ -176,14 +179,13 @@ def rapports_page(page: ft.Page, on_logout):
         expand=True,
     )
 
-    # Agencement des tableaux en fonction de la taille d'écran
     bottom_section = (
         ft.Column([occupation_card, revenus_card], spacing=16)
         if is_mobile
         else ft.Row([occupation_card, revenus_card], spacing=16, expand=True)
     )
 
-    # Structure principale
+    # --- Structure principale ---
     content = ft.Container(
         content=ft.Column(
             [
@@ -196,21 +198,27 @@ def rapports_page(page: ft.Page, on_logout):
                 ),
                 ft.Container(height=10),
                 
-                # Zone Export épurée : juste les 2 boutons et le statut, sans aucune div/container enveloppant
+                # Boutons d'export
                 ft.Row(
                     [
-                        ft.ElevatedButton(
+                        ft.Button(
                             "CSV",
                             icon=ft.Icons.SIM_CARD_DOWNLOAD_OUTLINED,
-                            bgcolor="#1F2937",  # Teinte sombre stylisée
+                            bgcolor="#1F2937",
                             color=ft.Colors.WHITE,
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=8),
+                            ),
                             on_click=lambda e: handle_export("csv", "csv"),
                         ),
-                        ft.ElevatedButton(
+                        ft.Button(
                             "Excel",
                             icon=ft.Icons.DOWNLOAD_FOR_OFFLINE_OUTLINED,
-                            bgcolor=COLOR_PRIMARY,  # Teinte primaire active
+                            bgcolor=COLOR_PRIMARY,
                             color=ft.Colors.WHITE,
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=8),
+                            ),
                             on_click=lambda e: handle_export("excel", "xlsx"),
                         ),
                     ],
