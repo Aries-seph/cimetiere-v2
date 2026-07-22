@@ -38,19 +38,27 @@ def rapports_page(page: ft.Page, on_logout):
         except Exception:
             pass
 
+
     def handle_export(export_type, extension):
-        content = download_export(export_type)
-        if content:
-            downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
-            os.makedirs(downloads_folder, exist_ok=True)
-            filepath = os.path.join(downloads_folder, f"registre_cimetiere.{extension}")
-            with open(filepath, "wb") as f:
-                f.write(content)
-            export_status.value = f"Fichier enregistré : {filepath}"
+        """Télécharge le fichier via le navigateur."""
+        result = download_export(export_type)
+        
+        if result and result.get("status_code") == 200:
+            content = result.get("content")
+            content_type = result.get("content_type", "")
+            
+            # Convertir en base64 pour data URI
+            import base64
+            b64_content = base64.b64encode(content).decode('utf-8')
+            data_uri = f"data:{content_type};base64,{b64_content}"
+            
+            # Ouvrir dans le navigateur (déclenche le téléchargement)
+            page.launch_url(data_uri)
+            
+            export_status.value = f"Fichier {extension.upper()} téléchargé"
             export_status.color = COLOR_GREEN
             export_status.visible = True
             page.update()
-            open_file_location(filepath)
         else:
             export_status.value = "Erreur lors de l'export"
             export_status.color = "#EF4444"
