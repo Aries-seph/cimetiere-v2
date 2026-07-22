@@ -38,7 +38,6 @@ def rapports_page(page: ft.Page, on_logout):
         except Exception:
             pass
 
-
     def handle_export(export_type, extension):
         """Télécharge le fichier via le navigateur."""
         result = download_export(export_type)
