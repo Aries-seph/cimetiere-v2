@@ -1,4 +1,3 @@
-# pages/caveaux_page.py
 import flet as ft
 from components.navbar import build_navbar
 from components.data_fetcher import (
@@ -26,7 +25,7 @@ STATUT_LABELS = {
 
 
 def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_caveau_id=None):
-    """Page de gestion des caveaux."""
+    """Page de gestion des caveaux avec fonctionnalité de recherche."""
     
     is_mobile = page.width < 768
     
@@ -40,6 +39,20 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
     # Conteneur principal scrollable pour le tableau
     table_container = ft.Container(expand=True)
     pending_pick_processed = False
+
+    # Champ de recherche
+    search_field = ft.TextField(
+        hint_text="Rechercher par référence, statut...",
+        width=300 if not is_mobile else None,
+        expand=is_mobile,
+        bgcolor=COLOR_BG,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        focused_border_color=COLOR_PRIMARY,
+        hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
+        prefix_icon=ft.Icons.SEARCH,
+        dense=True,
+    )
 
     # ============ STATUS BADGE ============
     def status_badge(statut):
@@ -412,7 +425,14 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
         sections_list = get_sections() or []
         page.update()
 
-    def refresh_list():
+    def handle_search(e=None):
+        """Filtre les caveaux selon le mot clé entré."""
+        query = (search_field.value or "").strip().lower()
+        refresh_list(query_filter=query)
+
+    search_field.on_submit = handle_search
+
+    def refresh_list(query_filter=""):
         nonlocal caveaux_list
         caveaux_data = get_caveaux()
         if isinstance(caveaux_data, list):
@@ -422,10 +442,26 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
         
         table_container.content = None
         
-        if not caveaux_list:
-            table_container.content = ft.Text("Aucun caveau enregistré", color=COLOR_TEXT_MUTED, size=14)
+        # Filtrage si une recherche est spécifiée
+        filtered_caveaux = caveaux_list
+        if query_filter:
+            filtered_caveaux = [
+                c for c in caveaux_list
+                if isinstance(c, dict) and (
+                    query_filter in str(c.get("reference", "")).lower() or
+                    query_filter in str(c.get("statut", "")).lower() or
+                    query_filter in STATUT_LABELS.get(c.get("statut", ""), "").lower()
+                )
+            ]
+
+        if not filtered_caveaux:
+            table_container.content = ft.Text(
+                "Aucun caveau trouvé" if query_filter else "Aucun caveau enregistré", 
+                color=COLOR_TEXT_MUTED, 
+                size=14
+            )
         else:
-            # Construction de la structure en Tableau (DataTable)
+            # Construction du DataTable
             columns = [
                 ft.DataColumn(ft.Text("Référence", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
                 ft.DataColumn(ft.Text("Dimensions", color=COLOR_TEXT, weight=ft.FontWeight.BOLD)),
@@ -434,7 +470,7 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
             ]
             
             rows = []
-            for c in caveaux_list:
+            for c in filtered_caveaux:
                 if not isinstance(c, dict):
                     continue
                 
@@ -468,7 +504,6 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                     )
                 )
             
-            # Encapsulation dans un conteneur horizontalement scrollable pour mobile
             table_container.content = ft.Row(
                 [
                     ft.DataTable(
@@ -511,7 +546,22 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
     refresh_list()
     check_pending_pick()
 
-    # ============ HEADER AVEC BOUTONS ============
+    # ============ BARRE DE RECHERCHE & ACTIONS ============
+    search_bar = ft.Row(
+        [
+            search_field,
+            ft.Button(
+                "Rechercher",
+                icon=ft.Icons.ARROW_FORWARD,
+                bgcolor=COLOR_PRIMARY,
+                color=ft.Colors.WHITE,
+                style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                on_click=handle_search,
+            ),
+        ],
+        spacing=8,
+    )
+
     header_buttons = ft.Row(
         [
             ft.Button(
@@ -569,7 +619,9 @@ def caveaux_page(page: ft.Page, on_logout, pick_lat=None, pick_lng=None, pick_ca
                         ),
                     ],
                 ),
-                ft.Container(height=20),
+                ft.Container(height=15),
+                search_bar,
+                ft.Container(height=15),
                 table_container,
                 ft.Container(height=20),
             ],

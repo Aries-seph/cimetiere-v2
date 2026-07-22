@@ -530,19 +530,34 @@ def get_evolution_7_jours():
     except Exception:
         return []
 
-
-def get_occupation_par_bloc():
-    """Récupère l'occupation par bloc."""
+def download_export(export_type: str):
+    """Télécharge un export (csv ou excel)."""
     try:
         response = httpx.get(
-            f"{BASE_URL}/dashboard/occupation-par-bloc",
+            f"{BASE_URL}/dashboard/export-{export_type}",
             headers=api_client.get_headers(),
-            timeout=30.0
+            timeout=60.0,
+            follow_redirects=True
         )
-        return response.json()
-    except Exception:
-        return []
-
+        
+        print(f"🔵 Export {export_type} - Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            return {
+                "content": response.content,
+                "content_type": response.headers.get("content-type", ""),
+                "status_code": response.status_code
+            }
+        else:
+            print(f"🔴 Erreur export: {response.status_code} - {response.text[:200]}")
+            return {
+                "content": None,
+                "status_code": response.status_code,
+                "error": response.text[:200]
+            }
+    except Exception as e:
+        print(f"🔴 Erreur export: {e}")
+        return None
 
 def get_revenus_par_canal():
     """Récupère les revenus par canal de paiement."""

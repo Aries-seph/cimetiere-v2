@@ -1,9 +1,5 @@
 # pages/rapports_page.py
 import flet as ft
-import os
-import subprocess
-import sys
-import base64
 from components.navbar import build_navbar
 from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal, download_export
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_BORDER
@@ -27,42 +23,44 @@ def rapports_page(page: ft.Page, on_logout):
     revenus_data = get_revenus_par_canal() or []
 
     export_status = ft.Text("", size=12, color=COLOR_GREEN, visible=False)
+    
+    # Créer un FilePicker pour sauvegarder les fichiers
+    file_picker = ft.FilePicker()
+    page.overlay.append(file_picker)
+    page.update()
 
     def handle_export(export_type, extension):
-        """Télécharge le fichier via le navigateur."""
+        """Télécharge le fichier via FilePicker."""
         result = download_export(export_type)
         
         if result and result.get("status_code") == 200:
             content = result.get("content")
-            content_type = result.get("content_type", "")
             
-            # Créer un fichier temporaire dans le conteneur
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{extension}") as tmp_file:
-                tmp_file.write(content)
-                tmp_path = tmp_file.name
+            # Sauvegarder avec FilePicker
+            file_picker.save_file(
+                file_name=f"registre_cimetiere.{extension}",
+                allowed_extensions=[extension],
+            )
             
-            # Ouvrir le fichier dans le navigateur pour téléchargement
-            # Flet permet de télécharger des fichiers via page.launch_url avec data URI
-            import base64
-            b64_content = base64.b64encode(content).decode('utf-8')
-            data_uri = f"data:{content_type};base64,{b64_content}"
+            # Attendre que l'utilisateur choisisse l'emplacement
+            def on_file_saved(e: ft.FilePickerResultEvent):
+                if e.path:
+                    with open(e.path, "wb") as f:
+                        f.write(content)
+                    export_status.value = f"✅ Fichier sauvegardé : {e.path}"
+                    export_status.color = COLOR_GREEN
+                    export_status.visible = True
+                    page.update()
+                else:
+                    export_status.value = "❌ Sauvegarde annulée"
+                    export_status.color = "#EF4444"
+                    export_status.visible = True
+                    page.update()
             
-            # Ouvrir dans un nouvel onglet pour téléchargement
-            page.launch_url(data_uri)
+            file_picker.on_result = on_file_saved
             
-            export_status.value = f"Fichier {extension.upper()} téléchargé"
-            export_status.color = COLOR_GREEN
-            export_status.visible = True
-            page.update()
-            
-            # Nettoyer le fichier temporaire
-            try:
-                os.unlink(tmp_path)
-            except:
-                pass
         else:
-            export_status.value = "Erreur lors de l'export"
+            export_status.value = "❌ Erreur lors de l'export"
             export_status.color = "#EF4444"
             export_status.visible = True
             page.update()
@@ -198,7 +196,6 @@ def rapports_page(page: ft.Page, on_logout):
                 ),
                 ft.Container(height=10),
                 
-                # Boutons d'export
                 ft.Row(
                     [
                         ft.Button(
