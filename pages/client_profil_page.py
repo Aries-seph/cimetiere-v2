@@ -1,4 +1,3 @@
-# pages/client_profil_page.py
 import flet as ft
 from components.navbar import build_navbar
 from components.data_fetcher import get_my_profile, update_my_profile
@@ -6,42 +5,68 @@ from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIM
 
 
 def client_profil_page(page: ft.Page, on_logout):
-    """Page de profil du client."""
+    """Page de profil du client repensée sous forme de Dashboard Moderne."""
     
     is_mobile = page.width < 768
     
     navbar, _ = build_navbar(page, "CLIENT", on_logout)
     
     profile = get_my_profile() or {}
+    username_val = profile.get("username", "")
+    role_val = profile.get("role", "CLIENT")
+    email_val = profile.get("email", "")
+    telephone_val = profile.get("telephone", "")
 
+    # Calcul des initiales pour un Avatar personnalisé
+    initials = username_val[:2].upper() if len(username_val) >= 2 else "CL"
+
+    # ============ CHAMPS DE FORMULAIRE STYLISÉS ============
     username_field = ft.TextField(
         label="Nom d'utilisateur",
-        width=350,
+        hint_text="Ex: John Doe",
+        expand=True,
         bgcolor=COLOR_BG,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
-        value=profile.get("username", ""),
+        focused_border_color=COLOR_PRIMARY,
+        label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+        prefix_icon=ft.Icons.PERSON_OUTLINE_ROUNDED,
+        border_radius=10,
+        value=username_val,
     )
+
     telephone_field = ft.TextField(
         label="Téléphone",
-        width=350,
+        hint_text="Ex: +242 06 ...",
+        expand=True,
         bgcolor=COLOR_BG,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
-        value=profile.get("telephone", ""),
+        focused_border_color=COLOR_PRIMARY,
+        label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+        prefix_icon=ft.Icons.PHONE_OUTLINED,
+        border_radius=10,
+        keyboard_type=ft.KeyboardType.PHONE,
+        value=telephone_val,
     )
+
     email_field = ft.TextField(
-        label="Email (non modifiable)",
-        width=350,
+        label="Email (compte vérifié)",
+        expand=True,
         bgcolor=COLOR_BG,
         color=COLOR_TEXT_MUTED,
         border_color=COLOR_BORDER,
-        value=profile.get("email", ""),
+        focused_border_color=COLOR_BORDER,
+        label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+        prefix_icon=ft.Icons.LOCK_OUTLINED,
+        suffix_icon=ft.Icons.VERIFIED_ROUNDED,
+        border_radius=10,
+        value=email_val,
         read_only=True,
     )
 
-    error_text = ft.Text("", color=COLOR_RED, size=13, visible=False)
-    success_text = ft.Text("", color=COLOR_GREEN, size=13, visible=False)
+    error_text = ft.Text("", color=COLOR_RED, size=12, visible=False, weight=ft.FontWeight.W_500)
+    success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False, weight=ft.FontWeight.W_500)
 
     def handle_save(e):
         error_text.visible = False
@@ -62,7 +87,7 @@ def client_profil_page(page: ft.Page, on_logout):
         result = update_my_profile(payload)
 
         if result.get("success"):
-            success_text.value = "Profil mis à jour avec succès"
+            success_text.value = "Votre profil a été mis à jour avec succès !"
             success_text.visible = True
             page.update()
         else:
@@ -70,78 +95,162 @@ def client_profil_page(page: ft.Page, on_logout):
             error_text.visible = True
             page.update()
 
-    info_box = ft.Container(
+    # ============ HERO / HEADER PROFILE BANNER ============
+    profile_header_card = ft.Container(
         content=ft.Row(
             [
-                ft.Icon(ft.Icons.INFO_OUTLINE, color=COLOR_TEXT_MUTED, size=18),
-                ft.Text(
-                    "Pour des raisons de sécurité, vous devez attendre 48h entre deux modifications de profil.",
-                    size=12, color=COLOR_TEXT_MUTED, expand=True,
+                ft.Container(
+                    content=ft.Text(initials, size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    alignment=ft.alignment.center,
+                    width=68,
+                    height=68,
+                    bgcolor=COLOR_PRIMARY,
+                    border_radius=34,
+                    border=ft.Border.all(3, COLOR_BORDER),
+                ),
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.Text(username_val or "Utilisateur", size=20, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                                ft.Container(
+                                    content=ft.Text(role_val, size=10, weight=ft.FontWeight.BOLD, color=COLOR_PRIMARY),
+                                    bgcolor=COLOR_BG,
+                                    padding=ft.Padding(8, 3, 8, 3),
+                                    border_radius=12,
+                                    border=ft.Border.all(1, COLOR_PRIMARY),
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.START,
+                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=10,
+                        ),
+                        ft.Text(email_val or "Email non renseigné", size=13, color=COLOR_TEXT_MUTED),
+                    ],
+                    spacing=4,
+                    expand=True,
                 ),
             ],
-            spacing=8,
+            spacing=16,
+            alignment=ft.MainAxisAlignment.START,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        bgcolor=COLOR_BG,
-        padding=14,
-        border_radius=10,
+        bgcolor=COLOR_CARD,
+        padding=20,
+        border_radius=16,
         border=ft.Border.all(1, COLOR_BORDER),
     )
 
-    profile_card = ft.Container(
+    # ============ CARTE D'INFORMATION DE SÉCURITÉ ============
+    security_notice_card = ft.Container(
         content=ft.Column(
             [
                 ft.Row(
                     [
-                        ft.CircleAvatar(content=ft.Icon(ft.Icons.PERSON, size=30), bgcolor=COLOR_PRIMARY, radius=36),
-                        ft.Column(
-                            [
-                                ft.Text(profile.get("username", "-"), size=18, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
-                                ft.Text(profile.get("role", "-"), size=12, color=COLOR_TEXT_MUTED),
-                            ],
-                            spacing=2,
-                        ),
+                        ft.Icon(ft.Icons.SHIELD_OUTLINED, color=COLOR_PRIMARY, size=20),
+                        ft.Text("Politique de sécurité", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
-                    spacing=16,
+                    spacing=8,
                 ),
-                ft.Container(height=24),
-                username_field,
-                ft.Container(height=10),
-                telephone_field,
-                ft.Container(height=10),
-                email_field,
-                ft.Container(height=16),
-                info_box,
-                ft.Container(height=16),
-                error_text,
-                success_text,
-                ft.Container(height=10),
-                ft.ElevatedButton(
-                    "Enregistrer les modifications",
-                    icon=ft.Icons.SAVE_OUTLINED,
-                    bgcolor=COLOR_PRIMARY,
-                    color=ft.Colors.WHITE,
-                    on_click=handle_save,
+                ft.Text(
+                    "Pour garantir la traçabilité des réservations et des paiements, "
+                    "un délai d'attente de 48 heures est appliqué entre deux modifications successives des informations de profil.",
+                    size=12,
+                    color=COLOR_TEXT_MUTED,
                 ),
             ],
+            spacing=8,
         ),
         bgcolor=COLOR_CARD,
-        padding=24,
+        padding=18,
         border_radius=14,
         border=ft.Border.all(1, COLOR_BORDER),
     )
 
+    # ============ CARTE DU FORMULAIRE DE MODIFICATION ============
+    form_card = ft.Container(
+        content=ft.Column(
+            [
+                ft.Row(
+                    [
+                        ft.Icon(ft.Icons.MANAGE_ACCOUNTS_ROUNDED, color=COLOR_PRIMARY, size=20),
+                        ft.Text("Modifier mes informations", size=15, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                    ],
+                    spacing=8,
+                ),
+                ft.Divider(color=COLOR_BORDER, height=1),
+                ft.Container(height=6),
+                username_field,
+                telephone_field,
+                email_field,
+                error_text,
+                success_text,
+                ft.Container(height=8),
+                ft.ElevatedButton(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=18),
+                            ft.Text("Enregistrer les modifications", weight=ft.FontWeight.BOLD, size=14),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=8,
+                    ),
+                    height=46,
+                    bgcolor=COLOR_PRIMARY,
+                    color=ft.Colors.WHITE,
+                    style=ft.ButtonStyle(
+                        shape=ft.RoundedRectangleBorder(radius=24),
+                    ),
+                    on_click=handle_save,
+                ),
+            ],
+            spacing=14,
+        ),
+        bgcolor=COLOR_CARD,
+        padding=24,
+        border_radius=16,
+        border=ft.Border.all(1, COLOR_BORDER),
+    )
+
+    # ============ DISPOSITION ADAPTATIVE / RESPONSIVE ============
+    if is_mobile:
+        layout_content = ft.Column(
+            [
+                profile_header_card,
+                form_card,
+                security_notice_card,
+            ],
+            spacing=16,
+        )
+    else:
+        layout_content = ft.Column(
+            [
+                profile_header_card,
+                ft.Row(
+                    [
+                        ft.Container(content=form_card, expand=2),
+                        ft.Container(content=security_notice_card, expand=1),
+                    ],
+                    spacing=16,
+                    vertical_alignment=ft.CrossAxisAlignment.START,
+                ),
+            ],
+            spacing=16,
+        )
+
+    # ============ STRUCTURE PRINCIPALE DE LA PAGE ============
     content = ft.Container(
         content=ft.Column(
             [
                 navbar,
-                ft.Container(height=20),
+                ft.Container(height=16),
                 ft.Row(
                     [
                         ft.Text("Mon profil", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                 ),
-                ft.Container(height=20),
-                profile_card,
+                ft.Container(height=12),
+                layout_content,
                 ft.Container(height=20),
             ],
             scroll=ft.ScrollMode.AUTO,

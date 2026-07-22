@@ -1,4 +1,3 @@
-# pages/client_paiements_page.py
 import flet as ft
 from components.navbar import build_navbar
 from components.data_fetcher import get_mes_paiements, get_mes_reservations, create_paiement_client
@@ -43,47 +42,122 @@ def client_paiements_page(page: ft.Page, on_logout):
             border_radius=20,
         )
 
+    # ============ DIALOGUES NOUVELLE GÉNÉRATION ============
     def open_new_paiement_dialog():
         reservations = get_mes_reservations() or []
         reservations_validees = [r for r in reservations if isinstance(reservations, list) and r.get("statut") == "VALIDEE"]
 
         if not reservations_validees:
+            # Modale d'information si aucune réservation n'est trouvée
+            info_close_btn = ft.IconButton(
+                icon=ft.Icons.CLOSE_ROUNDED,
+                icon_color=COLOR_TEXT_MUTED,
+                icon_size=20,
+                on_click=lambda e: close_dialog(info_dialog),
+            )
+            
+            info_dialog_header = ft.Row(
+                [
+                    ft.Row(
+                        [
+                            ft.Container(
+                                content=ft.Icon(ft.Icons.INFO_OUTLINED, color=COLOR_ORANGE, size=22),
+                                bgcolor=COLOR_BG,
+                                padding=8,
+                                border_radius=10,
+                                border=ft.Border.all(1, COLOR_BORDER),
+                            ),
+                            ft.Text("Information", color=COLOR_TEXT, size=16, weight=ft.FontWeight.BOLD),
+                        ],
+                        spacing=12,
+                    ),
+                    info_close_btn,
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            )
+
+            info_dialog_body = ft.Column(
+                [
+                    info_dialog_header,
+                    ft.Divider(color=COLOR_BORDER, height=1),
+                    ft.Container(height=8),
+                    ft.Text(
+                        "Vous devez avoir au moins une réservation validée pour effectuer un paiement.",
+                        color=COLOR_TEXT_MUTED,
+                        size=13,
+                    ),
+                    ft.Container(height=10),
+                    ft.ElevatedButton(
+                        "Fermer",
+                        width=320,
+                        height=40,
+                        bgcolor=COLOR_BG,
+                        color=COLOR_TEXT,
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=20),
+                            side=ft.BorderSide(1, COLOR_BORDER),
+                        ),
+                        on_click=lambda e: close_dialog(info_dialog),
+                    ),
+                ],
+                spacing=12,
+                tight=True,
+                width=320,
+            )
+
             info_dialog = ft.AlertDialog(
                 bgcolor=COLOR_CARD,
-                title=ft.Text("Aucune réservation disponible", color=COLOR_TEXT),
-                content=ft.Text("Vous devez avoir au moins une réservation validée pour effectuer un paiement.", color=COLOR_TEXT_MUTED),
-                actions=[ft.TextButton("Fermer", on_click=lambda e: close_dialog(info_dialog))],
+                content_padding=24,
+                shape=ft.RoundedRectangleBorder(radius=20),
+                content=info_dialog_body,
+                actions=[],
             )
             page.overlay.append(info_dialog)
             info_dialog.open = True
             page.update()
             return
 
+        # Champs re-stylisés avec icônes préfixes intégrées
         reservation_dropdown = ft.Dropdown(
             label="Réservation",
-            width=320,
+            width=360,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
+            focused_border_color=COLOR_PRIMARY,
+            label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+            prefix_icon=ft.Icons.BOOKMARK_BORDER_ROUNDED,
+            border_radius=10,
             options=[
                 ft.dropdown.Option(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
                 for r in reservations_validees
             ],
         )
+
         montant_field = ft.TextField(
             label="Montant (FCFA)",
-            width=320,
+            hint_text="Ex: 50000",
+            width=360,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
+            focused_border_color=COLOR_PRIMARY,
+            label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+            prefix_icon=ft.Icons.ATTACH_MONEY_ROUNDED,
+            border_radius=10,
             keyboard_type=ft.KeyboardType.NUMBER,
         )
+
         canal_dropdown = ft.Dropdown(
             label="Canal de paiement",
-            width=320,
+            width=360,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
+            focused_border_color=COLOR_PRIMARY,
+            label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+            prefix_icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED,
+            border_radius=10,
             options=[
                 ft.dropdown.Option(key="MOBILE_MONEY", text="Mobile Money"),
                 ft.dropdown.Option(key="AIRTEL_MONEY", text="Airtel Money"),
@@ -91,8 +165,13 @@ def client_paiements_page(page: ft.Page, on_logout):
                 ft.dropdown.Option(key="VIREMENT", text="Virement"),
             ],
         )
-        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
-        success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False)
+
+        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False, weight=ft.FontWeight.W_500)
+        success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False, weight=ft.FontWeight.W_500)
+
+        def close_dialog_action(e):
+            dialog.open = False
+            page.update()
 
         def handle_submit(e):
             if not reservation_dropdown.value or not montant_field.value or not canal_dropdown.value:
@@ -122,22 +201,87 @@ def client_paiements_page(page: ft.Page, on_logout):
                 error_text.visible = True
                 page.update()
 
-        def handle_cancel(e):
-            dialog.open = False
-            page.update()
+        # En-tête personnalisé (Header) stylisé
+        dialog_header = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Row(
+                        [
+                            ft.Container(
+                                content=ft.Icon(ft.Icons.PAYMENT_ROUNDED, color=COLOR_PRIMARY, size=22),
+                                bgcolor=COLOR_BG,
+                                padding=8,
+                                border_radius=10,
+                                border=ft.Border.all(1, COLOR_BORDER),
+                            ),
+                            ft.Column(
+                                [
+                                    ft.Text("Nouveau paiement", color=COLOR_TEXT, size=16, weight=ft.FontWeight.BOLD),
+                                    ft.Text("Formulaire de règlement", color=COLOR_TEXT_MUTED, size=12),
+                                ],
+                                spacing=0,
+                            ),
+                        ],
+                        spacing=12,
+                    ),
+                    ft.IconButton(
+                        icon=ft.Icons.CLOSE_ROUNDED,
+                        icon_color=COLOR_TEXT_MUTED,
+                        icon_size=20,
+                        on_click=close_dialog_action,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
+            padding=ft.Padding(0, 0, 0, 10),
+        )
 
+        # Corps de la modale assemblé
+        dialog_body = ft.Column(
+            [
+                dialog_header,
+                ft.Divider(color=COLOR_BORDER, height=1),
+                ft.Container(height=8),
+                reservation_dropdown,
+                montant_field,
+                canal_dropdown,
+                error_text,
+                success_text,
+                ft.Container(height=10),
+                ft.ElevatedButton(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=16),
+                            ft.Text("Valider le paiement", weight=ft.FontWeight.BOLD, size=14),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=8,
+                    ),
+                    width=360,
+                    height=45,
+                    bgcolor=COLOR_PRIMARY,
+                    color=ft.Colors.WHITE,
+                    style=ft.ButtonStyle(
+                        shape=ft.RoundedRectangleBorder(radius=24),
+                    ),
+                    on_click=handle_submit,
+                ),
+            ],
+            spacing=12,
+            tight=True,
+            width=360,
+            scroll=ft.ScrollMode.AUTO,
+        )
+
+        # Structure du Custom Card Dialog
         dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
-            title=ft.Text("Nouveau paiement", color=COLOR_TEXT),
-            content=ft.Column(
-                [reservation_dropdown, montant_field, canal_dropdown, error_text, success_text],
-                spacing=12, tight=True, width=340, scroll=ft.ScrollMode.AUTO,
-            ),
-            actions=[
-                ft.TextButton("Fermer", on_click=handle_cancel),
-                ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_submit),
-            ],
+            content_padding=24,
+            shape=ft.RoundedRectangleBorder(radius=20),
+            content=dialog_body,
+            actions=[],  # Actions intégrées directement dans le corps
         )
+        
         page.overlay.append(dialog)
         dialog.open = True
         page.update()
@@ -198,6 +342,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                             icon=ft.Icons.ADD,
                             bgcolor=COLOR_PRIMARY,
                             color=ft.Colors.WHITE,
+                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
                             on_click=lambda e: open_new_paiement_dialog(),
                         ),
                     ],

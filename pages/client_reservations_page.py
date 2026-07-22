@@ -1,8 +1,7 @@
-# pages/client_reservations_page.py
 import flet as ft
 from components.navbar import build_navbar
 from components.data_fetcher import get_mes_reservations
-from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
+from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, COLOR_BORDER
 
 STATUT_COLORS = {
     "EN_ATTENTE": COLOR_ORANGE,
@@ -18,72 +17,202 @@ STATUT_LABELS = {
 
 
 def client_reservations_page(page: ft.Page, on_logout):
-    """Page des réservations du client."""
+    """Page des réservations du client repensée sous forme de Dashboard Moderne."""
     
     is_mobile = page.width < 768
     
     navbar, _ = build_navbar(page, "CLIENT", on_logout)
     
-    list_container = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
+    # Conteneur dynamique pour la liste des cartes
+    list_container = ft.Column(spacing=12, scroll=ft.ScrollMode.AUTO, expand=True)
+    
+    # Stockage local pour le filtrage par recherche
+    all_reservations = []
 
+    # ============ BADGE DE STATUT MODERNE ============
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
-            bgcolor=color,
-            padding=ft.Padding(left=12, top=4, right=12, bottom=4),
-            border_radius=20,
-        )
-
-    def build_row(r):
-        return ft.Container(
             content=ft.Row(
                 [
-                    ft.Column(
-                        [
-                            ft.Text(r.get("nom_defunt", "-"), size=14, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
-                            ft.Text(f"Décès : {r.get('date_deces', '-')}", size=12, color=COLOR_TEXT_MUTED),
-                            ft.Text(r.get("commentaire") or "", size=11, color=COLOR_TEXT_MUTED, italic=True) if r.get("commentaire") else ft.Container(),
-                        ],
-                        spacing=2,
-                        expand=True,
-                    ),
-                    status_badge(r.get("statut")),
+                    ft.Container(width=6, height=6, border_radius=3, bgcolor=ft.Colors.WHITE),
+                    ft.Text(label, size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
                 ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                spacing=6,
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            bgcolor=color,
+            padding=ft.Padding(left=10, top=4, right=10, bottom=4),
+            border_radius=12,
+        )
+
+    # ============ CARTE DE RÉSERVATION RECONSTRUITE ============
+    def build_reservation_card(r):
+        nom_defunt = r.get("nom_defunt", "Défunt non spécifié")
+        date_deces = r.get("date_deces", "-")
+        commentaire = r.get("commentaire")
+
+        return ft.Container(
+            content=ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Row(
+                                [
+                                    ft.Container(
+                                        content=ft.Icon(ft.Icons.BOOKMARK_ROUNDED, color=COLOR_PRIMARY, size=20),
+                                        bgcolor=COLOR_BG,
+                                        padding=10,
+                                        border_radius=10,
+                                        border=ft.Border.all(1, COLOR_BORDER),
+                                    ),
+                                    ft.Column(
+                                        [
+                                            ft.Text(f"Réservation #{r.get('id', '-')}", size=11, color=COLOR_TEXT_MUTED, weight=ft.FontWeight.W_500),
+                                            ft.Text(nom_defunt, size=15, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                                        ],
+                                        spacing=1,
+                                    ),
+                                ],
+                                spacing=12,
+                                expand=True,
+                            ),
+                            status_badge(r.get("statut")),
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                    ft.Divider(color=COLOR_BORDER, height=1),
+                    ft.Row(
+                        [
+                            ft.Row(
+                                [
+                                    ft.Icon(ft.Icons.CALENDAR_TODAY_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
+                                    ft.Text(f"Date de décès : {date_deces}", size=12, color=COLOR_TEXT_MUTED),
+                                ],
+                                spacing=6,
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    ),
+                    *(
+                        [
+                            ft.Container(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.CHAT_BUBBLE_OUTLINE_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
+                                        ft.Text(commentaire, size=12, color=COLOR_TEXT_MUTED, italic=True, expand=True),
+                                    ],
+                                    spacing=6,
+                                ),
+                                bgcolor=COLOR_BG,
+                                padding=ft.Padding(10, 8, 10, 8),
+                                border_radius=8,
+                                border=ft.Border.all(1, COLOR_BORDER),
+                            )
+                        ]
+                        if commentaire
+                        else []
+                    ),
+                ],
+                spacing=12,
             ),
             bgcolor=COLOR_CARD,
-            padding=16,
-            border_radius=10,
+            padding=18,
+            border_radius=14,
             border=ft.Border.all(1, COLOR_BORDER),
         )
 
-    def refresh_list():
-        reservations = get_mes_reservations() or []
+    # ============ MOTEUR DE RECHERCHE ET MISE À JOUR ============
+    def render_list(items):
         list_container.controls.clear()
-        if not reservations or not isinstance(reservations, list):
+        if not items:
             list_container.controls.append(
-                ft.Text("Vous n'avez aucune réservation", color=COLOR_TEXT_MUTED, size=14)
+                ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Icon(ft.Icons.EVENT_BUSY_ROUNDED, size=48, color=COLOR_TEXT_MUTED),
+                            ft.Text("Aucune réservation trouvée", color=COLOR_TEXT, size=15, weight=ft.FontWeight.BOLD),
+                            ft.Text("Vos demandes de réservation apparaîtront ici.", color=COLOR_TEXT_MUTED, size=12),
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=8,
+                    ),
+                    padding=40,
+                    alignment=ft.alignment.center,
+                )
             )
         else:
-            for r in reservations:
-                list_container.controls.append(build_row(r))
+            for r in items:
+                if isinstance(r, dict):
+                    list_container.controls.append(build_reservation_card(r))
         page.update()
 
+    def refresh_list():
+        nonlocal all_reservations
+        all_reservations = get_mes_reservations() or []
+        if not isinstance(all_reservations, list):
+            all_reservations = []
+        render_list(all_reservations)
+
+    search_input = ft.TextField(
+        hint_text="Rechercher par nom de défunt...",
+        bgcolor=COLOR_CARD,
+        color=COLOR_TEXT,
+        border_color=COLOR_BORDER,
+        focused_border_color=COLOR_PRIMARY,
+        content_padding=ft.Padding(12, 10, 12, 10),
+        hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+        border_radius=10,
+        prefix_icon=ft.Icons.SEARCH_ROUNDED,
+        expand=True,
+    )
+
+    def perform_search(e):
+        query = search_input.value.strip().lower()
+        if not query:
+            render_list(all_reservations)
+        else:
+            filtered = [
+                r for r in all_reservations
+                if query in str(r.get("nom_defunt", "")).lower() or query in str(r.get("commentaire", "")).lower()
+            ]
+            render_list(filtered)
+
+    search_input.on_change = perform_search
+
+    # Chargement initial
     refresh_list()
 
+    # ============ STRUCTURE PRINCIPALE ============
     content = ft.Container(
         content=ft.Column(
             [
                 navbar,
-                ft.Container(height=20),
+                ft.Container(height=16),
                 ft.Row(
                     [
-                        ft.Text("Mes réservations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                        ft.Column(
+                            [
+                                ft.Text("Mes réservations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
+                                ft.Text("Suivez l'état de vos demandes de concession", size=12, color=COLOR_TEXT_MUTED),
+                            ],
+                            spacing=2,
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                ),
+                ft.Container(height=14),
+                
+                # Barre de recherche dynamique
+                ft.Row(
+                    [
+                        search_input,
                     ],
                 ),
-                ft.Container(height=20),
+                
+                ft.Container(height=12),
                 list_container,
                 ft.Container(height=20),
             ],

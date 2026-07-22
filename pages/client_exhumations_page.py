@@ -1,4 +1,3 @@
-# pages/client_exhumations_page.py
 import flet as ft
 from datetime import datetime
 from components.navbar import build_navbar
@@ -44,45 +43,63 @@ def client_exhumations_page(page: ft.Page, on_logout):
             border_radius=20,
         )
 
-    # ============ DIALOGUES ============
+    # ============ DIALOGUES NOUVELLE GÉNÉRATION ============
     def open_create_dialog():
+        selected_date_val = [None]
+
+        # Champs re-stylisés avec icônes préfixes intégrées
         caveau_id_field = ft.TextField(
             label="ID du caveau",
-            width=320,
+            hint_text="Ex: 102",
+            width=360,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
+            focused_border_color=COLOR_PRIMARY,
+            label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+            prefix_icon=ft.Icons.TAG_ROUNDED,
             keyboard_type=ft.KeyboardType.NUMBER,
-        )
-        nom_defunt_field = ft.TextField(
-            label="Nom complet du défunt",
-            width=320,
-            bgcolor=COLOR_BG,
-            color=COLOR_TEXT,
-            border_color=COLOR_BORDER,
-        )
-        motif_field = ft.TextField(
-            label="Motif de la demande",
-            width=320,
-            multiline=True,
-            min_lines=2,
-            bgcolor=COLOR_BG,
-            color=COLOR_TEXT,
-            border_color=COLOR_BORDER,
+            border_radius=10,
         )
 
-        date_field = ft.TextField(
-            label="Date d'exhumation souhaitée",
-            width=260,
+        nom_defunt_field = ft.TextField(
+            label="Nom complet du défunt",
+            hint_text="Nom et prénom",
+            width=360,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
             border_color=COLOR_BORDER,
-            read_only=True,
+            focused_border_color=COLOR_PRIMARY,
+            label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+            prefix_icon=ft.Icons.PERSON_OUTLINE_ROUNDED,
+            border_radius=10,
         )
+
+        motif_field = ft.TextField(
+            label="Motif de la demande",
+            hint_text="Raison du transfert ou du retrait...",
+            width=360,
+            multiline=True,
+            min_lines=2,
+            max_lines=3,
+            bgcolor=COLOR_BG,
+            color=COLOR_TEXT,
+            border_color=COLOR_BORDER,
+            focused_border_color=COLOR_PRIMARY,
+            label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+            prefix_icon=ft.Icons.DESCRIPTION_OUTLINED,
+            border_radius=10,
+        )
+
+        # Composant de sélection de date repensé sous forme de Carte interactive
+        date_display_text = ft.Text("Choisir une date", color=COLOR_TEXT_MUTED, size=13)
+        date_badge_icon = ft.Icon(ft.Icons.CALENDAR_MONTH_ROUNDED, color=COLOR_PRIMARY, size=20)
 
         def handle_date_change(e):
             if date_picker.value:
-                date_field.value = date_picker.value.strftime("%Y-%m-%d")
+                selected_date_val[0] = date_picker.value.strftime("%Y-%m-%d")
+                date_display_text.value = selected_date_val[0]
+                date_display_text.color = COLOR_TEXT
                 page.update()
 
         date_picker = ft.DatePicker(
@@ -92,20 +109,36 @@ def client_exhumations_page(page: ft.Page, on_logout):
         )
         page.overlay.append(date_picker)
 
-        def open_date_picker():
-            date_picker.open = True
-            page.update()
-
-        date_picker_button = ft.IconButton(
-            icon=ft.Icons.CALENDAR_MONTH_OUTLINED,
-            icon_color=COLOR_PRIMARY,
-            on_click=lambda e: open_date_picker(),
+        date_selector_card = ft.Container(
+            content=ft.Row(
+                [
+                    date_badge_icon,
+                    ft.Column(
+                        [
+                            ft.Text("Date d'exhumation souhaitée", color=COLOR_TEXT_MUTED, size=11, weight=ft.FontWeight.W_500),
+                            date_display_text,
+                        ],
+                        spacing=2,
+                        expand=True,
+                    ),
+                    ft.Icon(ft.Icons.CHEVRON_RIGHT_ROUNDED, color=COLOR_TEXT_MUTED, size=18),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
+            padding=ft.Padding(12, 10, 12, 10),
+            bgcolor=COLOR_BG,
+            border=ft.Border.all(1, COLOR_BORDER),
+            border_radius=10,
+            width=360,
+            on_click=lambda e: setattr(date_picker, "open", True) or page.update(),
         )
 
-        date_row = ft.Row([date_field, date_picker_button], spacing=8)
+        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False, weight=ft.FontWeight.W_500)
+        success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False, weight=ft.FontWeight.W_500)
 
-        error_text = ft.Text("", color=COLOR_RED, size=12, visible=False)
-        success_text = ft.Text("", color=COLOR_GREEN, size=12, visible=False)
+        def close_dialog_action(e):
+            dialog.open = False
+            page.update()
 
         def handle_submit(e):
             if not caveau_id_field.value or not nom_defunt_field.value or not motif_field.value:
@@ -119,8 +152,8 @@ def client_exhumations_page(page: ft.Page, on_logout):
                     "nom_defunt": nom_defunt_field.value,
                     "motif": motif_field.value,
                 }
-                if date_field.value:
-                    payload["date_exhumation"] = date_field.value
+                if selected_date_val[0]:
+                    payload["date_exhumation"] = selected_date_val[0]
 
                 result = create_exhumation_client(payload)
                 if result.get("success"):
@@ -138,22 +171,88 @@ def client_exhumations_page(page: ft.Page, on_logout):
                 error_text.visible = True
                 page.update()
 
-        def handle_cancel(e):
-            dialog.open = False
-            page.update()
+        # En-tête personnalisé (Header) stylisé avec icône de titre et bouton de fermeture X
+        dialog_header = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Row(
+                        [
+                            ft.Container(
+                                content=ft.Icon(ft.Icons.UNARCHIVE_ROUNDED, color=COLOR_PRIMARY, size=22),
+                                bgcolor=COLOR_BG,
+                                padding=8,
+                                border_radius=10,
+                                border=ft.Border.all(1, COLOR_BORDER),
+                            ),
+                            ft.Column(
+                                [
+                                    ft.Text("Nouvelle demande", color=COLOR_TEXT, size=16, weight=ft.FontWeight.BOLD),
+                                    ft.Text("Formulaire d'exhumation", color=COLOR_TEXT_MUTED, size=12),
+                                ],
+                                spacing=0,
+                            ),
+                        ],
+                        spacing=12,
+                    ),
+                    ft.IconButton(
+                        icon=ft.Icons.CLOSE_ROUNDED,
+                        icon_color=COLOR_TEXT_MUTED,
+                        icon_size=20,
+                        on_click=close_dialog_action,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
+            padding=ft.Padding(0, 0, 0, 10),
+        )
 
+        # Formulaire assemblé dans une vue moderne
+        dialog_body = ft.Column(
+            [
+                dialog_header,
+                ft.Divider(color=COLOR_BORDER, height=1),
+                ft.Container(height=8),
+                caveau_id_field,
+                nom_defunt_field,
+                motif_field,
+                date_selector_card,
+                error_text,
+                success_text,
+                ft.Container(height=10),
+                ft.ElevatedButton(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.SEND_ROUNDED, size=16),
+                            ft.Text("Soumettre la demande", weight=ft.FontWeight.BOLD, size=14),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=8,
+                    ),
+                    width=360,
+                    height=45,
+                    bgcolor=COLOR_PRIMARY,
+                    color=ft.Colors.WHITE,
+                    style=ft.ButtonStyle(
+                        shape=ft.RoundedRectangleBorder(radius=24),
+                    ),
+                    on_click=handle_submit,
+                ),
+            ],
+            spacing=12,
+            tight=True,
+            width=360,
+            scroll=ft.ScrollMode.AUTO,
+        )
+
+        # Structure du Custom Card Dialog
         dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
-            title=ft.Text("Nouvelle demande d'exhumation", color=COLOR_TEXT),
-            content=ft.Column(
-                [caveau_id_field, nom_defunt_field, motif_field, date_row, error_text, success_text],
-                spacing=12, tight=True, width=340, scroll=ft.ScrollMode.AUTO,
-            ),
-            actions=[
-                ft.TextButton("Fermer", on_click=handle_cancel),
-                ft.ElevatedButton("Soumettre", bgcolor=COLOR_PRIMARY, color=ft.Colors.WHITE, on_click=handle_submit),
-            ],
+            content_padding=24,
+            shape=ft.RoundedRectangleBorder(radius=20),
+            content=dialog_body,
+            actions=[],  # Actions intégrées directement dans le corps
         )
+        
         page.overlay.append(dialog)
         dialog.open = True
         page.update()
@@ -234,7 +333,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
     search_button = ft.ElevatedButton(
         text="Rechercher",
         icon=ft.Icons.SEARCH_ROUNDED,
-        bgcolor="#1F2937",  # Teinte dark élégante pour différencier le bouton d'action principale
+        bgcolor="#1F2937",  # Teinte dark élégante
         color=ft.Colors.WHITE,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
         on_click=perform_search,
@@ -265,7 +364,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                 ),
                 ft.Container(height=15),
                 
-                # Barre de recherche stylisée et isolée
+                # Barre de recherche stylisée
                 ft.Row(
                     [
                         search_input,
