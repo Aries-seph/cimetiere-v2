@@ -101,7 +101,7 @@ def client_profil_page(page: ft.Page, on_logout):
             [
                 ft.Container(
                     content=ft.Text(initials, size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment.CENTER,
                     width=68,
                     height=68,
                     bgcolor=COLOR_PRIMARY,

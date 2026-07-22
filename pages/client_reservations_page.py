@@ -140,7 +140,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                         spacing=8,
                     ),
                     padding=40,
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment.CENTER,
                 )
             )
         else:
