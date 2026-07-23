@@ -1,5 +1,7 @@
 # pages/rapports_page.py
 import flet as ft
+import tempfile
+import os
 from components.navbar import build_navbar
 from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal, download_export
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_BORDER
@@ -23,42 +25,35 @@ def rapports_page(page: ft.Page, on_logout):
     revenus_data = get_revenus_par_canal() or []
 
     export_status = ft.Text("", size=12, color=COLOR_GREEN, visible=False)
-    
-    # Créer un FilePicker pour sauvegarder les fichiers
-    file_picker = ft.FilePicker()
-    page.overlay.append(file_picker)
-    page.update()
 
     def handle_export(export_type, extension):
-        """Télécharge le fichier via FilePicker."""
+        """Télécharge le fichier via page.download()."""
         result = download_export(export_type)
         
         if result and result.get("status_code") == 200:
             content = result.get("content")
             
-            # Sauvegarder avec FilePicker
-            file_picker.save_file(
+            # Créer un fichier temporaire
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{extension}") as tmp_file:
+                tmp_file.write(content)
+                tmp_path = tmp_file.name
+            
+            # Télécharger via page.download()
+            page.download(
+                url=f"file://{tmp_path}",
                 file_name=f"registre_cimetiere.{extension}",
-                allowed_extensions=[extension],
             )
             
-            # Attendre que l'utilisateur choisisse l'emplacement
-            def on_file_saved(e: ft.FilePickerResultEvent):
-                if e.path:
-                    with open(e.path, "wb") as f:
-                        f.write(content)
-                    export_status.value = f"✅ Fichier sauvegardé : {e.path}"
-                    export_status.color = COLOR_GREEN
-                    export_status.visible = True
-                    page.update()
-                else:
-                    export_status.value = "❌ Sauvegarde annulée"
-                    export_status.color = "#EF4444"
-                    export_status.visible = True
-                    page.update()
+            export_status.value = f"✅ Téléchargement de {extension.upper()} démarré"
+            export_status.color = COLOR_GREEN
+            export_status.visible = True
+            page.update()
             
-            file_picker.on_result = on_file_saved
-            
+            # Nettoyer le fichier temporaire après téléchargement
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
         else:
             export_status.value = "❌ Erreur lors de l'export"
             export_status.color = "#EF4444"
@@ -198,7 +193,7 @@ def rapports_page(page: ft.Page, on_logout):
                 
                 ft.Row(
                     [
-                        ft.Button(
+                        ft.ElevatedButton(
                             "CSV",
                             icon=ft.Icons.SIM_CARD_DOWNLOAD_OUTLINED,
                             bgcolor="#1F2937",
@@ -208,7 +203,7 @@ def rapports_page(page: ft.Page, on_logout):
                             ),
                             on_click=lambda e: handle_export("csv", "csv"),
                         ),
-                        ft.Button(
+                        ft.ElevatedButton(
                             "Excel",
                             icon=ft.Icons.DOWNLOAD_FOR_OFFLINE_OUTLINED,
                             bgcolor=COLOR_PRIMARY,
@@ -230,7 +225,7 @@ def rapports_page(page: ft.Page, on_logout):
             scroll=ft.ScrollMode.AUTO,
             expand=True,
         ),
-        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
+        padding=ft.Padding(left=20, top=20, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
