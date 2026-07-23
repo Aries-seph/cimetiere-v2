@@ -2,8 +2,7 @@
 .env
 *.env
 venv/
-machine/
-frontend/
+cimetiere_env/
 __pycache__/
 *.pyc
 *.pyo
