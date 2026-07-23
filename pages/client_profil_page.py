@@ -102,7 +102,7 @@ def client_profil_page(page: ft.Page, on_logout):
                     height=68,
                     bgcolor=COLOR_PRIMARY,
                     border_radius=34,
-                    border=ft.border.all(3, COLOR_BORDER),
+                    border=ft.Border.all(3, COLOR_BORDER),
                 ),
                 ft.Column(
                     [
@@ -114,7 +114,7 @@ def client_profil_page(page: ft.Page, on_logout):
                                     bgcolor=COLOR_BG,
                                     padding=ft.Padding.symmetric(horizontal=8, vertical=3),
                                     border_radius=12,
-                                    border=ft.border.all(1, COLOR_PRIMARY),
+                                    border=ft.Border.all(1, COLOR_PRIMARY),
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.START,
