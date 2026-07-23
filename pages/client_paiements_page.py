@@ -241,7 +241,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                 ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE, size=16),
+                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=16),
                             ft.Text("Valider le paiement", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
