@@ -184,7 +184,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                         [
                             # Icône d'illustration
                             ft.Container(
-                                content=ft.Icon(ft.icons.ASPECT_RATIO_ROUNDED, color=COLOR_PRIMARY, size=22),
+                                content=ft.Icon(ft.icons.CROP_FREE_ROUNDED, color=COLOR_PRIMARY, size=22),
                                 bgcolor=COLOR_BG,
                                 padding=12,
                                 border_radius=10,
@@ -230,7 +230,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                     # Côté Droit : Action
                     ft.Button(
                         "Réserver",
-                        icon=ft.icons.ADD_LOCATION_ALT_OUTLINED,
+                        icon=ft.icons.LOCATION_ON_OUTLINED,
                         bgcolor=COLOR_PRIMARY,
                         color=ft.colors.WHITE,
                         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
