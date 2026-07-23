@@ -1,5 +1,8 @@
 # pages/rapports_page.py
 import flet as ft
+import os
+import subprocess
+import sys
 from components.navbar import build_navbar
 from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal, download_export
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_BORDER
@@ -23,47 +26,33 @@ def rapports_page(page: ft.Page, on_logout):
     revenus_data = get_revenus_par_canal() or []
 
     export_status = ft.Text("", size=12, color=COLOR_GREEN, visible=False)
-    
-    # Créer un FilePicker
-    file_picker = ft.FilePicker()
-    page.overlay.append(file_picker)
-    page.update()
 
-    # Variable pour stocker le contenu du fichier
-    file_content = [None]
-    file_extension = [""]
+    def open_file_location(filepath):
+        try:
+            if sys.platform == "win32":
+                subprocess.run(["explorer", "/select,", filepath])
+            elif sys.platform == "darwin":
+                subprocess.run(["open", "-R", filepath])
+            else:
+                subprocess.run(["xdg-open", os.path.dirname(filepath)])
+        except Exception:
+            pass
 
-    def on_file_saved(e: ft.FilePickerResultEvent):
-        if e.path:
-            with open(e.path, "wb") as f:
-                f.write(file_content[0])
-            export_status.value = f"✅ Fichier sauvegardé : {e.path}"
+    def handle_export(export_type, extension):
+        content = download_export(export_type)
+        if content:
+            downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
+            os.makedirs(downloads_folder, exist_ok=True)
+            filepath = os.path.join(downloads_folder, f"registre_cimetiere.{extension}")
+            with open(filepath, "wb") as f:
+                f.write(content)
+            export_status.value = f"Fichier enregistré : {filepath}"
             export_status.color = COLOR_GREEN
             export_status.visible = True
             page.update()
+            open_file_location(filepath)
         else:
-            export_status.value = "❌ Sauvegarde annulée"
-            export_status.color = "#EF4444"
-            export_status.visible = True
-            page.update()
-
-    file_picker.on_result = on_file_saved
-
-    def handle_export(export_type, extension):
-        """Télécharge le fichier via FilePicker."""
-        result = download_export(export_type)
-        
-        if result and result.get("status_code") == 200:
-            file_content[0] = result.get("content")
-            file_extension[0] = extension
-            
-            # Ouvrir la boîte de dialogue de sauvegarde
-            file_picker.save_file(
-                file_name=f"registre_cimetiere.{extension}",
-                allowed_extensions=[extension],
-            )
-        else:
-            export_status.value = "❌ Erreur lors de l'export"
+            export_status.value = "Erreur lors de l'export"
             export_status.color = "#EF4444"
             export_status.visible = True
             page.update()
