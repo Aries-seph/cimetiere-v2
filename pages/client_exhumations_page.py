@@ -50,7 +50,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.icons.TAG_ROUNDED,
+            prefix_icon=ft.Icons.TAG_ROUNDED,
             keyboard_type=ft.KeyboardType.NUMBER,
             border_radius=10,
         )
@@ -64,7 +64,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.icons.PERSON_OUTLINE,
+            prefix_icon=ft.Icons.PERSON_OUTLINE,
             border_radius=10,
         )
 
@@ -80,7 +80,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.icons.DESCRIPTION_OUTLINED,
+            prefix_icon=ft.Icons.DESCRIPTION_OUTLINED,
             border_radius=10,
         )
 
@@ -314,7 +314,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
 
     search_button = ft.Button(
         content="Rechercher",
-        icon=ft.icons.SEARCH,
+        icon=ft.IconsSEARCH,
         bgcolor="#1F2937",
         color="white",
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
@@ -334,7 +334,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                         ft.Container(expand=True),
                         ft.Button(
                             content="Nouvelle demande",
-                            icon=ft.icons.ADD,
+                            icon=ft.IconsADD,
                             bgcolor=COLOR_PRIMARY,
                             color="white",
                             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),

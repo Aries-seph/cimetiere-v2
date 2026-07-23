@@ -203,7 +203,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                                             ft.Container(
                                                 content=ft.Text("Disponible", size=10, color=COLOR_GREEN, weight=ft.FontWeight.BOLD),
                                                 bgcolor=ft.Colors.GREEN_100 if hasattr(ft.Colors, "GREEN_100") else COLOR_GREEN,
-                                                padding=ft.padding.symmetric(horizontal=8, vertical=4),
+                                                padding=ft.adding.symmetric(horizontal=8, vertical=4),
                                                 border_radius=12,
                                             ),
                                         ],
