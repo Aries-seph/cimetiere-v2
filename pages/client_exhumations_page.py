@@ -118,7 +118,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
             ),
             padding=ft.Padding.symmetric(horizontal=12, vertical=10),
             bgcolor=COLOR_BG,
-            border=ft.border.all(1, COLOR_BORDER),
+            border=ft.Border.all(1, COLOR_BORDER),
             border_radius=10,
             width=360,
             on_click=lambda e: setattr(date_picker, "open", True) or page.update(),
@@ -172,7 +172,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
-                                border=ft.border.all(1, COLOR_BORDER),
+                                border=ft.Border.all(1, COLOR_BORDER),
                             ),
                             ft.Column(
                                 [
