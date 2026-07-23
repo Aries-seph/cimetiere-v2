@@ -185,7 +185,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                         spacing=12,
                     ),
                     ft.IconButton(
-                        icon=ft.icons.CLOSE,
+                        icon=ft.Icons.CLOSE,
                         icon_color=COLOR_TEXT_MUTED,
                         icon_size=20,
                         on_click=close_dialog_action,

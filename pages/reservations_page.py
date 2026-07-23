@@ -129,7 +129,7 @@ def reservations_page(page: ft.Page, on_logout):
     # --- INPUT ET BOUTON DE RECHERCHE VISUELLEMENT MIS À JOUR ---
     search_field = ft.TextField(
         hint_text="ID de la réservation...",
-        prefix_icon=ft.icons.SEARCH,
+        prefix_icon=ft.Icons.SEARCH,
         width=240,
         height=40,
         content_padding=ft.Padding(10, 0, 10, 0),
