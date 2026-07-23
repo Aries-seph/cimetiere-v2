@@ -135,7 +135,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
             shape=ft.RoundedRectangleBorder(radius=16),
             title=ft.Row(
                 [
-                    ft.Icon(ft.icons.BOOKMARK_ADD, color=COLOR_PRIMARY, size=24),
+                    ft.Icon(ft.Icons.BOOKMARK_ADD, color=COLOR_PRIMARY, size=24),
                     ft.Text(f"Réserver le Caveau {caveau.get('reference', '')}", size=18, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                 ],
                 spacing=10,

@@ -95,7 +95,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                             ft.Container(
                                 content=ft.Row(
                                     [
-                                        ft.Icon(ft.icons.CHAT_BUBBLE_OUTLINE, color=COLOR_TEXT_MUTED, size=14),
+                                        ft.Icon(ft.Icons.CHAT_BUBBLE_OUTLINE, color=COLOR_TEXT_MUTED, size=14),
                                         ft.Text(commentaire, size=12, color=COLOR_TEXT_MUTED, italic=True, expand=True),
                                     ],
                                     spacing=6,

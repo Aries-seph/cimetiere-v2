@@ -50,7 +50,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                     ft.Row(
                         [
                             ft.Container(
-                                content=ft.Icon(ft.icons.INFO_OUTLINED, color=COLOR_ORANGE, size=22),
+                                content=ft.Icon(ft.Icons.INFO_OUTLINED, color=COLOR_ORANGE, size=22),
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
@@ -198,7 +198,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                     ft.Row(
                         [
                             ft.Container(
-                                content=ft.Icon(ft.icons.PAYMENT_ROUNDED, color=COLOR_PRIMARY, size=22),
+                                content=ft.Icon(ft.Icons.PAYMENT_ROUNDED, color=COLOR_PRIMARY, size=22),
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
@@ -239,7 +239,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                 ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=16),
+                            ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, size=16),
                             ft.Text("Valider le paiement", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,

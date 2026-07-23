@@ -142,7 +142,7 @@ def client_profil_page(page: ft.Page, on_logout):
             [
                 ft.Row(
                     [
-                        ft.Icon(ft.icons.SHIELD_OUTLINE, color=COLOR_PRIMARY, size=20),
+                        ft.Icon(ft.Icons.SHIELD_OUTLINE, color=COLOR_PRIMARY, size=20),
                         ft.Text("Politique de sécurité", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                     spacing=8,
@@ -167,7 +167,7 @@ def client_profil_page(page: ft.Page, on_logout):
             [
                 ft.Row(
                     [
-                        ft.Icon(ft.icons.MANAGE_ACCOUNTS, color=COLOR_PRIMARY, size=20),
+                        ft.Icon(ft.Icons.MANAGE_ACCOUNTS, color=COLOR_PRIMARY, size=20),
                         ft.Text("Modifier mes informations", size=15, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                     spacing=8,
@@ -183,7 +183,7 @@ def client_profil_page(page: ft.Page, on_logout):
                 ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE, size=18),
+                            ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, size=18),
                             ft.Text("Enregistrer les modifications", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,

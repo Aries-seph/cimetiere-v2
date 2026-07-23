@@ -103,7 +103,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
         date_selector_card = ft.Container(
             content=ft.Row(
                 [
-                    ft.Icon(ft.icons.CALENDAR_MONTH, color=COLOR_PRIMARY, size=20),
+                    ft.Icon(ft.Icons.CALENDAR_MONTH, color=COLOR_PRIMARY, size=20),
                     ft.Column(
                         [
                             ft.Text("Date d'exhumation souhaitée", color=COLOR_TEXT_MUTED, size=11, weight=ft.FontWeight.W_500),
@@ -112,7 +112,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                         spacing=2,
                         expand=True,
                     ),
-                    ft.Icon(ft.icons.CHEVRON_RIGHT, color=COLOR_TEXT_MUTED, size=18),
+                    ft.Icon(ft.Icons.CHEVRON_RIGHT, color=COLOR_TEXT_MUTED, size=18),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
@@ -168,7 +168,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                     ft.Row(
                         [
                             ft.Container(
-                                content=ft.Icon(ft.icons.UNARCHIVE, color=COLOR_PRIMARY, size=22),
+                                content=ft.Icon(ft.Icons.UNARCHIVE, color=COLOR_PRIMARY, size=22),
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
@@ -211,7 +211,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                 ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.icons.SEND, size=16),
+                            ft.Icon(ft.Icons.SEND, size=16),
                             ft.Text("Soumettre la demande", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
