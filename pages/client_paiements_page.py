@@ -54,7 +54,6 @@ def client_paiements_page(page: ft.Page, on_logout):
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
-                                padding=ft.Padding(left=20, top=0, right=0, bottom=0),
                             ),
                             ft.Text("Information", color=COLOR_TEXT, size=16, weight=ft.FontWeight.BOLD),
                         ],
@@ -203,7 +202,6 @@ def client_paiements_page(page: ft.Page, on_logout):
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
-                                padding=ft.Padding(left=20, top=0, right=0, bottom=0),
                             ),
                             ft.Column(
                                 [
@@ -295,7 +293,6 @@ def client_paiements_page(page: ft.Page, on_logout):
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             bgcolor=COLOR_CARD,
-            padding=16,
             border_radius=10,
             padding=ft.Padding(left=20, top=0, right=0, bottom=0),
         )
