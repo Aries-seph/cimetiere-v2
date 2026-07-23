@@ -142,7 +142,7 @@ def client_profil_page(page: ft.Page, on_logout):
             [
                 ft.Row(
                     [
-                        ft.Icon(ft.Icons.SHIELD_OUTLINE, color=COLOR_PRIMARY, size=20),
+                        ft.Icon(ft.Icons.PERSON_OUTLINED, color=COLOR_PRIMARY, size=20),
                         ft.Text("Politique de sécurité", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                     spacing=8,
