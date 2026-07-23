@@ -40,9 +40,16 @@ def rapports_page(page: ft.Page, on_logout):
 
     async def handle_export(export_type, extension):
         """Ouvre l'URL d'export de l'API Ninja/Django directement dans le navigateur."""
-        token = page.shared_preferences.get("access_token")  # adapte la clé si tu stockes différemment
-        export_url = f"{API_BASE_URL}/export-{export_type}?token={token}"
+        token = await page.shared_preferences.get("cimetiere.access_token")
 
+        if not token:
+            export_status.value = "❌ Session invalide, reconnectez-vous."
+            export_status.color = ft.Colors.RED
+            export_status.visible = True
+            page.update()
+            return
+
+        export_url = f"{API_BASE_URL}/export-{export_type}?token={token}"
         await page.launch_url(export_url, web_popup_window_name=ft.UrlTarget.SELF)
 
         export_status.value = f"✅ Téléchargement du rapport {extension.upper()} démarré..."
