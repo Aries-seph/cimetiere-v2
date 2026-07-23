@@ -28,7 +28,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
         nom_defunt_field = ft.TextField(
             label="Nom complet du défunt",
             hint_text="Ex: Jean Dupont",
-            prefix_icon=ft.icons.PERSON_OUTLINED,
+            prefix_icon=ft.Icons.PERSON_OUTLINED,
             border_radius=8,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
@@ -39,7 +39,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
         date_deces_field = ft.TextField(
             label="Date de décès",
             hint_text="AAAA-MM-JJ",
-            prefix_icon=ft.icons.CALENDAR_TODAY_OUTLINED,
+            prefix_icon=ft.Icons.CALENDAR_TODAY_OUTLINED,
             border_radius=8,
             bgcolor=COLOR_BG,
             color=COLOR_TEXT,
@@ -61,7 +61,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
         page.overlay.append(date_picker)
 
         date_picker_button = ft.IconButton(
-            icon=ft.icons.EDIT_CALENDAR_ROUNDED,
+            icon=ft.Icons.EDIT_CALENDAR_ROUNDED,
             icon_color=COLOR_PRIMARY,
             tooltip="Choisir la date",
             on_click=lambda e: setattr(date_picker, "open", True) or page.update(),
@@ -71,7 +71,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
 
         commentaire_field = ft.TextField(
             label="Remarques / Demandes particulières (Optionnel)",
-            prefix_icon=ft.icons.CHAT_BUBBLE_OUTLINE,
+            prefix_icon=ft.Icons.CHAT_BUBBLE_OUTLINE,
             multiline=True,
             min_lines=2,
             max_lines=4,
@@ -160,9 +160,9 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.Button(
                     "Confirmer la demande",
-                    icon=ft.icons.SEND_ROUNDED,
+                    icon=ft.Icons.SEND_ROUNDED,
                     bgcolor=COLOR_PRIMARY,
-                    color=ft.colors.WHITE,
+                    color=ft.Colors.WHITE,
                     style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
                     on_click=handle_submit,
                 ),
@@ -202,8 +202,8 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                                             # Badge Disponibilité
                                             ft.Container(
                                                 content=ft.Text("Disponible", size=10, color=COLOR_GREEN, weight=ft.FontWeight.BOLD),
-                                                bgcolor=ft.colors.with_opacity(0.15, COLOR_GREEN),
-                                                padding=ft.padding.symmetric(horizontal=8, vertical=4),
+                                                bgcolor=ft.Colors.with_opacity(0.15, COLOR_GREEN),
+                                                padding=ft.Padding.symmetric(horizontal=8, vertical=4),
                                                 border_radius=12,
                                             ),
                                         ],
@@ -232,7 +232,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                         "Réserver",
                         icon=ft.Icons.LOCATION_ON_OUTLINED,
                         bgcolor=COLOR_PRIMARY,
-                        color=ft.colors.WHITE,
+                        color=ft.Colors.WHITE,
                         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
                         on_click=lambda e, c=caveau: open_reservation_dialog(c),
                     ),
@@ -246,7 +246,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
             border=ft.border.all(1, COLOR_BORDER),
             shadow=ft.BoxShadow(
                 blur_radius=10,
-                color=ft.colors.with_opacity(0.04, ft.colors.BLACK),
+                color=ft.Colors.with_opacity(0.04, ft.colors.BLACK),
                 offset=ft.Offset(0, 4),
             ),
         )
@@ -312,7 +312,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                             ),
                         ],
                     ),
-                    padding=ft.padding.only(bottom=10),
+                    padding=ft.Padding.only(bottom=10),
                 ),
                 ft.Divider(height=1, color=COLOR_BORDER),
                 ft.Container(height=10),
@@ -321,7 +321,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
             expand=True,
             scroll=ft.ScrollMode.AUTO,
         ),
-        padding=ft.padding.only(left=24, top=0, right=24, bottom=24),
+        padding=ft.Padding.only(left=24, top=0, right=24, bottom=24),
         expand=True,
         bgcolor=COLOR_BG,
     )

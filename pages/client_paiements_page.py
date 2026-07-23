@@ -36,7 +36,7 @@ def client_paiements_page(page: ft.Page, on_logout):
         return ft.Container(
             content=ft.Text(label, size=12, color="white", weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.padding.symmetric(horizontal=12, vertical=4),
+            padding=ft.Padding.symmetric(horizontal=12, vertical=4),
             border_radius=20,
         )
 
@@ -224,7 +224,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
-            padding=ft.padding.only(bottom=10),
+            padding=ft.Padding.only(bottom=10),
         )
 
         dialog_body = ft.Column(
@@ -340,7 +340,7 @@ def client_paiements_page(page: ft.Page, on_logout):
             expand=True,
             scroll=ft.ScrollMode.AUTO,
         ),
-        padding=ft.padding.only(left=20, top=0, right=20, bottom=20),
+        padding=ft.Padding.only(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )

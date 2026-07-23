@@ -38,7 +38,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
             bgcolor=color,
-            padding=ft.padding.symmetric(horizontal=10, vertical=4),
+            padding=ft.Padding.symmetric(horizontal=10, vertical=4),
             border_radius=12,
         )
 
@@ -101,7 +101,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                                     spacing=6,
                                 ),
                                 bgcolor=COLOR_BG,
-                                padding=ft.padding.symmetric(horizontal=10, vertical=8),
+                                padding=ft.Padding.symmetric(horizontal=10, vertical=8),
                                 border_radius=8,
                                 border=ft.border.all(1, COLOR_BORDER),
                             )
@@ -155,7 +155,7 @@ def client_reservations_page(page: ft.Page, on_logout):
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         focused_border_color=COLOR_PRIMARY,
-        content_padding=ft.padding.symmetric(horizontal=12, vertical=10),
+        content_padding=ft.Padding.symmetric(horizontal=12, vertical=10),
         hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
         border_radius=10,
         prefix_icon=ft.icons.SEARCH_ROUNDED,
@@ -203,7 +203,7 @@ def client_reservations_page(page: ft.Page, on_logout):
             expand=True,
             scroll=ft.ScrollMode.AUTO,
         ),
-        padding=ft.padding.only(left=20, top=0, right=20, bottom=20),
+        padding=ft.Padding.only(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )

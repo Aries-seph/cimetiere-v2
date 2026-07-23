@@ -112,7 +112,7 @@ def client_profil_page(page: ft.Page, on_logout):
                                 ft.Container(
                                     content=ft.Text(role_val, size=10, weight=ft.FontWeight.BOLD, color=COLOR_PRIMARY),
                                     bgcolor=COLOR_BG,
-                                    padding=ft.padding.symmetric(horizontal=8, vertical=3),
+                                    padding=ft.Padding.symmetric(horizontal=8, vertical=3),
                                     border_radius=12,
                                     border=ft.border.all(1, COLOR_PRIMARY),
                                 ),
@@ -246,7 +246,7 @@ def client_profil_page(page: ft.Page, on_logout):
             scroll=ft.ScrollMode.AUTO,
             expand=True,
         ),
-        padding=ft.padding.only(left=20, top=0, right=20, bottom=20),
+        padding=ft.Padding.only(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )

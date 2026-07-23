@@ -34,7 +34,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
         return ft.Container(
             content=ft.Text(label, size=11, color="white", weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.padding.symmetric(horizontal=10, vertical=2),
+            padding=ft.Padding.symmetric(horizontal=10, vertical=2),
             border_radius=20,
         )
 
@@ -116,7 +116,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
-            padding=ft.padding.symmetric(horizontal=12, vertical=10),
+            padding=ft.Padding.symmetric(horizontal=12, vertical=10),
             bgcolor=COLOR_BG,
             border=ft.border.all(1, COLOR_BORDER),
             border_radius=10,
@@ -193,7 +193,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
-            padding=ft.padding.only(bottom=10),
+            padding=ft.Padding.only(bottom=10),
         )
 
         dialog_body = ft.Column(
@@ -295,7 +295,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         focused_border_color=COLOR_PRIMARY,
-        content_padding=ft.padding.symmetric(horizontal=12, vertical=8),
+        content_padding=ft.Padding.symmetric(horizontal=12, vertical=8),
         hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
         border_radius=8,
         expand=True,
@@ -351,7 +351,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
             expand=True,
             scroll=ft.ScrollMode.AUTO,
         ),
-        padding=ft.padding.only(left=20, top=0, right=20, bottom=20),
+        padding=ft.Padding.only(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
