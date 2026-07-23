@@ -108,22 +108,21 @@ def client_paiements_page(page: ft.Page, on_logout):
             info_dialog.open = True
             page.update()
             return
-
         reservation_dropdown = ft.Dropdown(
-            label="Réservation",
-            width=360,
-            bgcolor=COLOR_BG,
-            color=COLOR_TEXT,
-            border_color=COLOR_BORDER,
-            focused_border_color=COLOR_PRIMARY,
-            label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.Icons.BOOKMARK_BORDER_ROUNDED,
-            border_radius=10,
-            options=[
-                ft.dropdown.Option(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
-                for r in reservations_validees
-            ],
-        )
+                    label="Réservation",
+                    width=360,
+                    bgcolor=COLOR_BG,
+                    color=COLOR_TEXT,
+                    border_color=COLOR_BORDER,
+                    focused_border_color=COLOR_PRIMARY,
+                    label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
+                    icon=ft.Icons.BOOKMARK_BORDER_ROUNDED,  # <--- Remplacé prefix_icon par icon
+                    border_radius=10,
+                    options=[
+                        ft.dropdown.Option(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
+                        for r in reservations_validees
+                    ],
+                )
 
         montant_field = ft.TextField(
             label="Montant (FCFA)",
@@ -134,7 +133,7 @@ def client_paiements_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.Icons.ATTACH_MONEY_ROUNDED,
+            prefix_icon=ft.Icons.ATTACH_MONEY_ROUNDED,  # Ok pour ft.TextField
             border_radius=10,
             keyboard_type=ft.KeyboardType.NUMBER,
         )
@@ -147,7 +146,7 @@ def client_paiements_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED,
+            icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED,  # <--- Remplacé prefix_icon par icon
             border_radius=10,
             options=[
                 ft.dropdown.Option(key="MOBILE_MONEY", text="Mobile Money"),
