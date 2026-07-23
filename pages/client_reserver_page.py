@@ -158,7 +158,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
             ),
             actions=[
                 ft.TextButton("Annuler", on_click=handle_cancel),
-                ft.Button(
+                ft.ElevatedButton(
                     "Confirmer la demande",
                     icon=ft.Icons.SEND_ROUNDED,
                     bgcolor=COLOR_PRIMARY,
@@ -202,8 +202,8 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                                             # Badge Disponibilité
                                             ft.Container(
                                                 content=ft.Text("Disponible", size=10, color=COLOR_GREEN, weight=ft.FontWeight.BOLD),
-                                                bgcolor=ft.Colors.with_opacity(0.15, COLOR_GREEN),
-                                                padding=ft.Padding.symmetric(horizontal=8, vertical=4),
+                                                bgcolor=ft.Colors.GREEN_100 if hasattr(ft.Colors, "GREEN_100") else COLOR_GREEN,
+                                                padding=ft.padding.symmetric(horizontal=8, vertical=4),
                                                 border_radius=12,
                                             ),
                                         ],
@@ -228,7 +228,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                         spacing=16,
                     ),
                     # Côté Droit : Action
-                    ft.Button(
+                    ft.ElevatedButton(
                         "Réserver",
                         icon=ft.Icons.LOCATION_ON_OUTLINED,
                         bgcolor=COLOR_PRIMARY,
@@ -243,10 +243,10 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
             bgcolor=COLOR_CARD,
             padding=18,
             border_radius=12,
-            border=ft.border.all(1, COLOR_BORDER),
+            border=ft.Border.all(1, COLOR_BORDER),
             shadow=ft.BoxShadow(
                 blur_radius=10,
-                color=ft.Colors.with_opacity(0.04, ft.colors.BLACK),
+                color=COLOR_BORDER,
                 offset=ft.Offset(0, 4),
             ),
         )
@@ -312,7 +312,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                             ),
                         ],
                     ),
-                    padding=ft.Padding.only(bottom=10),
+                    padding=ft.Padding(left=0, top=0, right=0, bottom=10),
                 ),
                 ft.Divider(height=1, color=COLOR_BORDER),
                 ft.Container(height=10),
@@ -321,7 +321,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
             expand=True,
             scroll=ft.ScrollMode.AUTO,
         ),
-        padding=ft.Padding.only(left=24, top=0, right=24, bottom=24),
+        padding=ft.Padding(left=24, top=0, right=24, bottom=24),
         expand=True,
         bgcolor=COLOR_BG,
     )
