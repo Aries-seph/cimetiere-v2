@@ -116,7 +116,6 @@ def client_paiements_page(page: ft.Page, on_logout):
                     border_color=COLOR_BORDER,
                     focused_border_color=COLOR_PRIMARY,
                     label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-                    icon=ft.Icons.BOOKMARK_BORDER_ROUNDED,  # <--- Remplacé prefix_icon par icon
                     border_radius=10,
                     options=[
                         ft.dropdown.Option(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
@@ -146,7 +145,6 @@ def client_paiements_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED,  # <--- Remplacé prefix_icon par icon
             border_radius=10,
             options=[
                 ft.dropdown.Option(key="MOBILE_MONEY", text="Mobile Money"),
