@@ -59,7 +59,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                                         bgcolor=COLOR_BG,
                                         padding=10,
                                         border_radius=10,
-                                        border=ft.border.all(1, COLOR_BORDER),
+                                        border=ft.Border.all(1, COLOR_BORDER),
                                     ),
                                     ft.Column(
                                         [
@@ -95,7 +95,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                             ft.Container(
                                 content=ft.Row(
                                     [
-                                        ft.Icon(ft.Icons.CHAT_BUBBLE_OUTLINE_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
+                                        ft.Icon(ft.icons.CHAT_BUBBLE_OUTLINE, color=COLOR_TEXT_MUTED, size=14),
                                         ft.Text(commentaire, size=12, color=COLOR_TEXT_MUTED, italic=True, expand=True),
                                     ],
                                     spacing=6,
@@ -103,7 +103,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                                 bgcolor=COLOR_BG,
                                 padding=ft.Padding.symmetric(horizontal=10, vertical=8),
                                 border_radius=8,
-                                border=ft.border.all(1, COLOR_BORDER),
+                                border=ft.Border.all(1, COLOR_BORDER),
                             )
                         ]
                         if commentaire
@@ -115,7 +115,7 @@ def client_reservations_page(page: ft.Page, on_logout):
             bgcolor=COLOR_CARD,
             padding=18,
             border_radius=14,
-            border=ft.border.all(1, COLOR_BORDER),
+            border=ft.Border.all(1, COLOR_BORDER),
         )
 
     def render_list(items):
@@ -158,7 +158,7 @@ def client_reservations_page(page: ft.Page, on_logout):
         content_padding=ft.Padding.symmetric(horizontal=12, vertical=10),
         hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
         border_radius=10,
-        prefix_icon=ft.icons.SEARCH_ROUNDED,
+        prefix_icon=ft.icons.SEARCH,
         expand=True,
     )
 

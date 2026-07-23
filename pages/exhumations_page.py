@@ -160,7 +160,7 @@ def exhumations_page(page: ft.Page, on_logout):
     # --- INPUT ET BOUTON DE RECHERCHE VISUELLEMENT MIS À JOUR ---
     search_field = ft.TextField(
         hint_text="ID de la demande...",
-        prefix_icon=ft.Icons.SEARCH_ROUNDED,
+        prefix_icon=ft.icons.SEARCH,
         width=240,
         height=40,
         content_padding=ft.Padding(10, 0, 10, 0),

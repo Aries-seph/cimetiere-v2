@@ -54,14 +54,14 @@ def client_paiements_page(page: ft.Page, on_logout):
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
-                                border=ft.border.all(1, COLOR_BORDER),
+                                padding=ft.Padding(left=20, top=0, right=0, bottom=0),
                             ),
                             ft.Text("Information", color=COLOR_TEXT, size=16, weight=ft.FontWeight.BOLD),
                         ],
                         spacing=12,
                     ),
                     ft.IconButton(
-                        icon=ft.icons.CLOSE_ROUNDED,
+                        icon=ft.icons.CLOSE,
                         icon_color=COLOR_TEXT_MUTED,
                         icon_size=20,
                         on_click=lambda e: close_dialog(info_dialog),
@@ -203,7 +203,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
-                                border=ft.border.all(1, COLOR_BORDER),
+                                padding=ft.Padding(left=20, top=0, right=0, bottom=0),
                             ),
                             ft.Column(
                                 [
@@ -216,7 +216,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                         spacing=12,
                     ),
                     ft.IconButton(
-                        icon=ft.icons.CLOSE_ROUNDED,
+                        icon=ft.icons.CLOSE,
                         icon_color=COLOR_TEXT_MUTED,
                         icon_size=20,
                         on_click=close_dialog_action,
@@ -241,7 +241,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                 ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=16),
+                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE, size=16),
                             ft.Text("Valider le paiement", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
@@ -297,7 +297,7 @@ def client_paiements_page(page: ft.Page, on_logout):
             bgcolor=COLOR_CARD,
             padding=16,
             border_radius=10,
-            border=ft.border.all(1, COLOR_BORDER),
+            padding=ft.Padding(left=20, top=0, right=0, bottom=0),
         )
 
     def refresh_list():

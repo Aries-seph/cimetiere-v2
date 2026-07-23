@@ -27,7 +27,7 @@ def client_profil_page(page: ft.Page, on_logout):
         border_color=COLOR_BORDER,
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-        prefix_icon=ft.icons.PERSON_OUTLINE_ROUNDED,
+        prefix_icon=ft.icons.PERSON_OUTLINE,
         border_radius=10,
         value=username_val,
     )
@@ -134,7 +134,7 @@ def client_profil_page(page: ft.Page, on_logout):
         bgcolor=COLOR_CARD,
         padding=20,
         border_radius=16,
-        border=ft.border.all(1, COLOR_BORDER),
+        border=ft.Border.all(1, COLOR_BORDER),
     )
 
     security_notice_card = ft.Container(
@@ -142,7 +142,7 @@ def client_profil_page(page: ft.Page, on_logout):
             [
                 ft.Row(
                     [
-                        ft.Icon(ft.icons.SHIELD_OUTLINED, color=COLOR_PRIMARY, size=20),
+                        ft.Icon(ft.icons.SHIELD_OUTLINE, color=COLOR_PRIMARY, size=20),
                         ft.Text("Politique de sécurité", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                     spacing=8,
@@ -159,7 +159,7 @@ def client_profil_page(page: ft.Page, on_logout):
         bgcolor=COLOR_CARD,
         padding=18,
         border_radius=14,
-        border=ft.border.all(1, COLOR_BORDER),
+        border=ft.Border.all(1, COLOR_BORDER),
     )
 
     form_card = ft.Container(
@@ -167,7 +167,7 @@ def client_profil_page(page: ft.Page, on_logout):
             [
                 ft.Row(
                     [
-                        ft.Icon(ft.icons.MANAGE_ACCOUNTS_ROUNDED, color=COLOR_PRIMARY, size=20),
+                        ft.Icon(ft.icons.MANAGE_ACCOUNTS, color=COLOR_PRIMARY, size=20),
                         ft.Text("Modifier mes informations", size=15, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                     spacing=8,
@@ -183,7 +183,7 @@ def client_profil_page(page: ft.Page, on_logout):
                 ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=18),
+                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE, size=18),
                             ft.Text("Enregistrer les modifications", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
@@ -201,7 +201,7 @@ def client_profil_page(page: ft.Page, on_logout):
         bgcolor=COLOR_CARD,
         padding=24,
         border_radius=16,
-        border=ft.border.all(1, COLOR_BORDER),
+        border=ft.Border.all(1, COLOR_BORDER),
     )
 
     if is_mobile:

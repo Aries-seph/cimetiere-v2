@@ -135,7 +135,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
             shape=ft.RoundedRectangleBorder(radius=16),
             title=ft.Row(
                 [
-                    ft.Icon(ft.Icons.BOOKMARK_ADD_ROUNDED, color=COLOR_PRIMARY, size=24),
+                    ft.Icon(ft.icons.BOOKMARK_ADD, color=COLOR_PRIMARY, size=24),
                     ft.Text(f"Réserver le Caveau {caveau.get('reference', '')}", size=18, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                 ],
                 spacing=10,
@@ -160,7 +160,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.ElevatedButton(
                     "Confirmer la demande",
-                    icon=ft.Icons.SEND_ROUNDED,
+                    icon=ft.icons.SEND,
                     bgcolor=COLOR_PRIMARY,
                     color=ft.Colors.WHITE,
                     style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
@@ -269,7 +269,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                         spacing=8,
                     ),
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment.CENTER,
                     padding=40,
                 )
             )
