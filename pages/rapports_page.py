@@ -13,7 +13,7 @@ CANAL_LABELS = {
     "ESPECES": "Espèces",
     "VIREMENT": "Virement",
 }
-
+API_BASE_URL="https://cimetiere-backend-v2-production.up.railway.app/api"
 
 def rapports_page(page: ft.Page, on_logout):
     """Page des rapports et exports."""
@@ -39,23 +39,18 @@ def rapports_page(page: ft.Page, on_logout):
             pass
 
     def handle_export(export_type, extension):
-        content = download_export(export_type)
-        if content:
-            downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads")
-            os.makedirs(downloads_folder, exist_ok=True)
-            filepath = os.path.join(downloads_folder, f"registre_cimetiere.{extension}")
-            with open(filepath, "wb") as f:
-                f.write(content)
-            export_status.value = f"Fichier enregistré : {filepath}"
-            export_status.color = COLOR_GREEN
-            export_status.visible = True
-            page.update()
-            open_file_location(filepath)
-        else:
-            export_status.value = "Erreur lors de l'export"
-            export_status.color = "#EF4444"
-            export_status.visible = True
-            page.update()
+        """Ouvre l'URL d'export de l'API Ninja/Django directement dans le navigateur."""
+        # Remplacez BASE_URL par la variable de configuration de votre API backend
+        # ex: "https://cimetiere-backend-v2-production.up.railway.app/api"
+        export_url = f"{API_BASE_URL}/export-{export_type}"
+        
+        # Lance le téléchargement direct côté client
+        page.launch_url(export_url)
+
+        export_status.value = f"✅ Téléchargement du rapport {extension.upper()} démarré..."
+        export_status.color = COLOR_GREEN
+        export_status.visible = True
+        page.update()
 
     # --- Occupation Table ---
     if occupation_data and isinstance(occupation_data, list):
