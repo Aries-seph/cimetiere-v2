@@ -17,37 +17,31 @@ STATUT_LABELS = {
 
 
 def client_reservations_page(page: ft.Page, on_logout):
-    """Page des réservations du client repensée sous forme de Dashboard Moderne."""
+    """Page des réservations du client (Flet 0.85+ compatible)."""
     
     is_mobile = page.width < 768
-    
     navbar, _ = build_navbar(page, "CLIENT", on_logout)
     
-    # Conteneur dynamique pour la liste des cartes
     list_container = ft.Column(spacing=12, scroll=ft.ScrollMode.AUTO, expand=True)
-    
-    # Stockage local pour le filtrage par recherche
     all_reservations = []
 
-    # ============ BADGE DE STATUT MODERNE ============
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
             content=ft.Row(
                 [
-                    ft.Container(width=6, height=6, border_radius=3, bgcolor=ft.Colors.WHITE),
-                    ft.Text(label, size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
+                    ft.Container(width=6, height=6, border_radius=3, bgcolor="white"),
+                    ft.Text(label, size=11, color="white", weight=ft.FontWeight.BOLD),
                 ],
                 spacing=6,
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
             bgcolor=color,
-            padding=ft.Padding(left=10, top=4, right=10, bottom=4),
+            padding=ft.padding.symmetric(horizontal=10, vertical=4),
             border_radius=12,
         )
 
-    # ============ CARTE DE RÉSERVATION RECONSTRUITE ============
     def build_reservation_card(r):
         nom_defunt = r.get("nom_defunt", "Défunt non spécifié")
         date_deces = r.get("date_deces", "-")
@@ -61,11 +55,11 @@ def client_reservations_page(page: ft.Page, on_logout):
                             ft.Row(
                                 [
                                     ft.Container(
-                                        content=ft.Icon(ft.Icons.BOOKMARK_ROUNDED, color=COLOR_PRIMARY, size=20),
+                                        content=ft.Icon(ft.icons.BOOKMARK_ROUNDED, color=COLOR_PRIMARY, size=20),
                                         bgcolor=COLOR_BG,
                                         padding=10,
                                         border_radius=10,
-                                        border=ft.Border.all(1, COLOR_BORDER),
+                                        border=ft.border.all(1, COLOR_BORDER),
                                     ),
                                     ft.Column(
                                         [
@@ -88,7 +82,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                         [
                             ft.Row(
                                 [
-                                    ft.Icon(ft.Icons.CALENDAR_TODAY_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
+                                    ft.Icon(ft.icons.CALENDAR_TODAY_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
                                     ft.Text(f"Date de décès : {date_deces}", size=12, color=COLOR_TEXT_MUTED),
                                 ],
                                 spacing=6,
@@ -101,15 +95,15 @@ def client_reservations_page(page: ft.Page, on_logout):
                             ft.Container(
                                 content=ft.Row(
                                     [
-                                        ft.Icon(ft.Icons.CHAT_BUBBLE_OUTLINE_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
+                                        ft.Icon(ft.icons.CHAT_BUBBLE_OUTLINE_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
                                         ft.Text(commentaire, size=12, color=COLOR_TEXT_MUTED, italic=True, expand=True),
                                     ],
                                     spacing=6,
                                 ),
                                 bgcolor=COLOR_BG,
-                                padding=ft.Padding(10, 8, 10, 8),
+                                padding=ft.padding.symmetric(horizontal=10, vertical=8),
                                 border_radius=8,
-                                border=ft.Border.all(1, COLOR_BORDER),
+                                border=ft.border.all(1, COLOR_BORDER),
                             )
                         ]
                         if commentaire
@@ -121,10 +115,9 @@ def client_reservations_page(page: ft.Page, on_logout):
             bgcolor=COLOR_CARD,
             padding=18,
             border_radius=14,
-            border=ft.Border.all(1, COLOR_BORDER),
+            border=ft.border.all(1, COLOR_BORDER),
         )
 
-    # ============ MOTEUR DE RECHERCHE ET MISE À JOUR ============
     def render_list(items):
         list_container.controls.clear()
         if not items:
@@ -132,7 +125,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                 ft.Container(
                     content=ft.Column(
                         [
-                            ft.Icon(ft.Icons.EVENT_BUSY_ROUNDED, size=48, color=COLOR_TEXT_MUTED),
+                            ft.Icon(ft.icons.EVENT_BUSY_ROUNDED, size=48, color=COLOR_TEXT_MUTED),
                             ft.Text("Aucune réservation trouvée", color=COLOR_TEXT, size=15, weight=ft.FontWeight.BOLD),
                             ft.Text("Vos demandes de réservation apparaîtront ici.", color=COLOR_TEXT_MUTED, size=12),
                         ],
@@ -162,10 +155,10 @@ def client_reservations_page(page: ft.Page, on_logout):
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         focused_border_color=COLOR_PRIMARY,
-        content_padding=ft.Padding(12, 10, 12, 10),
+        content_padding=ft.padding.symmetric(horizontal=12, vertical=10),
         hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
         border_radius=10,
-        prefix_icon=ft.Icons.SEARCH_ROUNDED,
+        prefix_icon=ft.icons.SEARCH_ROUNDED,
         expand=True,
     )
 
@@ -182,10 +175,8 @@ def client_reservations_page(page: ft.Page, on_logout):
 
     search_input.on_change = perform_search
 
-    # Chargement initial
     refresh_list()
 
-    # ============ STRUCTURE PRINCIPALE ============
     content = ft.Container(
         content=ft.Column(
             [
@@ -204,14 +195,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
                 ft.Container(height=14),
-                
-                # Barre de recherche dynamique
-                ft.Row(
-                    [
-                        search_input,
-                    ],
-                ),
-                
+                ft.Row([search_input]),
                 ft.Container(height=12),
                 list_container,
                 ft.Container(height=20),
@@ -219,7 +203,7 @@ def client_reservations_page(page: ft.Page, on_logout):
             expand=True,
             scroll=ft.ScrollMode.AUTO,
         ),
-        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
+        padding=ft.padding.only(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )

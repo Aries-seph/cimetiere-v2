@@ -5,10 +5,9 @@ from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIM
 
 
 def client_profil_page(page: ft.Page, on_logout):
-    """Page de profil du client repensée sous forme de Dashboard Moderne."""
+    """Page de profil du client (Flet 0.85+ compatible)."""
     
     is_mobile = page.width < 768
-    
     navbar, _ = build_navbar(page, "CLIENT", on_logout)
     
     profile = get_my_profile() or {}
@@ -17,10 +16,8 @@ def client_profil_page(page: ft.Page, on_logout):
     email_val = profile.get("email", "")
     telephone_val = profile.get("telephone", "")
 
-    # Calcul des initiales pour un Avatar personnalisé
     initials = username_val[:2].upper() if len(username_val) >= 2 else "CL"
 
-    # ============ CHAMPS DE FORMULAIRE STYLISÉS ============
     username_field = ft.TextField(
         label="Nom d'utilisateur",
         hint_text="Ex: John Doe",
@@ -30,7 +27,7 @@ def client_profil_page(page: ft.Page, on_logout):
         border_color=COLOR_BORDER,
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-        prefix_icon=ft.Icons.PERSON_OUTLINE_ROUNDED,
+        prefix_icon=ft.icons.PERSON_OUTLINE_ROUNDED,
         border_radius=10,
         value=username_val,
     )
@@ -44,7 +41,7 @@ def client_profil_page(page: ft.Page, on_logout):
         border_color=COLOR_BORDER,
         focused_border_color=COLOR_PRIMARY,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-        prefix_icon=ft.Icons.PHONE_OUTLINED,
+        prefix_icon=ft.icons.PHONE_OUTLINED,
         border_radius=10,
         keyboard_type=ft.KeyboardType.PHONE,
         value=telephone_val,
@@ -58,8 +55,8 @@ def client_profil_page(page: ft.Page, on_logout):
         border_color=COLOR_BORDER,
         focused_border_color=COLOR_BORDER,
         label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-        prefix_icon=ft.Icons.LOCK_OUTLINED,
-        suffix_icon=ft.Icons.VERIFIED_ROUNDED,
+        prefix_icon=ft.icons.LOCK_OUTLINED,
+        suffix_icon=ft.icons.VERIFIED_ROUNDED,
         border_radius=10,
         value=email_val,
         read_only=True,
@@ -95,18 +92,17 @@ def client_profil_page(page: ft.Page, on_logout):
             error_text.visible = True
             page.update()
 
-    # ============ HERO / HEADER PROFILE BANNER ============
     profile_header_card = ft.Container(
         content=ft.Row(
             [
                 ft.Container(
-                    content=ft.Text(initials, size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    content=ft.Text(initials, size=22, weight=ft.FontWeight.BOLD, color="white"),
                     alignment=ft.Alignment.CENTER,
                     width=68,
                     height=68,
                     bgcolor=COLOR_PRIMARY,
                     border_radius=34,
-                    border=ft.Border.all(3, COLOR_BORDER),
+                    border=ft.border.all(3, COLOR_BORDER),
                 ),
                 ft.Column(
                     [
@@ -116,9 +112,9 @@ def client_profil_page(page: ft.Page, on_logout):
                                 ft.Container(
                                     content=ft.Text(role_val, size=10, weight=ft.FontWeight.BOLD, color=COLOR_PRIMARY),
                                     bgcolor=COLOR_BG,
-                                    padding=ft.Padding(8, 3, 8, 3),
+                                    padding=ft.padding.symmetric(horizontal=8, vertical=3),
                                     border_radius=12,
-                                    border=ft.Border.all(1, COLOR_PRIMARY),
+                                    border=ft.border.all(1, COLOR_PRIMARY),
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.START,
@@ -138,16 +134,15 @@ def client_profil_page(page: ft.Page, on_logout):
         bgcolor=COLOR_CARD,
         padding=20,
         border_radius=16,
-        border=ft.Border.all(1, COLOR_BORDER),
+        border=ft.border.all(1, COLOR_BORDER),
     )
 
-    # ============ CARTE D'INFORMATION DE SÉCURITÉ ============
     security_notice_card = ft.Container(
         content=ft.Column(
             [
                 ft.Row(
                     [
-                        ft.Icon(ft.Icons.SHIELD_OUTLINED, color=COLOR_PRIMARY, size=20),
+                        ft.Icon(ft.icons.SHIELD_OUTLINED, color=COLOR_PRIMARY, size=20),
                         ft.Text("Politique de sécurité", size=14, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                     spacing=8,
@@ -164,16 +159,15 @@ def client_profil_page(page: ft.Page, on_logout):
         bgcolor=COLOR_CARD,
         padding=18,
         border_radius=14,
-        border=ft.Border.all(1, COLOR_BORDER),
+        border=ft.border.all(1, COLOR_BORDER),
     )
 
-    # ============ CARTE DU FORMULAIRE DE MODIFICATION ============
     form_card = ft.Container(
         content=ft.Column(
             [
                 ft.Row(
                     [
-                        ft.Icon(ft.Icons.MANAGE_ACCOUNTS_ROUNDED, color=COLOR_PRIMARY, size=20),
+                        ft.Icon(ft.icons.MANAGE_ACCOUNTS_ROUNDED, color=COLOR_PRIMARY, size=20),
                         ft.Text("Modifier mes informations", size=15, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                     ],
                     spacing=8,
@@ -186,10 +180,10 @@ def client_profil_page(page: ft.Page, on_logout):
                 error_text,
                 success_text,
                 ft.Container(height=8),
-                ft.ElevatedButton(
+                ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=18),
+                            ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=18),
                             ft.Text("Enregistrer les modifications", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
@@ -197,10 +191,8 @@ def client_profil_page(page: ft.Page, on_logout):
                     ),
                     height=46,
                     bgcolor=COLOR_PRIMARY,
-                    color=ft.Colors.WHITE,
-                    style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=24),
-                    ),
+                    color="white",
+                    style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=24)),
                     on_click=handle_save,
                 ),
             ],
@@ -209,10 +201,9 @@ def client_profil_page(page: ft.Page, on_logout):
         bgcolor=COLOR_CARD,
         padding=24,
         border_radius=16,
-        border=ft.Border.all(1, COLOR_BORDER),
+        border=ft.border.all(1, COLOR_BORDER),
     )
 
-    # ============ DISPOSITION ADAPTATIVE / RESPONSIVE ============
     if is_mobile:
         layout_content = ft.Column(
             [
@@ -238,7 +229,6 @@ def client_profil_page(page: ft.Page, on_logout):
             spacing=16,
         )
 
-    # ============ STRUCTURE PRINCIPALE DE LA PAGE ============
     content = ft.Container(
         content=ft.Column(
             [
@@ -256,7 +246,7 @@ def client_profil_page(page: ft.Page, on_logout):
             scroll=ft.ScrollMode.AUTO,
             expand=True,
         ),
-        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
+        padding=ft.padding.only(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )

@@ -20,34 +20,27 @@ STATUT_LABELS = {
 
 
 def client_exhumations_page(page: ft.Page, on_logout):
-    """Page des exhumations du client avec tableau et barre de recherche."""
+    """Page des exhumations du client (Flet 0.85+ compatible)."""
     
     is_mobile = page.width < 768
-    
     navbar, _ = build_navbar(page, "CLIENT", on_logout)
     
-    # Conteneur principal scrollable pour le tableau des exhumations
     table_container = ft.Container(expand=True)
-    
-    # Stockage local de la liste brute pour le filtrage
     all_exhumations = []
 
-    # ============ STATUS BADGE ============
     def status_badge(statut):
         color = STATUT_COLORS.get(statut, "#6B7280")
         label = STATUT_LABELS.get(statut, statut)
         return ft.Container(
-            content=ft.Text(label, size=11, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
+            content=ft.Text(label, size=11, color="white", weight=ft.FontWeight.W_500),
             bgcolor=color,
-            padding=ft.Padding(left=10, top=2, right=10, bottom=2),
+            padding=ft.padding.symmetric(horizontal=10, vertical=2),
             border_radius=20,
         )
 
-    # ============ DIALOGUES NOUVELLE GÉNÉRATION ============
     def open_create_dialog():
         selected_date_val = [None]
 
-        # Champs re-stylisés avec icônes préfixes intégrées
         caveau_id_field = ft.TextField(
             label="ID du caveau",
             hint_text="Ex: 102",
@@ -57,7 +50,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.Icons.TAG_ROUNDED,
+            prefix_icon=ft.icons.TAG_ROUNDED,
             keyboard_type=ft.KeyboardType.NUMBER,
             border_radius=10,
         )
@@ -71,7 +64,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.Icons.PERSON_OUTLINE_ROUNDED,
+            prefix_icon=ft.icons.PERSON_OUTLINE_ROUNDED,
             border_radius=10,
         )
 
@@ -87,13 +80,11 @@ def client_exhumations_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.Icons.DESCRIPTION_OUTLINED,
+            prefix_icon=ft.icons.DESCRIPTION_OUTLINED,
             border_radius=10,
         )
 
-        # Composant de sélection de date repensé sous forme de Carte interactive
         date_display_text = ft.Text("Choisir une date", color=COLOR_TEXT_MUTED, size=13)
-        date_badge_icon = ft.Icon(ft.Icons.CALENDAR_MONTH_ROUNDED, color=COLOR_PRIMARY, size=20)
 
         def handle_date_change(e):
             if date_picker.value:
@@ -112,7 +103,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
         date_selector_card = ft.Container(
             content=ft.Row(
                 [
-                    date_badge_icon,
+                    ft.Icon(ft.icons.CALENDAR_MONTH_ROUNDED, color=COLOR_PRIMARY, size=20),
                     ft.Column(
                         [
                             ft.Text("Date d'exhumation souhaitée", color=COLOR_TEXT_MUTED, size=11, weight=ft.FontWeight.W_500),
@@ -121,13 +112,13 @@ def client_exhumations_page(page: ft.Page, on_logout):
                         spacing=2,
                         expand=True,
                     ),
-                    ft.Icon(ft.Icons.CHEVRON_RIGHT_ROUNDED, color=COLOR_TEXT_MUTED, size=18),
+                    ft.Icon(ft.icons.CHEVRON_RIGHT_ROUNDED, color=COLOR_TEXT_MUTED, size=18),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
-            padding=ft.Padding(12, 10, 12, 10),
+            padding=ft.padding.symmetric(horizontal=12, vertical=10),
             bgcolor=COLOR_BG,
-            border=ft.Border.all(1, COLOR_BORDER),
+            border=ft.border.all(1, COLOR_BORDER),
             border_radius=10,
             width=360,
             on_click=lambda e: setattr(date_picker, "open", True) or page.update(),
@@ -171,18 +162,17 @@ def client_exhumations_page(page: ft.Page, on_logout):
                 error_text.visible = True
                 page.update()
 
-        # En-tête personnalisé (Header) stylisé avec icône de titre et bouton de fermeture X
         dialog_header = ft.Container(
             content=ft.Row(
                 [
                     ft.Row(
                         [
                             ft.Container(
-                                content=ft.Icon(ft.Icons.UNARCHIVE_ROUNDED, color=COLOR_PRIMARY, size=22),
+                                content=ft.Icon(ft.icons.UNARCHIVE_ROUNDED, color=COLOR_PRIMARY, size=22),
                                 bgcolor=COLOR_BG,
                                 padding=8,
                                 border_radius=10,
-                                border=ft.Border.all(1, COLOR_BORDER),
+                                border=ft.border.all(1, COLOR_BORDER),
                             ),
                             ft.Column(
                                 [
@@ -195,7 +185,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                         spacing=12,
                     ),
                     ft.IconButton(
-                        icon=ft.Icons.CLOSE_ROUNDED,
+                        icon=ft.icons.CLOSE_ROUNDED,
                         icon_color=COLOR_TEXT_MUTED,
                         icon_size=20,
                         on_click=close_dialog_action,
@@ -203,10 +193,9 @@ def client_exhumations_page(page: ft.Page, on_logout):
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
-            padding=ft.Padding(0, 0, 0, 10),
+            padding=ft.padding.only(bottom=10),
         )
 
-        # Formulaire assemblé dans une vue moderne
         dialog_body = ft.Column(
             [
                 dialog_header,
@@ -219,10 +208,10 @@ def client_exhumations_page(page: ft.Page, on_logout):
                 error_text,
                 success_text,
                 ft.Container(height=10),
-                ft.ElevatedButton(
+                ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.Icons.SEND_ROUNDED, size=16),
+                            ft.Icon(ft.icons.SEND_ROUNDED, size=16),
                             ft.Text("Soumettre la demande", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
@@ -231,10 +220,8 @@ def client_exhumations_page(page: ft.Page, on_logout):
                     width=360,
                     height=45,
                     bgcolor=COLOR_PRIMARY,
-                    color=ft.Colors.WHITE,
-                    style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=24),
-                    ),
+                    color="white",
+                    style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=24)),
                     on_click=handle_submit,
                 ),
             ],
@@ -244,20 +231,17 @@ def client_exhumations_page(page: ft.Page, on_logout):
             scroll=ft.ScrollMode.AUTO,
         )
 
-        # Structure du Custom Card Dialog
         dialog = ft.AlertDialog(
             bgcolor=COLOR_CARD,
             content_padding=24,
             shape=ft.RoundedRectangleBorder(radius=20),
             content=dialog_body,
-            actions=[],  # Actions intégrées directement dans le corps
         )
         
         page.overlay.append(dialog)
         dialog.open = True
         page.update()
 
-    # ============ REFRESH & GENERATION DU TABLEAU ============
     def render_table(exhumations_to_show):
         if not exhumations_to_show:
             table_container.content = ft.Text("Aucune demande d'exhumation correspondante", color=COLOR_TEXT_MUTED, size=14)
@@ -290,7 +274,6 @@ def client_exhumations_page(page: ft.Page, on_logout):
                         columns=columns,
                         rows=rows,
                         divider_thickness=1,
-                        horizontal_lines=ft.BorderSide(1, COLOR_BORDER),
                         heading_row_height=45,
                         data_row_min_height=48,
                     )
@@ -306,14 +289,13 @@ def client_exhumations_page(page: ft.Page, on_logout):
             all_exhumations = []
         render_table(all_exhumations)
 
-    # ============ COMPOSANTS DE RECHERCHE FILTRANTE ============
     search_input = ft.TextField(
         hint_text="Rechercher un défunt...",
         bgcolor=COLOR_CARD,
         color=COLOR_TEXT,
         border_color=COLOR_BORDER,
         focused_border_color=COLOR_PRIMARY,
-        content_padding=ft.Padding(12, 8, 12, 8),
+        content_padding=ft.padding.symmetric(horizontal=12, vertical=8),
         hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED),
         border_radius=8,
         expand=True,
@@ -330,19 +312,17 @@ def client_exhumations_page(page: ft.Page, on_logout):
             ]
             render_table(filtered)
 
-    search_button = ft.ElevatedButton(
-        text="Rechercher",
-        icon=ft.Icons.SEARCH_ROUNDED,
-        bgcolor="#1F2937",  # Teinte dark élégante
-        color=ft.Colors.WHITE,
+    search_button = ft.Button(
+        content="Rechercher",
+        icon=ft.icons.SEARCH_ROUNDED,
+        bgcolor="#1F2937",
+        color="white",
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
         on_click=perform_search,
     )
 
-    # Lancement initial des données
     refresh_list()
 
-    # ============ STRUCTURE PRINCIPALE ============
     content = ft.Container(
         content=ft.Column(
             [
@@ -352,27 +332,18 @@ def client_exhumations_page(page: ft.Page, on_logout):
                     [
                         ft.Text("Mes exhumations", size=22 if is_mobile else 26, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                         ft.Container(expand=True),
-                        ft.ElevatedButton(
-                            "Nouvelle demande",
-                            icon=ft.Icons.ADD,
+                        ft.Button(
+                            content="Nouvelle demande",
+                            icon=ft.icons.ADD,
                             bgcolor=COLOR_PRIMARY,
-                            color=ft.Colors.WHITE,
+                            color="white",
                             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
                             on_click=lambda e: open_create_dialog(),
                         ),
                     ],
                 ),
                 ft.Container(height=15),
-                
-                # Barre de recherche stylisée
-                ft.Row(
-                    [
-                        search_input,
-                        search_button
-                    ],
-                    spacing=10,
-                ),
-                
+                ft.Row([search_input, search_button], spacing=10),
                 ft.Container(height=15),
                 table_container,
                 ft.Container(height=20),
@@ -380,7 +351,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
             expand=True,
             scroll=ft.ScrollMode.AUTO,
         ),
-        padding=ft.Padding(left=20, top=0, right=20, bottom=20),
+        padding=ft.padding.only(left=20, top=0, right=20, bottom=20),
         expand=True,
         bgcolor=COLOR_BG,
     )
