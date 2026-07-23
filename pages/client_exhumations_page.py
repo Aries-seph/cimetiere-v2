@@ -314,7 +314,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
 
     search_button = ft.Button(
         content="Rechercher",
-        icon=ft.IconsSEARCH,
+        icon=ft.Icons.SEARCH,
         bgcolor="#1F2937",
         color="white",
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
@@ -334,7 +334,7 @@ def client_exhumations_page(page: ft.Page, on_logout):
                         ft.Container(expand=True),
                         ft.Button(
                             content="Nouvelle demande",
-                            icon=ft.IconsADD,
+                            icon=ft.Icons.ADD,
                             bgcolor=COLOR_PRIMARY,
                             color="white",
                             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),

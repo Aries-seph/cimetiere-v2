@@ -158,7 +158,7 @@ def client_reservations_page(page: ft.Page, on_logout):
         content_padding=ft.Padding.symmetric(horizontal=12, vertical=10),
         hint_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
         border_radius=10,
-        prefix_icon=ft.IconsSEARCH,
+        prefix_icon=ft.Icons.SEARCH,
         expand=True,
     )
 

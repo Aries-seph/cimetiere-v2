@@ -60,7 +60,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                         spacing=12,
                     ),
                     ft.IconButton(
-                        icon=ft.IconsCLOSE,
+                        icon=ft.Icons.CLOSE,
                         icon_color=COLOR_TEXT_MUTED,
                         icon_size=20,
                         on_click=lambda e: close_dialog(info_dialog),
@@ -117,7 +117,7 @@ def client_paiements_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.IconsBOOKMARK_BORDER_ROUNDED,
+            prefix_icon=ft.Icons.BOOKMARK_BORDER_ROUNDED,
             border_radius=10,
             options=[
                 ft.dropdown.Option(key=str(r["id"]), text=f"#{r['id']} - {r.get('nom_defunt', '')}")
@@ -134,7 +134,7 @@ def client_paiements_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.IconsATTACH_MONEY_ROUNDED,
+            prefix_icon=ft.Icons.ATTACH_MONEY_ROUNDED,
             border_radius=10,
             keyboard_type=ft.KeyboardType.NUMBER,
         )
@@ -147,7 +147,7 @@ def client_paiements_page(page: ft.Page, on_logout):
             border_color=COLOR_BORDER,
             focused_border_color=COLOR_PRIMARY,
             label_style=ft.TextStyle(color=COLOR_TEXT_MUTED, size=13),
-            prefix_icon=ft.IconsACCOUNT_BALANCE_WALLET_OUTLINED,
+            prefix_icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED,
             border_radius=10,
             options=[
                 ft.dropdown.Option(key="MOBILE_MONEY", text="Mobile Money"),
@@ -214,7 +214,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                         spacing=12,
                     ),
                     ft.IconButton(
-                        icon=ft.IconsCLOSE,
+                        icon=ft.Icons.CLOSE,
                         icon_color=COLOR_TEXT_MUTED,
                         icon_size=20,
                         on_click=close_dialog_action,
@@ -239,7 +239,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                 ft.Button(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.IconsCHECK_CIRCLE_OUTLINE, size=16),
+                            ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, size=16),
                             ft.Text("Valider le paiement", weight=ft.FontWeight.BOLD, size=14),
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
@@ -322,7 +322,7 @@ def client_paiements_page(page: ft.Page, on_logout):
                         ft.Container(expand=True),
                         ft.Button(
                             content="Nouveau paiement",
-                            icon=ft.IconsADD,
+                            icon=ft.Icons.ADD,
                             bgcolor=COLOR_PRIMARY,
                             color="white",
                             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
