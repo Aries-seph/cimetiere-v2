@@ -84,7 +84,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
 
         error_text = ft.Container(
             content=ft.Row([
-                ft.Icon(ft.icons.ERROR_OUTLINE, color=COLOR_RED, size=16),
+                ft.Icon(ft.Icons.ERROR_OUTLINE, color=COLOR_RED, size=16),
                 ft.Text("", color=COLOR_RED, size=12, weight=ft.FontWeight.W_500),
             ], spacing=6),
             visible=False,
@@ -92,7 +92,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
 
         success_text = ft.Container(
             content=ft.Row([
-                ft.Icon(ft.icons.CHECK_CIRCLE_OUTLINE, color=COLOR_GREEN, size=16),
+                ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, color=COLOR_GREEN, size=16),
                 ft.Text("", color=COLOR_GREEN, size=12, weight=ft.FontWeight.W_500),
             ], spacing=6),
             visible=False,
@@ -135,7 +135,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
             shape=ft.RoundedRectangleBorder(radius=16),
             title=ft.Row(
                 [
-                    ft.Icon(ft.icons.BOOKMARK_ADD_ROUNDED, color=COLOR_PRIMARY, size=24),
+                    ft.Icon(ft.Icons.BOOKMARK_ADD_ROUNDED, color=COLOR_PRIMARY, size=24),
                     ft.Text(f"Réserver le Caveau {caveau.get('reference', '')}", size=18, weight=ft.FontWeight.BOLD, color=COLOR_TEXT),
                 ],
                 spacing=10,
@@ -184,7 +184,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                         [
                             # Icône d'illustration
                             ft.Container(
-                                content=ft.Icon(ft.icons.CROP_FREE_ROUNDED, color=COLOR_PRIMARY, size=22),
+                                content=ft.Icon(ft.Icons.CROP_FREE_ROUNDED, color=COLOR_PRIMARY, size=22),
                                 bgcolor=COLOR_BG,
                                 padding=12,
                                 border_radius=10,
@@ -212,7 +212,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                                     ),
                                     ft.Row(
                                         [
-                                            ft.Icon(ft.icons.STRAIGHTEN_ROUNDED, size=14, color=COLOR_TEXT_MUTED),
+                                            ft.Icon(ft.Icons.STRAIGHTEN_ROUNDED, size=14, color=COLOR_TEXT_MUTED),
                                             ft.Text(
                                                 f"Dimensions : {caveau.get('longueur', '-')} m × {caveau.get('largeur', '-')} m",
                                                 size=13,
@@ -230,7 +230,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                     # Côté Droit : Action
                     ft.Button(
                         "Réserver",
-                        icon=ft.icons.LOCATION_ON_OUTLINED,
+                        icon=ft.Icons.LOCATION_ON_OUTLINED,
                         bgcolor=COLOR_PRIMARY,
                         color=ft.colors.WHITE,
                         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
@@ -262,7 +262,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                 ft.Container(
                     content=ft.Column(
                         [
-                            ft.Icon(ft.icons.INBOX_OUTLINED, size=48, color=COLOR_TEXT_MUTED),
+                            ft.Icon(ft.Icons.INBOX_OUTLINED, size=48, color=COLOR_TEXT_MUTED),
                             ft.Text("Aucun caveau disponible", size=16, weight=ft.FontWeight.W_600, color=COLOR_TEXT),
                             ft.Text("Revenez plus tard ou contactez l'administration.", size=13, color=COLOR_TEXT_MUTED),
                         ],

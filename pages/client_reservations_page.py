@@ -55,7 +55,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                             ft.Row(
                                 [
                                     ft.Container(
-                                        content=ft.Icon(ft.icons.BOOKMARK_ROUNDED, color=COLOR_PRIMARY, size=20),
+                                        content=ft.Icon(ft.Icons.BOOKMARK_ROUNDED, color=COLOR_PRIMARY, size=20),
                                         bgcolor=COLOR_BG,
                                         padding=10,
                                         border_radius=10,
@@ -82,7 +82,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                         [
                             ft.Row(
                                 [
-                                    ft.Icon(ft.icons.CALENDAR_TODAY_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
+                                    ft.Icon(ft.Icons.CALENDAR_TODAY_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
                                     ft.Text(f"Date de décès : {date_deces}", size=12, color=COLOR_TEXT_MUTED),
                                 ],
                                 spacing=6,
@@ -95,7 +95,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                             ft.Container(
                                 content=ft.Row(
                                     [
-                                        ft.Icon(ft.icons.CHAT_BUBBLE_OUTLINE_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
+                                        ft.Icon(ft.Icons.CHAT_BUBBLE_OUTLINE_ROUNDED, color=COLOR_TEXT_MUTED, size=14),
                                         ft.Text(commentaire, size=12, color=COLOR_TEXT_MUTED, italic=True, expand=True),
                                     ],
                                     spacing=6,
@@ -125,7 +125,7 @@ def client_reservations_page(page: ft.Page, on_logout):
                 ft.Container(
                     content=ft.Column(
                         [
-                            ft.Icon(ft.icons.EVENT_BUSY_ROUNDED, size=48, color=COLOR_TEXT_MUTED),
+                            ft.Icon(ft.Icons.EVENT_BUSY_ROUNDED, size=48, color=COLOR_TEXT_MUTED),
                             ft.Text("Aucune réservation trouvée", color=COLOR_TEXT, size=15, weight=ft.FontWeight.BOLD),
                             ft.Text("Vos demandes de réservation apparaîtront ici.", color=COLOR_TEXT_MUTED, size=12),
                         ],
