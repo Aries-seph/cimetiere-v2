@@ -38,14 +38,14 @@ def rapports_page(page: ft.Page, on_logout):
         except Exception:
             pass
 
-    def handle_export(export_type, extension):
+    async def handle_export(export_type, extension):
         """Ouvre l'URL d'export de l'API Ninja/Django directement dans le navigateur."""
         # Remplacez BASE_URL par la variable de configuration de votre API backend
         # ex: "https://cimetiere-backend-v2-production.up.railway.app/api"
         export_url = f"{API_BASE_URL}/export-{export_type}"
         
         # Lance le téléchargement direct côté client
-        page.launch_url(export_url)
+        await page.launch_url(export_url)
 
         export_status.value = f"✅ Téléchargement du rapport {extension.upper()} démarré..."
         export_status.color = COLOR_GREEN
