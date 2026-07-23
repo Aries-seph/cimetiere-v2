@@ -40,12 +40,10 @@ def rapports_page(page: ft.Page, on_logout):
 
     async def handle_export(export_type, extension):
         """Ouvre l'URL d'export de l'API Ninja/Django directement dans le navigateur."""
-        # Remplacez BASE_URL par la variable de configuration de votre API backend
-        # ex: "https://cimetiere-backend-v2-production.up.railway.app/api"
-        export_url = f"{API_BASE_URL}/export-{export_type}"
-        
-        # Lance le téléchargement direct côté client
-        await page.launch_url(export_url)
+        token = page.shared_preferences.get("access_token")  # adapte la clé si tu stockes différemment
+        export_url = f"{API_BASE_URL}/export-{export_type}?token={token}"
+
+        await page.launch_url(export_url, web_popup_window_name=ft.UrlTarget.SELF)
 
         export_status.value = f"✅ Téléchargement du rapport {extension.upper()} démarré..."
         export_status.color = COLOR_GREEN
@@ -190,20 +188,16 @@ def rapports_page(page: ft.Page, on_logout):
                             icon=ft.Icons.SIM_CARD_DOWNLOAD_OUTLINED,
                             bgcolor="#1F2937",
                             color=ft.Colors.WHITE,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=8),
-                            ),
-                            on_click=lambda e: handle_export("csv", "csv"),
+                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                            on_click=lambda e: page.run_task(handle_export, "csv", "csv"),
                         ),
                         ft.ElevatedButton(
                             "Excel",
                             icon=ft.Icons.DOWNLOAD_FOR_OFFLINE_OUTLINED,
                             bgcolor=COLOR_PRIMARY,
                             color=ft.Colors.WHITE,
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=8),
-                            ),
-                            on_click=lambda e: handle_export("excel", "xlsx"),
+                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                            on_click=lambda e: page.run_task(handle_export, "excel", "xlsx"),
                         ),
                     ],
                     spacing=12,
