@@ -146,7 +146,7 @@ def users_page(page: ft.Page, on_logout):
                                         icon=ft.Icons.BLOCK if is_active else ft.Icons.CHECK_CIRCLE_OUTLINE,
                                         icon_color=COLOR_RED if is_active else COLOR_GREEN,
                                         icon_size=18,
-                                        tooltip="Désactiver" if is_active else "Activer",
+                                        tooltip="Supprimer" if is_active else "Activer",
                                         on_click=lambda e, uid=u["id"]: handle_toggle_active(uid),
                                     ),
                                 ],
