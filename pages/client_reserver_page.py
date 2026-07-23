@@ -160,7 +160,7 @@ def client_reserver_page(page: ft.Page, on_logout, preselect_caveau_id=None):
                 ft.TextButton("Annuler", on_click=handle_cancel),
                 ft.ElevatedButton(
                     "Confirmer la demande",
-                    icon=ft.icons.SEND,
+                    icon=ft.Icons.SEND,
                     bgcolor=COLOR_PRIMARY,
                     color=ft.Colors.WHITE,
                     style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
