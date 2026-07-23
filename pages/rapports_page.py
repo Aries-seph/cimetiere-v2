@@ -1,7 +1,5 @@
 # pages/rapports_page.py
 import flet as ft
-import tempfile
-import os
 from components.navbar import build_navbar
 from components.data_fetcher import get_occupation_par_bloc, get_revenus_par_canal, download_export
 from theme import COLOR_BG, COLOR_CARD, COLOR_TEXT, COLOR_TEXT_MUTED, COLOR_PRIMARY, COLOR_GREEN, COLOR_BORDER
@@ -25,35 +23,45 @@ def rapports_page(page: ft.Page, on_logout):
     revenus_data = get_revenus_par_canal() or []
 
     export_status = ft.Text("", size=12, color=COLOR_GREEN, visible=False)
+    
+    # Créer un FilePicker
+    file_picker = ft.FilePicker()
+    page.overlay.append(file_picker)
+    page.update()
 
-    def handle_export(export_type, extension):
-        """Télécharge le fichier via page.download()."""
-        result = download_export(export_type)
-        
-        if result and result.get("status_code") == 200:
-            content = result.get("content")
-            
-            # Créer un fichier temporaire
-            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{extension}") as tmp_file:
-                tmp_file.write(content)
-                tmp_path = tmp_file.name
-            
-            # Télécharger via page.download()
-            page.download(
-                url=f"file://{tmp_path}",
-                file_name=f"registre_cimetiere.{extension}",
-            )
-            
-            export_status.value = f"✅ Téléchargement de {extension.upper()} démarré"
+    # Variable pour stocker le contenu du fichier
+    file_content = [None]
+    file_extension = [""]
+
+    def on_file_saved(e: ft.FilePickerResultEvent):
+        if e.path:
+            with open(e.path, "wb") as f:
+                f.write(file_content[0])
+            export_status.value = f"✅ Fichier sauvegardé : {e.path}"
             export_status.color = COLOR_GREEN
             export_status.visible = True
             page.update()
+        else:
+            export_status.value = "❌ Sauvegarde annulée"
+            export_status.color = "#EF4444"
+            export_status.visible = True
+            page.update()
+
+    file_picker.on_result = on_file_saved
+
+    def handle_export(export_type, extension):
+        """Télécharge le fichier via FilePicker."""
+        result = download_export(export_type)
+        
+        if result and result.get("status_code") == 200:
+            file_content[0] = result.get("content")
+            file_extension[0] = extension
             
-            # Nettoyer le fichier temporaire après téléchargement
-            try:
-                os.unlink(tmp_path)
-            except:
-                pass
+            # Ouvrir la boîte de dialogue de sauvegarde
+            file_picker.save_file(
+                file_name=f"registre_cimetiere.{extension}",
+                allowed_extensions=[extension],
+            )
         else:
             export_status.value = "❌ Erreur lors de l'export"
             export_status.color = "#EF4444"
